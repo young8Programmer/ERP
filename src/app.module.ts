@@ -15,7 +15,7 @@ import { CoursesModule } from './courses/courses.module';
       password: '1234',
       database: 'erp',
       entities: [User, Course],
-      synchronize: true,
+      synchronize: process.env.NODE_ENV !== 'production',
     }),
     CoursesModule,
     UsersModule,
