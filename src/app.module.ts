@@ -12,7 +12,7 @@ import { CoursesModule } from './courses/courses.module';
       host: 'localhost',
       port: 5432,
       username: 'postgres',
-      password: 'azizbek002',
+      password: '1234',
       database: 'erp',
       entities: [User, Course],
       synchronize: true,
