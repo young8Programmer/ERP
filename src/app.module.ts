@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './users/entities/user.entity';
-import { Course } from './courses/entities/course.entity';
+import { Users } from './users/entities/user.entity';
+import { Courses } from './courses/entities/course.entity';
 import { UsersModule } from './users/users.module';
 import { CoursesModule } from './courses/courses.module';
 
@@ -14,7 +14,7 @@ import { CoursesModule } from './courses/courses.module';
       username: 'postgres',
       password: '1234',
       database: 'erp',
-      entities: [User, Course],
+      entities: [Users, Courses],
       synchronize: process.env.NODE_ENV !== 'production',
     }),
     CoursesModule,
