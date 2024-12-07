@@ -1,44 +1,51 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Users } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
-  private users: Users[] = [];
+  constructor(
+    @InjectRepository(Users)
+    private readonly usersRepository: Repository<Users>,
+  ) {}
 
-  // Barcha user-larni ko'rish
-  findAll(): Users[] {
-    return this.users;
+  async findAll(): Promise<Users[]> {
+    return await this.usersRepository.find();
   }
 
-  // Userni ID bo'yicha topish
-  findOne(id: string): Users | undefined {
-    return this.users.find((user) => user.id === id);
+  async findOne(id: string): Promise<Users> {
+    const user = await this.usersRepository.findOne({
+      where: {id}
+    });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found!`);
+    }
+    return user;
   }
 
-  // User yaratish
-  create(createUserDto: CreateUserDto): Users {
-    const newUser: Users = { id: Date.now().toString(), ...createUserDto };
-    this.users.push(newUser);
-    return newUser;
+  async create(createUserDto: CreateUserDto): Promise<Users> {
+    const newUser = this.usersRepository.create(createUserDto);
+    return await this.usersRepository.save(newUser);
   }
 
-  // Userni yangilash
-  update(id: string, updateUserDto: Partial<Users>): Users | undefined {
-    const userIndex = this.users.findIndex((user) => user.id === id);
-    if (userIndex === -1) return undefined;
-
-    this.users[userIndex] = { ...this.users[userIndex], ...updateUserDto };
-    return this.users[userIndex];
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<Users> {
+    const user = await this.findOne(id);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found!`);
+    }
+    Object.assign(user, updateUserDto);
+    return await this.usersRepository.save(user);
   }
 
-  // Userni o'chirish
-  remove(id: string): Users | undefined {
-    const userIndex = this.users.findIndex((user) => user.id === id);
-    if (userIndex === -1) return undefined;
-
-    const deletedUser = this.users[userIndex];
-    this.users.splice(userIndex, 1);
-    return deletedUser;
+  async remove(id: string): Promise<Users> {
+    const user = await this.findOne(id);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found!`);
+    }
+    await this.usersRepository.remove(user);
+    return user;
   }
 }

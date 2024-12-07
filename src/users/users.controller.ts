@@ -8,14 +8,16 @@ import {
   Body,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  findAll() {
-    const users = this.usersService.findAll();
+  async findAll() {
+    const users = await this.usersService.findAll();
     return {
       message: 'All users retrieved successfully!',
       data: users,
@@ -23,11 +25,8 @@ export class UsersController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    const user = this.usersService.findOne(id);
-    if (!user) {
-      return { message: `User with ID ${id} not found!` };
-    }
+  async findOne(@Param('id') id: string) {
+    const user = await this.usersService.findOne(id);
     return {
       message: `User with ID ${id} retrieved successfully!`,
       data: user,
@@ -35,8 +34,8 @@ export class UsersController {
   }
 
   @Post()
-  create(@Body() createUserDto: any) {
-    const newUser = this.usersService.create(createUserDto);
+  async create(@Body() createUserDto: CreateUserDto) {
+    const newUser = await this.usersService.create(createUserDto);
     return {
       message: 'User created successfully!',
       data: newUser,
@@ -44,11 +43,8 @@ export class UsersController {
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: any) {
-    const updatedUser = this.usersService.update(id, updateUserDto);
-    if (!updatedUser) {
-      return { message: `User with ID ${id} not found!` };
-    }
+  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    const updatedUser = await this.usersService.update(id, updateUserDto);
     return {
       message: `User with ID ${id} updated successfully!`,
       data: updatedUser,
@@ -56,11 +52,8 @@ export class UsersController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    const deletedUser = this.usersService.remove(id);
-    if (!deletedUser) {
-      return { message: `User with ID ${id} not found!` };
-    }
+  async remove(@Param('id') id: string) {
+    const deletedUser = await this.usersService.remove(id);
     return {
       message: `User with ID ${id} deleted successfully!`,
       data: deletedUser,
