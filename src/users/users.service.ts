@@ -1,30 +1,30 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { User } from './entities/user.entity';
+import { Users } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UsersService {
-  private users: User[] = [];
+  private users: Users[] = [];
 
   // Barcha user-larni ko'rish
-  findAll(): User[] {
+  findAll(): Users[] {
     return this.users;
   }
 
   // Userni ID bo'yicha topish
-  findOne(id: string): User | undefined {
+  findOne(id: string): Users | undefined {
     return this.users.find((user) => user.id === id);
   }
 
   // User yaratish
-  create(createUserDto: CreateUserDto): User {
-    const newUser: User = { id: Date.now().toString(), ...createUserDto };
+  create(createUserDto: CreateUserDto): Users {
+    const newUser: Users = { id: Date.now().toString(), ...createUserDto };
     this.users.push(newUser);
     return newUser;
   }
 
   // Userni yangilash
-  update(id: string, updateUserDto: Partial<User>): User | undefined {
+  update(id: string, updateUserDto: Partial<Users>): Users | undefined {
     const userIndex = this.users.findIndex((user) => user.id === id);
     if (userIndex === -1) return undefined;
 
@@ -33,7 +33,7 @@ export class UsersService {
   }
 
   // Userni o'chirish
-  remove(id: string): User | undefined {
+  remove(id: string): Users | undefined {
     const userIndex = this.users.findIndex((user) => user.id === id);
     if (userIndex === -1) return undefined;
 
