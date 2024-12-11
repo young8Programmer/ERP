@@ -13,4 +13,5 @@ export class Courses {
 
   @Column('decimal', { precision: 10, scale: 2 })
   price: number;
+  users: any;
 }

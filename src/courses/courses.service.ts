@@ -16,9 +16,12 @@ export class CoursesService {
     return this.courses.find((course) => course.id === id);
   }
 
-  // Kurs yaratish
-  create(createCourseDto: CreateCourseDto): Courses {
-    const newCourse: Courses = { id: Date.now().toString(), ...createCourseDto };
+  // Kurs yaratis
+  create(createCourseDto: CreateCourseDto): Course {
+    const newCourse: Course = {
+      id: Date.now().toString(), ...createCourseDto,
+      users: undefined
+    };
     this.courses.push(newCourse);
     return newCourse;
   }

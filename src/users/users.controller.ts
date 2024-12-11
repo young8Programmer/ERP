@@ -2,61 +2,49 @@ import {
   Controller,
   Get,
   Post,
-  Put,
-  Delete,
-  Param,
   Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @UseGuards(AuthGuard, RolesGuard)
+  @Post('create')
+  async createUser(
+    @Body('name') name: string,
+    @Body('email') email: string,
+    @Body('password') password: string,
+    @Body('role') role: string,
+  ) {
+    return await this.usersService.createAdmin(name, email, password, role);
+  }
+
   @Get()
-  async findAll() {
-    const users = await this.usersService.findAll();
-    return {
-      message: 'All users retrieved successfully!',
-      data: users,
-    };
+  findAll() {
+    return this.usersService.findAll();
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    const user = await this.usersService.findOne(id);
-    return {
-      message: `User with ID ${id} retrieved successfully!`,
-      data: user,
-    };
+  findOne(@Param('id') id: string) {
+    return this.usersService.findOne(+id);
   }
 
-  @Post()
-  async create(@Body() createUserDto: CreateUserDto) {
-    const newUser = await this.usersService.create(createUserDto);
-    return {
-      message: 'User created successfully!',
-      data: newUser,
-    };
-  }
-
-  @Put(':id')
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    const updatedUser = await this.usersService.update(id, updateUserDto);
-    return {
-      message: `User with ID ${id} updated successfully!`,
-      data: updatedUser,
-    };
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(+id, updateUserDto);
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
-    const deletedUser = await this.usersService.remove(id);
-    return {
-      message: `User with ID ${id} deleted successfully!`,
-      data: deletedUser,
-    };
+  remove(@Param('id') id: string) {
+    return this.usersService.remove(+id);
   }
 }
