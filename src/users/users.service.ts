@@ -14,13 +14,13 @@ export class UsersService {
   ) {}
 
   async createAdmin(
-    name: string,
+    fullName: string,
     email: string,
     password: string,
     role: string,
   ) {
     const user = this.userRepository.create({
-      name,
+      fullName,
       email,
       password,
       role,
