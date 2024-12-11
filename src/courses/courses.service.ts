@@ -1,22 +1,22 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Course } from './entities/course.entity';
+import { Courses } from './entities/course.entity';
 import { CreateCourseDto } from './dto/create-course.dto';
 
 @Injectable()
 export class CoursesService {
-  private courses: Course[] = [];
+  private courses: Courses[] = [];
 
   // Barcha kurslarni ko'rish
-  findAll(): Course[] {
+  findAll(): Courses[] {
     return this.courses;
   }
 
   // Kursni ID bo'yicha topish
-  findOne(id: string): Course | undefined {
+  findOne(id: string): Courses | undefined {
     return this.courses.find((course) => course.id === id);
   }
 
-  // Kurs yaratish
+  // Kurs yaratis
   create(createCourseDto: CreateCourseDto): Course {
     const newCourse: Course = {
       id: Date.now().toString(), ...createCourseDto,
@@ -27,7 +27,7 @@ export class CoursesService {
   }
 
   // Kursni yangilash
-  update(id: string, updateCourseDto: Partial<Course>): Course | undefined {
+  update(id: string, updateCourseDto: Partial<Courses>): Courses | undefined {
     const courseIndex = this.courses.findIndex((course) => course.id === id);
     if (courseIndex === -1) return undefined;
 
@@ -39,7 +39,7 @@ export class CoursesService {
   }
 
   // Kursni o'chirish
-  remove(id: string): Course | undefined {
+  remove(id: string): Courses | undefined {
     const courseIndex = this.courses.findIndex((course) => course.id === id);
     if (courseIndex === -1) return undefined;
 

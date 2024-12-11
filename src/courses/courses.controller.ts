@@ -6,8 +6,11 @@ import {
   Delete,
   Param,
   Body,
+  NotFoundException,
 } from '@nestjs/common';
 import { CoursesService } from './courses.service';
+import { Courses } from './entities/course.entity';
+import { CreateCourseDto } from './dto/create-course.dto';
 
 @Controller('courses')
 export class CoursesController {
@@ -26,7 +29,7 @@ export class CoursesController {
   findOne(@Param('id') id: string) {
     const course = this.coursesService.findOne(id);
     if (!course) {
-      return { message: `Course with ID ${id} not found!` };
+      throw new NotFoundException(`Course with ID ${id} not found!`);
     }
     return {
       message: `Course with ID ${id} retrieved successfully!`,
@@ -34,8 +37,8 @@ export class CoursesController {
     };
   }
 
-  @Post('create')
-  create(@Body() createCourseDto: any) {
+  @Post()
+  create(@Body() createCourseDto: CreateCourseDto) {
     const newCourse = this.coursesService.create(createCourseDto);
     return {
       message: 'Course created successfully!',
@@ -44,10 +47,10 @@ export class CoursesController {
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateCourseDto: any) {
+  update(@Param('id') id: string, @Body() updateCourseDto: Partial<Courses>) {
     const updatedCourse = this.coursesService.update(id, updateCourseDto);
     if (!updatedCourse) {
-      return { message: `Course with ID ${id} not found!` };
+      throw new NotFoundException(`Course with ID ${id} not found!`);
     }
     return {
       message: `Course with ID ${id} updated successfully!`,
@@ -59,7 +62,7 @@ export class CoursesController {
   remove(@Param('id') id: string) {
     const deletedCourse = this.coursesService.remove(id);
     if (!deletedCourse) {
-      return { message: `Course with ID ${id} not found!` };
+      throw new NotFoundException(`Course with ID ${id} not found!`);
     }
     return {
       message: `Course with ID ${id} deleted successfully!`,

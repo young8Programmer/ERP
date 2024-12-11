@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './users/entities/user.entity';
-import { Course } from './courses/entities/course.entity';
+import { Users } from './users/entities/user.entity';
+import { Courses } from './courses/entities/course.entity';
 import { UsersModule } from './users/users.module';
 import { CoursesModule } from './courses/courses.module';
 import { AuthModule } from './auth/auth.module';
@@ -14,7 +14,7 @@ import { Auth } from './auth/entities/auth.entity';
       host: 'localhost',
       port: 5432,
       username: 'postgres',
-      password: 'azizbek002',
+      password: '1234',
       database: 'erp',
       entities: [User, Course, Auth],
       synchronize: true,
