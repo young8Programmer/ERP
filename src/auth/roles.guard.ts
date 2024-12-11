@@ -8,7 +8,6 @@ import {
 import { Reflector } from '@nestjs/core';
 
 export const Roles = (...roles: string[]) => SetMetadata('roles', roles);
-
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
@@ -16,19 +15,16 @@ export class RolesGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
-    try {
-      if (!user || !user.role) {
-        throw new UnauthorizedException(
-          'Foydalanuvchi autentifikatsiya qilinmagan yoki rol etishmayapti',
-        );
-      }
+    const requiredRoles = this.reflector.get<string[]>('roles', context.getHandler());
 
-      if (user.role !== 'admin') {
-        throw new UnauthorizedException('You are not allowed');
-      }
-      return true;
-    } catch (error) {
-      throw new UnauthorizedException(error.message);
+    if (!requiredRoles || !user) {
+      throw new UnauthorizedException('Foydalanuvchi autentifikatsiya qilinmagan yoki rol etishmayapti');
     }
+
+    if (!requiredRoles.includes(user.role)) {
+      throw new UnauthorizedException('You are not allowed');
+    }
+
+    return true;
   }
 }

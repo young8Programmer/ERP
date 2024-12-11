@@ -1,17 +1,25 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
 
-@Entity()
-export class Courses {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+@Entity('courses')
+export class Course {
+  @PrimaryGeneratedColumn()
+  id: number;
 
-  @Column()
+  @Column({ type: 'varchar', length: 255 })
+  name: string;
+
+  @Column({ type: 'varchar', length: 255 })
   title: string;
 
-  @Column()
+  @Column('text')
   description: string;
 
-  @Column('decimal', { precision: 10, scale: 2 })
-  price: number;
-  users: any;
+  @Column({ type: 'timestamp', nullable: true })
+  startDate: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  endDate: Date;
+
+  @CreateDateColumn()
+  createdAt: Date;
 }

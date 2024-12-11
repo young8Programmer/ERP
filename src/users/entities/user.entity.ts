@@ -33,9 +33,4 @@ export class User {
 
   @Column({ nullable: true })
   refreshToken?: string;
-
-  @ManyToMany(() => Course, (course) => course.users)
-  courses: Course[];
-  enrollments: any;
-  results: any;
 }

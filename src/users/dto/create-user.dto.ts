@@ -10,7 +10,7 @@ import {
 export class CreateUserDto {
   @IsString()
   @MaxLength(50)
-  name: string;
+  fullName: string;
 
   @IsEmail()
   @MaxLength(50)

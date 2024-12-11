@@ -27,7 +27,7 @@ export class AuthGuard implements CanActivate {
 
     try {
       const payload = this.jwtService.verify(token, {
-        secret: process.env.SECRET_KEY,
+        secret: process.env.JWT_SECRET,  // Yangi SECRET_KEY ni ishlatish
       });
       request.user = payload;
       return true;
@@ -37,3 +37,4 @@ export class AuthGuard implements CanActivate {
     }
   }
 }
+

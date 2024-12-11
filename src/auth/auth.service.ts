@@ -11,7 +11,6 @@ import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from 'src/users/users.service';
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -29,7 +28,7 @@ export class AuthService {
     }
 
     const user = this.userRepository.create({
-      name: createAuthDto.name,
+      fullName: createAuthDto.full_name,  // name -> full_name
       email: createAuthDto.email,
       password: await bcrypt.hash(createAuthDto.password, 10),
       role: 'admin',
@@ -47,7 +46,7 @@ export class AuthService {
     }
 
     const user = this.userRepository.create({
-      name: createAuthDto.name,
+      fullName: createAuthDto.full_name,
       email: createAuthDto.email,
       password: await bcrypt.hash(createAuthDto.password, 10),
       role: 'user',
@@ -75,7 +74,7 @@ export class AuthService {
 
     if (user.role !== loginDto.role) {
       throw new UnauthorizedException(
-        `Role mos emas! Foydalanuvchi "${user.role}", lekin "${loginDto.role}" sifatida kirmoqchi bo'lyapti ❌`,
+        `Role mos emas! Foydalanuvchi "${user.role}", lekin "${loginDto.role}" sifatida kirmoqchi bo'lyapti ❌`,  // Xatolik tuzildi
       );
     }
 
@@ -117,7 +116,6 @@ export class AuthService {
       await this.userRepository.save(user);
 
       return { accessToken: newAccessToken, newRefreshToken };
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
@@ -137,7 +135,7 @@ export class AuthService {
       user.refreshToken = null; // Refresh tokenni tozalash
       await this.userRepository.save(user);
 
-      return { message: `Foydalanuvchi muvaffaqiyatli tizimdan chiqdi` };
+      return { message: 'Foydalanuvchi muvaffaqiyatli tizimdan chiqdi' };
     } catch (error) {
       throw new UnauthorizedException(
         'Token noto‘g‘ri yoki muddati tugagan ❌',

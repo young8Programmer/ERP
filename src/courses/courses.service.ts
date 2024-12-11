@@ -1,50 +1,68 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Courses } from './entities/course.entity';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Course } from './entities/course.entity';
 import { CreateCourseDto } from './dto/create-course.dto';
+import { UpdateCourseDto } from './dto/update-course.dto';
 
 @Injectable()
 export class CoursesService {
-  private courses: Courses[] = [];
+  constructor(
+    @InjectRepository(Course)
+    private readonly courseRepository: Repository<Course>,
+  ) {}
 
-  // Barcha kurslarni ko'rish
-  findAll(): Courses[] {
-    return this.courses;
+  // Kurs yaratish
+  async create(createCourseDto: CreateCourseDto): Promise<Course> {
+    const existingCourse = await this.courseRepository.findOne({
+      where: { title: createCourseDto.title },
+    });
+
+    if (existingCourse) {
+      throw new ConflictException('Course with this title already exists');
+    }
+
+    const course = this.courseRepository.create(createCourseDto);
+    return await this.courseRepository.save(course);
   }
 
-  // Kursni ID bo'yicha topish
-  findOne(id: string): Courses | undefined {
-    return this.courses.find((course) => course.id === id);
+  // Kursni ID orqali olish
+  async getById(id: number): Promise<Course> {
+    const course = await this.courseRepository.findOne({ where: { id } });
+
+    if (!course) {
+      throw new NotFoundException(`Course with ID ${id} not found`);
+    }
+
+    return course;
   }
 
-  // Kurs yaratis
-  create(createCourseDto: CreateCourseDto): Course {
-    const newCourse: Course = {
-      id: Date.now().toString(), ...createCourseDto,
-      users: undefined
-    };
-    this.courses.push(newCourse);
-    return newCourse;
+  // Kurslarni olish
+  async getAll(): Promise<Course[]> {
+    return this.courseRepository.find();
   }
 
   // Kursni yangilash
-  update(id: string, updateCourseDto: Partial<Courses>): Courses | undefined {
-    const courseIndex = this.courses.findIndex((course) => course.id === id);
-    if (courseIndex === -1) return undefined;
+  async update(id: number, updateCourseDto: UpdateCourseDto): Promise<Course> {
+    const course = await this.courseRepository.findOne({ where: { id } });
 
-    this.courses[courseIndex] = {
-      ...this.courses[courseIndex],
-      ...updateCourseDto,
-    };
-    return this.courses[courseIndex];
+    if (!course) {
+      throw new NotFoundException(`Course with ID ${id} not found`);
+    }
+
+    // Kursni yangilash
+    const updatedCourse = Object.assign(course, updateCourseDto);
+    return this.courseRepository.save(updatedCourse);
   }
 
   // Kursni o'chirish
-  remove(id: string): Courses | undefined {
-    const courseIndex = this.courses.findIndex((course) => course.id === id);
-    if (courseIndex === -1) return undefined;
+  async delete(id: number): Promise<void> {
+    const course = await this.courseRepository.findOne({ where: { id } });
 
-    const deletedCourse = this.courses[courseIndex];
-    this.courses.splice(courseIndex, 1);
-    return deletedCourse;
+    if (!course) {
+      throw new NotFoundException(`Course with ID ${id} not found`);
+    }
+
+    await this.courseRepository.remove(course);
   }
 }

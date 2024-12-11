@@ -13,21 +13,25 @@ import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { AuthGuard } from './auth.guard';
 import { Response, Request } from 'express';
+import { RolesGuard } from './roles.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @UseGuards(AuthGuard, RolesGuard)
   @Post('register/admin')
   async registerAdmin(@Body() createAuthDto: CreateAuthDto) {
     return this.authService.registerAdmin(createAuthDto);
   }
 
+  @UseGuards(AuthGuard, RolesGuard)
   @Post('register/user')
   async registerUser(@Body() createAuthDto: CreateAuthDto) {
     return this.authService.register(createAuthDto);
   }
 
+  @UseGuards(AuthGuard, RolesGuard)
   @Post('login')
   async login(
     @Body() loginDto: { email: string; password: string; role: string },

@@ -14,7 +14,7 @@ dotenv.config();
     TypeOrmModule.forFeature([User]),
     JwtModule.register({
       global: true,
-      secret: process.env.JWT_SECRET,
+      secret: "juda_secret_key",
       signOptions: { expiresIn: '1d' },
     }),
     UsersModule,

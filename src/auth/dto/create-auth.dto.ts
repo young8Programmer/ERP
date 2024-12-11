@@ -3,7 +3,7 @@ import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 export class CreateAuthDto {
   @IsNotEmpty()
   @IsString()
-  name: string;
+  full_name: string; 
 
   @IsNotEmpty()
   @IsEmail()
@@ -15,5 +15,5 @@ export class CreateAuthDto {
 
   @IsOptional()
   @IsString()
-  role: string;
+  role: 'admin' | 'student' | 'teacher';  // Role aniq belgilanadi
 }
