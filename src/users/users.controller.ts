@@ -2,68 +2,49 @@ import {
   Controller,
   Get,
   Post,
-  Put,
-  Delete,
-  Param,
   Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @UseGuards(AuthGuard, RolesGuard)
+  @Post('create')
+  async createUser(
+    @Body('name') name: string,
+    @Body('email') email: string,
+    @Body('password') password: string,
+    @Body('role') role: string,
+  ) {
+    return await this.usersService.createAdmin(name, email, password, role);
+  }
+
   @Get()
   findAll() {
-    const users = this.usersService.findAll();
-    return {
-      message: 'All users retrieved successfully!',
-      data: users,
-    };
+    return this.usersService.findAll();
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    const user = this.usersService.findOne(id);
-    if (!user) {
-      return { message: `User with ID ${id} not found!` };
-    }
-    return {
-      message: `User with ID ${id} retrieved successfully!`,
-      data: user,
-    };
+    return this.usersService.findOne(+id);
   }
 
-  @Post()
-  create(@Body() createUserDto: any) {
-    const newUser = this.usersService.create(createUserDto);
-    return {
-      message: 'User created successfully!',
-      data: newUser,
-    };
-  }
-
-  @Put(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: any) {
-    const updatedUser = this.usersService.update(id, updateUserDto);
-    if (!updatedUser) {
-      return { message: `User with ID ${id} not found!` };
-    }
-    return {
-      message: `User with ID ${id} updated successfully!`,
-      data: updatedUser,
-    };
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(+id, updateUserDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    const deletedUser = this.usersService.remove(id);
-    if (!deletedUser) {
-      return { message: `User with ID ${id} not found!` };
-    }
-    return {
-      message: `User with ID ${id} deleted successfully!`,
-      data: deletedUser,
-    };
+    return this.usersService.remove(+id);
   }
 }

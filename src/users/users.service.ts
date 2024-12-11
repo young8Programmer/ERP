@@ -1,44 +1,64 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { CreateUserDto } from './dto/create-user.dto';
+import { Repository } from 'typeorm';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UsersService {
-  private users: User[] = [];
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    private readonly jwtService: JwtService,
+  ) {}
 
-  // Barcha user-larni ko'rish
-  findAll(): User[] {
-    return this.users;
+  async createAdmin(
+    name: string,
+    email: string,
+    password: string,
+    role: string,
+  ) {
+    const user = this.userRepository.create({
+      name,
+      email,
+      password,
+      role,
+    });
+    await this.userRepository.save(user);
+    return user;
   }
 
-  // Userni ID bo'yicha topish
-  findOne(id: string): User | undefined {
-    return this.users.find((user) => user.id === id);
+  findAll() {
+    return this.userRepository.find();
   }
 
-  // User yaratish
-  create(createUserDto: CreateUserDto): User {
-    const newUser: User = { id: Date.now().toString(), ...createUserDto };
-    this.users.push(newUser);
-    return newUser;
+  findOne(id: number) {
+    return this.userRepository.findOne({ where: { id } });
   }
 
-  // Userni yangilash
-  update(id: string, updateUserDto: Partial<User>): User | undefined {
-    const userIndex = this.users.findIndex((user) => user.id === id);
-    if (userIndex === -1) return undefined;
-
-    this.users[userIndex] = { ...this.users[userIndex], ...updateUserDto };
-    return this.users[userIndex];
+  async findById(id: number): Promise<User | null> {
+    return await this.userRepository.findOne({ where: { id } });
   }
 
-  // Userni o'chirish
-  remove(id: string): User | undefined {
-    const userIndex = this.users.findIndex((user) => user.id === id);
-    if (userIndex === -1) return undefined;
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    await this.userRepository.update(id, updateUserDto);
+    return this.userRepository.findOne({ where: { id } });
+  }
 
-    const deletedUser = this.users[userIndex];
-    this.users.splice(userIndex, 1);
-    return deletedUser;
+  async remove(id: number) {
+    await this.userRepository.delete(id);
+    return { message: `User #${id} has been removed` };
+  }
+
+  async findByToken(token: string): Promise<User | null> {
+    try {
+      const pureToken = token.startsWith('Bearer ') ? token.slice(7) : token;
+      const decoded = this.jwtService.verify(pureToken);
+      return this.userRepository.findOne({ where: { id: decoded.id } });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      return null;
+    }
   }
 }
