@@ -8,6 +8,8 @@ import { Auth } from './auth/entities/auth.entity';
 import { User } from './users/entities/user.entity';
 import { Profile } from './profile/entities/profile.entity';
 import { ProfileModule } from './profile/profile.module';
+import { PaymentsModule } from './payments/payments.module';
+import { Payment } from './payments/entities/payment.entity';
 
 @Module({
   imports: [
@@ -18,14 +20,14 @@ import { ProfileModule } from './profile/profile.module';
       username: 'postgres',
       password: 'azizbek002',
       database: 'qwe',
-      entities: [User, Courses, Auth, Profile],
+      entities: [User, Courses, Auth, Profile, Payment],
       synchronize: true,
     }),
     CoursesModule,
     UsersModule,
     AuthModule,
-    ProfileModule
-    
+    ProfileModule,
+    PaymentsModule,
   ],
 })
 export class AppModule {}
