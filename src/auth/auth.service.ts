@@ -29,7 +29,7 @@ export class AuthService {
     }
 
     const user = this.userRepository.create({
-      name: createAuthDto.name,
+      fullName: createAuthDto.name,
       email: createAuthDto.email,
       password: await bcrypt.hash(createAuthDto.password, 10),
       role: 'admin',
@@ -47,7 +47,7 @@ export class AuthService {
     }
 
     const user = this.userRepository.create({
-      name: createAuthDto.name,
+      fullName: createAuthDto.name,
       email: createAuthDto.email,
       password: await bcrypt.hash(createAuthDto.password, 10),
       role: 'user',

@@ -17,8 +17,8 @@ export class CoursesService {
   }
 
   // Kurs yaratis
-  create(createCourseDto: CreateCourseDto): Course {
-    const newCourse: Course = {
+  create(createCourseDto: CreateCourseDto): Courses {
+    const newCourse: Courses = {
       id: Date.now().toString(), ...createCourseDto,
       users: undefined
     };

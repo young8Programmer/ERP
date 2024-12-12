@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Course } from 'src/courses/entities/course.entity';
+import { Courses } from 'src/courses/entities/course.entity';
 
 @Entity('users')
 export class User {
@@ -34,8 +34,8 @@ export class User {
   @Column({ nullable: true })
   refreshToken?: string;
 
-  @ManyToMany(() => Course, (course) => course.users)
-  courses: Course[];
+  @ManyToMany(() => Courses, (course) => course.users)
+  courses: Courses[];
   enrollments: any;
   results: any;
 }
