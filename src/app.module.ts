@@ -6,6 +6,8 @@ import { UsersModule } from './users/users.module';
 import { CoursesModule } from './courses/courses.module';
 import { AuthModule } from './auth/auth.module';
 import { Auth } from './auth/entities/auth.entity';
+import { ProfileModule } from './profile/profile.module';
+import { Profile } from './profile/entities/profile.entity';
 
 @Module({
   imports: [
@@ -16,12 +18,13 @@ import { Auth } from './auth/entities/auth.entity';
       username: 'postgres',
       password: '1234',
       database: 'erp',
-      entities: [User, Course, Auth],
+      entities: [User, Course, Auth, Profile],
       synchronize: true,
     }),
     CoursesModule,
     UsersModule,
     AuthModule,
+    ProfileModule
   ],
 })
 export class AppModule {}
