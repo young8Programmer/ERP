@@ -29,7 +29,6 @@ export class AuthController {
     return this.authService.register(createAuthDto);
   }
 
-  @UseGuards(AuthGuard, RolesGuard)
   @Post('login')
   async login(
     @Body() loginDto: { email: string; password: string; role: string },
