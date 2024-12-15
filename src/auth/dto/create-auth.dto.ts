@@ -15,5 +15,5 @@ export class CreateAuthDto {
 
   @IsOptional()
   @IsString()
-  role: 'admin' | 'student' | 'teacher';  // Role aniq belgilanadi
+  role: 'admin' | 'student' | 'teacher';
 }

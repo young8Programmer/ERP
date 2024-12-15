@@ -56,41 +56,35 @@ export class AuthService {
     return { message: 'You are successfully registered' };
   }
 
-  async login(loginDto: { email: string; password: string; role: string }) {
+  async login(loginDto: { email: string; password: string }) {
     const user = await this.userRepository.findOneBy({ email: loginDto.email });
-
+  
     if (!user) {
       throw new NotFoundException('Foydalanuvchi topilmadi ❌');
     }
-
+  
     const isPasswordValid = await bcrypt.compare(
       loginDto.password,
       user.password,
     );
-
+  
     if (!isPasswordValid) {
       throw new UnauthorizedException('Parol noto‘g‘ri ❌');
     }
-
-    if (user.role !== loginDto.role) {
-      throw new UnauthorizedException(
-        `Role mos emas! Foydalanuvchi "${user.role}", lekin "${loginDto.role}" sifatida kirmoqchi bo'lyapti ❌`,  // Xatolik tuzildi
-      );
-    }
-
-    const payload = { id: user.id, email: user.email, role: user.role };
+  
+    const payload = { id: user.id, email: user.email, role: user.role }; // Role bazadan olinadi
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '30d' });
-
+  
     user.refreshToken = refreshToken;
     await this.userRepository.save(user);
-
+  
     return {
       accessToken,
       refreshToken,
     };
   }
-
+  
   async refreshAccessToken(
     refreshToken: string,
   ): Promise<{ accessToken: string; newRefreshToken: string }> {
