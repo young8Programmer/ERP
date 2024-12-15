@@ -28,7 +28,7 @@ export class AuthService {
     }
 
     const user = this.userRepository.create({
-      fullName: createAuthDto.full_name,  // name -> full_name
+      username: createAuthDto.username,  // name -> username
       email: createAuthDto.email,
       password: await bcrypt.hash(createAuthDto.password, 10),
       role: 'admin',
@@ -46,7 +46,7 @@ export class AuthService {
     }
 
     const user = this.userRepository.create({
-      fullName: createAuthDto.full_name,
+      username: createAuthDto.username,
       email: createAuthDto.email,
       password: await bcrypt.hash(createAuthDto.password, 10),
       role: 'user',

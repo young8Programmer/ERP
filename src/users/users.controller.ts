@@ -20,12 +20,12 @@ export class UsersController {
   @UseGuards(AuthGuard, RolesGuard)
   @Post('create')
   async createUser(
-    @Body('name') name: string,
+    @Body('username') username: string,
     @Body('email') email: string,
     @Body('password') password: string,
     @Body('role') role: string,
   ) {
-    return await this.usersService.createAdmin(name, email, password, role);
+    return await this.usersService.createAdmin(username, email, password, role);
   }
 
   @UseGuards(AuthGuard)
