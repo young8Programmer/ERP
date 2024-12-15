@@ -11,6 +11,7 @@ import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from 'src/users/users.service';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -20,15 +21,15 @@ export class AuthService {
   ) {}
 
   async registerAdmin(createAuthDto: CreateAuthDto) {
-    const existingUser = await this.userRepository.findOneBy({
-      email: createAuthDto.email,
+    const existingUser = await this.userRepository.findOne({
+      where: { username: createAuthDto.username },
     });
     if (existingUser) {
-      throw new ConflictException('Email already exists');
+      throw new ConflictException('Username already exists');
     }
 
     const user = this.userRepository.create({
-      username: createAuthDto.username,  // name -> username
+      username: createAuthDto.username,
       email: createAuthDto.email,
       password: await bcrypt.hash(createAuthDto.password, 10),
       role: 'admin',
@@ -38,11 +39,11 @@ export class AuthService {
   }
 
   async register(createAuthDto: CreateAuthDto) {
-    const existingUser = await this.userRepository.findOneBy({
-      email: createAuthDto.email,
+    const existingUser = await this.userRepository.findOne({
+      where: { username: createAuthDto.username },
     });
     if (existingUser) {
-      throw new ConflictException('Email already exists');
+      throw new ConflictException('Username already exists');
     }
 
     const user = this.userRepository.create({
@@ -56,41 +57,43 @@ export class AuthService {
     return { message: 'You are successfully registered' };
   }
 
-  async login(loginDto: { email: string; password: string }) {
-    const user = await this.userRepository.findOneBy({ email: loginDto.email });
-  
+  async login(loginDto: { username: string; password: string }) {
+    const user = await this.userRepository.findOne({
+      where: { username: loginDto.username },
+    });
+
     if (!user) {
-      throw new NotFoundException('Foydalanuvchi topilmadi ❌');
+      throw new NotFoundException('User not found ❌');
     }
-  
+
     const isPasswordValid = await bcrypt.compare(
       loginDto.password,
       user.password,
     );
-  
+
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Parol noto‘g‘ri ❌');
+      throw new UnauthorizedException('Incorrect password ❌');
     }
-  
-    const payload = { id: user.id, email: user.email, role: user.role }; // Role bazadan olinadi
+
+    const payload = { id: user.id, username: user.username, role: user.role };
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '30d' });
-  
+
     user.refreshToken = refreshToken;
     await this.userRepository.save(user);
-  
+
     return {
       accessToken,
       refreshToken,
     };
   }
-  
+
   async refreshAccessToken(
     refreshToken: string,
   ): Promise<{ accessToken: string; newRefreshToken: string }> {
     try {
       const payload = this.jwtService.verify(refreshToken);
-      const user = await this.userRepository.findOneBy({ id: payload.id });
+      const user = await this.userRepository.findOne({where: { id: payload.id }});
 
       if (!user || user.refreshToken !== refreshToken) {
         throw new UnauthorizedException('Invalid refresh token');
@@ -98,7 +101,7 @@ export class AuthService {
 
       const newAccessToken = this.jwtService.sign({
         id: user.id,
-        email: user.email,
+        username: user.username,
         role: user.role,
       });
 
@@ -118,22 +121,18 @@ export class AuthService {
   async logout(token: string): Promise<{ message: string }> {
     try {
       const payload = this.jwtService.verify(token);
-      const user = await this.userRepository.findOneBy({ id: payload.id });
+      const user = await this.userRepository.findOne({where: { id: payload.id }});
 
       if (!user) {
-        throw new UnauthorizedException(
-          'Foydalanuvchi topilmadi yoki token noto‘g‘ri ❌',
-        );
+        throw new UnauthorizedException('User not found or invalid token ❌');
       }
 
-      user.refreshToken = null; // Refresh tokenni tozalash
+      user.refreshToken = null;
       await this.userRepository.save(user);
 
-      return { message: 'Foydalanuvchi muvaffaqiyatli tizimdan chiqdi' };
+      return { message: 'User successfully logged out' };
     } catch (error) {
-      throw new UnauthorizedException(
-        'Token noto‘g‘ri yoki muddati tugagan ❌',
-      );
+      throw new UnauthorizedException('Token is invalid or expired ❌');
     }
   }
 }

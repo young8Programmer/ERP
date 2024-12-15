@@ -6,14 +6,12 @@ import {
   Req,
   UseGuards,
   UnauthorizedException,
-  Get,
   Delete,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { AuthGuard } from './auth.guard';
 import { Response, Request } from 'express';
-import { RolesGuard } from './roles.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -31,7 +29,7 @@ export class AuthController {
 
   @Post('login')
   async login(
-    @Body() loginDto: { email: string; password: string; role: string },
+    @Body() loginDto: { username: string; password: string },
     @Res() res: Response,
   ) {
     const { accessToken, refreshToken } =
@@ -66,26 +64,22 @@ export class AuthController {
 
     return res.status(200).json({ accessToken });
   }
+
   @UseGuards(AuthGuard)
   @Delete('logout')
   async logout(@Res() res: Response, @Req() req: Request) {
-    // Refresh tokenni cookie'dan olish
     const refreshToken = req.cookies.refreshToken;
 
-    // Agar refresh token yo'q bo'lsa, xato xabarini qaytarish
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token is missing ❌');
     }
 
-    // Refresh tokenni null qilish va foydalanuvchini tizimdan chiqarish
     await this.authService.logout(refreshToken);
 
-    // Cookie'dan refresh tokenni o'chirish
     res.clearCookie('refreshToken');
 
-    // Javobni yuborish
     return res
       .status(200)
-      .json({ message: 'Foydalanuvchi tizimdan muvaffaqiyatli chiqdi' });
+      .json({ message: 'User successfully logged out' });
   }
 }
