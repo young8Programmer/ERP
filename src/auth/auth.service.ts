@@ -85,7 +85,12 @@ export class AuthService {
     return {
       accessToken,
       refreshToken,
-      user
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      },
     };
   }
 
