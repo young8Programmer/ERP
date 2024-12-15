@@ -10,6 +10,8 @@ import { Profile } from './profile/entities/profile.entity';
 import { ProfileModule } from './profile/profile.module';
 import { PaymentsModule } from './payments/payments.module';
 import { Payment } from './payments/entities/payment.entity';
+import { LessonModule } from './lesson/lesson.module';
+import { Lesson } from './lesson/entities/lesson.entity';
 
 @Module({
   imports: [
@@ -20,7 +22,7 @@ import { Payment } from './payments/entities/payment.entity';
       username: 'postgres',
       password: 'azizbek002',
       database: 'qwe',
-      entities: [User, Courses, Auth, Profile, Payment],
+      entities: [User, Courses, Auth, Profile, Payment, Lesson],
       synchronize: true,
     }),
     CoursesModule,
@@ -28,6 +30,7 @@ import { Payment } from './payments/entities/payment.entity';
     AuthModule,
     ProfileModule,
     PaymentsModule,
+    LessonModule,
   ],
 })
 export class AppModule {}
