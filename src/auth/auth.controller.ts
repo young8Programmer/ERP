@@ -19,13 +19,11 @@ import { RolesGuard } from './roles.guard';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @UseGuards(AuthGuard, RolesGuard)
   @Post('register/admin')
   async registerAdmin(@Body() createAuthDto: CreateAuthDto) {
     return this.authService.registerAdmin(createAuthDto);
   }
 
-  @UseGuards(AuthGuard, RolesGuard)
   @Post('register/user')
   async registerUser(@Body() createAuthDto: CreateAuthDto) {
     return this.authService.register(createAuthDto);
