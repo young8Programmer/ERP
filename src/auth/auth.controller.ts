@@ -32,8 +32,7 @@ export class AuthController {
     @Body() loginDto: { username: string; password: string },
     @Res() res: Response,
   ) {
-    const { accessToken, refreshToken } =
-      await this.authService.login(loginDto);
+    const { accessToken, refreshToken, user } = await this.authService.login(loginDto);
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
@@ -42,7 +41,7 @@ export class AuthController {
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
-    return res.status(200).json({ accessToken, refreshToken });
+    return res.status(200).json({ accessToken, refreshToken, user });
   }
 
   @UseGuards(AuthGuard)
@@ -52,8 +51,7 @@ export class AuthController {
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token is missing ❌');
     }
-    const { accessToken, newRefreshToken } =
-      await this.authService.refreshAccessToken(refreshToken);
+    const { accessToken, newRefreshToken } = await this.authService.refreshAccessToken(refreshToken);
 
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
