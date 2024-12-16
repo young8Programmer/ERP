@@ -1,30 +1,27 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import * as cors from 'cors';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  
-  // Global validatsiya
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
-      disableErrorMessages: false,
     }),
   );
 
-  // Barcha manbalarga ruxsat
-  app.use(cors({
-    origin: (origin, callback) => {
-      callback(null, true); // Har qanday originni qabul qiladi
-    },
+  // CORS uchun barcha manbalarga ruxsat berish
+  app.enableCors({
+    origin: '*', // Barcha domenlarga ruxsat
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    allowedHeaders: 'Content-Type, Accept, Authorization',
     credentials: true,
-  }));
+  });
 
-  await app.listen(3000, "0.0.0.0");
+  await app.listen(3000, '0.0.0.0');
 }
 
 bootstrap();
