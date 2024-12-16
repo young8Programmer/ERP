@@ -6,7 +6,7 @@ import * as cors from 'cors';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
-  // Global validerni qo'shish
+  // Global validatsiya
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -16,8 +16,11 @@ async function bootstrap() {
     }),
   );
 
+  // Barcha manbalarga ruxsat
   app.use(cors({
-    origin: ['http://localhost:3000', 'http://localhost:5173'],
+    origin: (origin, callback) => {
+      callback(null, true); // Har qanday originni qabul qiladi
+    },
     credentials: true,
   }));
 
