@@ -28,8 +28,7 @@ export class ProfileController {
     return { message: 'Profile successfully created', profile };
   }
 
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles('admin')
+  @UseGuards(AuthGuard)
   @Get()
   async getProfiles() {
     const profiles = await this.profileService.findAll();
