@@ -50,7 +50,7 @@ export class AuthService {
       username: createAuthDto.username,
       email: createAuthDto.email,
       password: await bcrypt.hash(createAuthDto.password, 10),
-      role: 'user',
+      role: 'student',
     });
 
     await this.userRepository.save(user);
