@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import * as cors from 'cors';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -10,18 +11,16 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      disableErrorMessages: false,
     }),
   );
 
-  // CORS uchun barcha manbalarga ruxsat berish
-  app.enableCors({
-    origin: '*', // Barcha domenlarga ruxsat
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    allowedHeaders: 'Content-Type, Accept, Authorization',
+  app.use(cors({
+    origin: "*",
     credentials: true,
-  });
+  }));
 
-  await app.listen(3000, '0.0.0.0');
+  await app.listen(3000, "0.0.0.0");
 }
 
 bootstrap();
