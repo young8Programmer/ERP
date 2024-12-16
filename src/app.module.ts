@@ -12,6 +12,8 @@ import { PaymentsModule } from './payments/payments.module';
 import { Payment } from './payments/entities/payment.entity';
 import { LessonModule } from './lesson/lesson.module';
 import { Lesson } from './lesson/entities/lesson.entity';
+import { TeacherModule } from './teacher/teacher.module';
+import { Teacher } from './teacher/entities/teacher.entity';
 
 @Module({
   imports: [
@@ -22,7 +24,7 @@ import { Lesson } from './lesson/entities/lesson.entity';
       username: 'postgres',
       password: 'azizbek002',
       database: 'mnb',
-      entities: [User, Courses, Auth, Profile, Payment, Lesson],
+      entities: [User, Courses, Auth, Profile, Payment, Lesson, Teacher],
       synchronize: true,
     }),
     CoursesModule,
@@ -31,6 +33,7 @@ import { Lesson } from './lesson/entities/lesson.entity';
     ProfileModule,
     PaymentsModule,
     LessonModule,
+    TeacherModule,
   ],
 })
 export class AppModule {}
