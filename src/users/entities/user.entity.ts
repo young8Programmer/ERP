@@ -22,7 +22,7 @@ export class User {
   @Column({ type: 'varchar', length: 2500 })
   password: string;
 
-  @Column({ type: 'varchar', length: 50, default: 'student' })
+  @Column()
   role: string;
 
   @CreateDateColumn()

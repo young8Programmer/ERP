@@ -20,7 +20,7 @@ export class AuthService {
     private readonly usersService: UsersService,
   ) {}
 
-  async registerAdmin(createAuthDto: CreateAuthDto) {
+  async registerAdmin(createAuthDto: CreateAuthDto, p0: string) {
     const existingUser = await this.userRepository.findOneBy({
       email: createAuthDto.email,
     });
@@ -38,7 +38,7 @@ export class AuthService {
     return { message: 'Admin is successfully registered' };
   }
 
-  async register(createAuthDto: CreateAuthDto) {
+  async register(createAuthDto: CreateAuthDto, p0: string) {
     const existingUser = await this.userRepository.findOneBy({
       email: createAuthDto.email,
     });
@@ -55,6 +55,24 @@ export class AuthService {
 
     await this.userRepository.save(user);
     return { message: 'You are successfully registered' };
+  }
+
+  async registerTeacher(createAuthDto: CreateAuthDto) {
+    const existingUser = await this.userRepository.findOneBy({
+      email: createAuthDto.email,
+    });
+    if (existingUser) {
+      throw new ConflictException('Email already exists');
+    }
+
+    const user = this.userRepository.create({
+      fullName: createAuthDto.name,
+      email: createAuthDto.email,
+      password: await bcrypt.hash(createAuthDto.password, 10),
+      role: 'teacher',
+    });
+    await this.userRepository.save(user);
+    return { message: 'Teacher is successfully registered' };
   }
 
   async login(loginDto: { email: string; password: string; role: string }) {

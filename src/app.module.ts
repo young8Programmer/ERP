@@ -21,7 +21,7 @@ import { Lesson } from './lesson/entities/lesson.entity';
       port: 5432,
       username: 'postgres',
       password: 'azizbek002',
-      database: 'qwe',
+      database: 'mnb',
       entities: [User, Courses, Auth, Profile, Payment, Lesson],
       synchronize: true,
     }),

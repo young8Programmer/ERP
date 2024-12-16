@@ -20,12 +20,17 @@ export class AuthController {
 
   @Post('register/admin')
   async registerAdmin(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.registerAdmin(createAuthDto);
+    return this.authService.registerAdmin(createAuthDto, 'admin');
   }
 
   @Post('register/user')
   async registerUser(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.register(createAuthDto);
+    return this.authService.register(createAuthDto, 'user');
+  }
+
+  @Post('register/teacher')
+  async registerTeacher(@Body() createAuthDto: CreateAuthDto) {
+    return this.authService.registerTeacher(createAuthDto);
   }
 
   @Post('login')
