@@ -7,7 +7,7 @@ import {
   MaxLength,
 } from 'class-validator';
 
-export class CreateUserDto {
+export class CreateStudentDto {
   @IsString()
   @MaxLength(50)
   username: string;
@@ -22,6 +22,6 @@ export class CreateUserDto {
   password: string;
 
   @IsOptional()
-  @IsIn(['admin'])
+  @IsIn(['admin', 'student', 'teacher'])
   role?: string;
 }

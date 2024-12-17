@@ -14,7 +14,7 @@ import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/create-profile.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard, Roles } from 'src/auth/roles.guard';
-import { RolesUserGuard } from 'src/auth/rolesUserGuard';
+import { RolesStudentGuard } from 'src/auth/rolesStudentGuard';
 
 @Controller('profile')
 export class ProfileController {
@@ -43,13 +43,13 @@ export class ProfileController {
     return { message: 'Profile successfully deleted' };
   }
 
-  @UseGuards(AuthGuard, RolesUserGuard)
+  @UseGuards(AuthGuard)
   @Patch(':id')
   async updateProfile(
     @Param('id') id: string,
     @Body() updateProfileDto: UpdateProfileDto,
     @Req() req: any,
-  ) {
+  ){
     const profile = await this.profileService.update(id, req.user, updateProfileDto);
     return { message: 'Profile successfully updated', profile };
   }

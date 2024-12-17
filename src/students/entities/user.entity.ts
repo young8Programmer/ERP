@@ -6,7 +6,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Course } from 'src/courses/entities/course.entity';
 
 @Entity('users')
 export class User {
@@ -22,7 +21,7 @@ export class User {
   @Column({ type: 'varchar', length: 2500 })
   password: string;
 
-  @Column({ type: 'varchar', length: 50, default: 'student' })
+  @Column({ type: 'varchar', length: 50})
   role: string;
 
   @CreateDateColumn()

@@ -6,18 +6,18 @@ import {
 } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/users/entities/user.entity';
+import { User } from 'src/students/entities/user.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { UsersService } from 'src/users/users.service';
+import { StudentService } from 'src/students/student.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
-    private readonly usersService: UsersService,
+    private readonly StudentService: StudentService,
   ) {}
 
   async registerAdmin(createAuthDto: CreateAuthDto) {
