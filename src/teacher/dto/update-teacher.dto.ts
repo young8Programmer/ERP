@@ -12,7 +12,7 @@ export class UpdateTeacherDto {
   @IsOptional()
   @MinLength(3)
   @MaxLength(100)
-  fullname?: string;
+  username?: string;
 
   @IsEmail()
   @IsOptional()
@@ -21,10 +21,6 @@ export class UpdateTeacherDto {
   @IsString()
   @IsOptional()
   password?: string;
-
-  @IsInt()
-  @IsOptional()
-  age?: number;
 
   @IsString()
   @IsOptional()
