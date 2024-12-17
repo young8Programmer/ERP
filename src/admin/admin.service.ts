@@ -11,10 +11,13 @@ export class AdminService {
     private readonly userRepository: Repository<User>,
   ) {}
 
+  // Admin yaratish
   async createAdmin(createAdminDto: CreateAdminDto) {
-    const existingAdmin = await this.userRepository.findOne({ where: { username: createAdminDto.username, role: 'admin' } });
-    if (existingAdmin) {
-      throw new ConflictException('An admin with this username already exists.');
+    const existingUser = await this.userRepository.findOne({
+      where: { username: createAdminDto.username },
+    });
+    if (existingUser) {
+      throw new ConflictException('A user with this username already exists.');
     }
 
     const admin = this.userRepository.create({
@@ -24,14 +27,12 @@ export class AdminService {
     return this.userRepository.save(admin);
   }
 
+  // Barcha adminlarni olish
   async findAll() {
-    const admins = await this.userRepository.find({ where: { role: 'admin' } });
-    if (!admins.length) {
-      throw new NotFoundException('No admins found.');
-    }
-    return admins;
+    return this.userRepository.find({ where: { role: 'admin' } });
   }
 
+  // Adminni ID bo‘yicha olish
   async findOne(id: number) {
     const admin = await this.userRepository.findOne({ where: { id, role: 'admin' } });
     if (!admin) {
@@ -40,28 +41,32 @@ export class AdminService {
     return admin;
   }
 
-  async update(id: number, updateAdminDto: CreateAdminDto) {
+  // Adminni yangilash
+  async update(id: number, updateAdminDto: Partial<CreateAdminDto>) {
     const admin = await this.userRepository.findOne({ where: { id, role: 'admin' } });
     if (!admin) {
       throw new NotFoundException(`Admin with ID ${id} not found.`);
     }
 
-    const usernameConflict = await this.userRepository.findOne({ where: { username: updateAdminDto.username, id: Not(id) } });
+    const usernameConflict = await this.userRepository.findOne({
+      where: { username: updateAdminDto.username, id: Not(id) },
+    });
     if (usernameConflict) {
       throw new ConflictException('An admin with this username already exists.');
     }
 
-    await this.userRepository.update(id, updateAdminDto);
-    return this.userRepository.findOne({ where: { id, role: 'admin' } });
+    Object.assign(admin, updateAdminDto);
+    return this.userRepository.save(admin);
   }
 
+  // Adminni o'chirish
   async remove(id: number) {
     const admin = await this.userRepository.findOne({ where: { id, role: 'admin' } });
     if (!admin) {
       throw new NotFoundException(`Admin with ID ${id} not found.`);
     }
 
-    const result = await this.userRepository.delete(id);
-    return { success: result.affected > 0 };
+    await this.userRepository.remove(admin);
+    return { success: true, message: `Admin with ID ${id} has been removed.` };
   }
 }
