@@ -8,34 +8,35 @@ import { Repository } from 'typeorm';
 import { Teacher } from './entities/teacher.entity';
 import { CreateTeacherDto } from './dto/create-teacher.dto';
 import { UpdateTeacherDto } from './dto/update-teacher.dto';
+import { User } from 'src/students/entities/user.entity';
 
 @Injectable()
 export class TeacherService {
   constructor(
     @InjectRepository(Teacher)
-    private readonly teacherRepository: Repository<Teacher>,
+    private readonly userRepository: Repository<User>
   ) {}
 
   // Teacher yaratish
   async create(createTeacherDto: CreateTeacherDto): Promise<Teacher> {
-    const teacher = this.teacherRepository.create(createTeacherDto);
-    return this.teacherRepository.save(teacher);
+    const teacher = this.userRepository.create(createTeacherDto);
+    return this.userRepository.save(teacher);
   }
 
   // Teacherlarni olish
   async findAll(): Promise<Teacher[]> {
-    return this.teacherRepository.find();
+    return this.userRepository.find();
   }
 
   // Teacherni o'chirish
   async remove(id: string): Promise<void> {
-    const teacher = await this.teacherRepository.findOne({
+    const teacher = await this.userRepository.findOne({
       where: { id }, // IDni `where` orqali ko'rsatish kerak
     });
     if (!teacher) {
       throw new NotFoundException('Teacher not found');
     }
-    await this.teacherRepository.remove(teacher);
+    await this.userRepository.remove(teacher);
   }
 
   // Teacherni yangilash
@@ -44,7 +45,7 @@ export class TeacherService {
     user: any,
     updateTeacherDto: UpdateTeacherDto,
   ): Promise<Teacher> {
-    const teacher = await this.teacherRepository.findOne({
+    const teacher = await this.userRepository.findOne({
       where: { id }, // IDni `where` orqali ko'rsatish kerak
     });
     if (!teacher) {
@@ -59,7 +60,7 @@ export class TeacherService {
     }
 
     Object.assign(teacher, updateTeacherDto);
-    return this.teacherRepository.save(teacher);
+    return this.userRepository.save(teacher);
   }
 }
 
