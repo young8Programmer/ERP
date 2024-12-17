@@ -5,6 +5,7 @@ import {
   IsInt,
   MinLength,
   MaxLength,
+  IsOptional,
 } from 'class-validator';
 
 export class CreateTeacherDto {
@@ -12,7 +13,7 @@ export class CreateTeacherDto {
   @IsNotEmpty()
   @MinLength(3)
   @MaxLength(100)
-  fullname: string;
+  username: string;
 
   @IsEmail()
   @IsNotEmpty()
@@ -23,11 +24,7 @@ export class CreateTeacherDto {
   @MinLength(6)
   password: string;
 
-  @IsInt()
-  @IsNotEmpty()
-  age: number;
-
   @IsString()
-  @IsNotEmpty()
-  role: string;
+  @IsOptional()
+  role?: string;
 }
