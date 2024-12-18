@@ -5,7 +5,6 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { Profile } from './entities/profile.entity';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { Roles, RolesGuard } from 'src/auth/roles.guard';
-import { RolesUserGuard } from 'src/auth/rolesUserGuard';
 
 @Controller('profiles')
 export class ProfilesController {

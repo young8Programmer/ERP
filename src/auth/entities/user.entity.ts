@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Profile } from 'src/profile/entities/profile.entity';
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne, CreateDateColumn, UpdateDateColumn, JoinColumn } from 'typeorm';
 
 enum Role {
   SUPER_ADMIN = 'superAdmin',
@@ -32,4 +33,10 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
+  
+  @OneToOne(() => Profile, profile => profile.user, { cascade: true }) // Profil bilan bog‘laymiz
+  @JoinColumn() // Bog‘lanishni amalga oshiramiz
+  profile: Profile;
 }
+
+

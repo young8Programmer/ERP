@@ -12,6 +12,7 @@ import { Group } from './groups/entities/group.entity';
 import { Student } from './students/entities/user.entity';
 import { Teacher } from './teacher/entities/teacher.entity';
 import { GroupModule } from './groups/group.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -30,7 +31,8 @@ import { GroupModule } from './groups/group.module';
     AuthModule,
     ProfilesModule,
     TeachersModule,
-    GroupModule
+    GroupModule,
+    UsersModule
   ],
 })
 export class AppModule {}

@@ -23,4 +23,7 @@ export class CreateProfileDto {
   @IsString()
   @IsOptional()
   contactNumber?: string;
+
+  @IsNotEmpty()
+  userId: number; // Foydalanuvchining IDsi kerak
 }

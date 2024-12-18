@@ -12,7 +12,7 @@ export class Course {
   @Column({ type: 'varchar', length: 500 })
   description: string;
 
-  @ManyToMany(() => Group, (group) => group.courses)
+  @ManyToMany(() => Group, (group) => group.course)
   @JoinTable()
   groups: Group[];
 }

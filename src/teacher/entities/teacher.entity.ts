@@ -24,6 +24,6 @@ export class Teacher {
   @Column({default: "teacher"})
   role: string;
 
-  @ManyToMany(() => Group, (group) => group.teachers)
+  @ManyToMany(() => Group, (group) => group.teacher)
   groups: Group[];
 }

@@ -9,12 +9,13 @@ import { StudentsModule } from 'src/students/student.module';
 import { TeachersModule } from 'src/teacher/teacher.module';
 import { Student } from 'src/students/entities/user.entity';
 import { Teacher } from 'src/teacher/entities/teacher.entity';
+import { Profile } from 'src/profile/entities/profile.entity';
 
 dotenv.config();
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Student, Teacher]),
+    TypeOrmModule.forFeature([User, Student, Teacher, Profile]),
     JwtModule.register({
       global: true,
       secret: "juda_secret_key",

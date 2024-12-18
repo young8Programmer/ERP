@@ -15,5 +15,5 @@ export class CreateAuthDto {
 
   @IsOptional()
   @IsString()
-  role: 'admin' | 'student' | 'teacher';
+  role?: 'admin' | 'student' | 'teacher';
 }

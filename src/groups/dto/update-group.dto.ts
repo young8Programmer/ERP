@@ -1,7 +1,5 @@
-import { IsOptional, IsString, IsArray, ArrayNotEmpty, IsNumber } from 'class-validator';
-import { Course } from '../../courses/entities/course.entity';
-import { Student } from '../../students/entities/user.entity';
-import { Teacher } from '../../teacher/entities/teacher.entity';
+
+import { IsOptional, IsString, IsNumber, IsArray } from 'class-validator';
 
 export class UpdateGroupDto {
   @IsOptional()
@@ -9,17 +7,15 @@ export class UpdateGroupDto {
   name?: string;
 
   @IsOptional()
-  @IsArray()
-  @IsNumber({}, { each: true })
-  courses: number[];  // Array of course IDs
+  @IsNumber()
+  courseId: number; // Bitta kurs ID
+
+  @IsOptional()
+  @IsNumber()
+  teacherId: number; // Bitta o'qituvchi ID
 
   @IsOptional()
   @IsArray()
   @IsNumber({}, { each: true })
-  students: number[];  // Array of student IDs
-
-  @IsOptional()
-  @IsArray()
-  @IsNumber({}, { each: true })
-  teachers: number[];  // Array of teacher IDs
+  students: number[]; // Array of student IDs
 }

@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm';
+import { User } from '../../auth/entities/user.entity'; // Foydalanuvchi modeli bilan bog'lanish uchun import qilamiz
 
 @Entity('profiles')
 export class Profile {
@@ -22,4 +23,8 @@ export class Profile {
 
   @Column({ type: 'varchar', length: 15, nullable: true })
   contactNumber: string; // Telefon raqami
+
+  @OneToOne(() => User, (user) => user.profile)
+  @JoinColumn()
+  user: User; // Har bir profile bir marta faqat bir foydalanuvchi bilan bog'langan
 }
