@@ -18,13 +18,13 @@ export class ProfilesController {
     return this.profilesService.createProfile(createProfileDto);
   }
 
-  @UseGuards(AuthGuard, RolesUserGuard)
+  @UseGuards(AuthGuard)
   @Get()
   async getAllProfiles(): Promise<Profile[]> {
     return this.profilesService.getAllProfiles();
   }
 
-  @UseGuards(AuthGuard, RolesUserGuard)
+  @UseGuards(AuthGuard)
   @Get(':id')
   async getProfileById(@Param('id') id: number): Promise<Profile> {
     return this.profilesService.getProfileById(id);

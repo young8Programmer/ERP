@@ -18,13 +18,13 @@ export class GroupsController {
     return this.groupsService.createGroup(createGroupDto);
   }
 
-  @UseGuards(AuthGuard, RolesUserGuard)
+  @UseGuards(AuthGuard)
   @Get()
   async getAllGroups(): Promise<Group[]> {
     return this.groupsService.getAllGroups();
   }
 
-  @UseGuards(AuthGuard, RolesUserGuard)
+  @UseGuards(AuthGuard)
   @Get(':id')
   async getGroupById(@Param('id') id: number): Promise<Group> {
     return this.groupsService.getGroupById(id);

@@ -11,14 +11,14 @@ export class TeachersController {
   constructor(private readonly teachersService: TeachersService) {}
 
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles("admin", "teacher")
+  @Roles("admin")
   @Post()
   async createTeacher(@Body() createTeacherDto: CreateTeacherDto): Promise<Teacher> {
     return this.teachersService.createTeacher(createTeacherDto);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles("admin", "teacher")
+  @Roles("admin")
   @Get()
   async getAllTeachers(): Promise<Teacher[]> {
     return this.teachersService.getAllTeachers();
@@ -32,7 +32,7 @@ export class TeachersController {
   }
 
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles("admin", "teacher")
+  @Roles("admin")
   @Put(':id')
   async updateTeacher(@Param('id') id: number, @Body() updateTeacherDto: UpdateTeacherDto): Promise<Teacher> {
     return this.teachersService.updateTeacher(id, updateTeacherDto);

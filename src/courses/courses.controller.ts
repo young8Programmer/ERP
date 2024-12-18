@@ -18,13 +18,13 @@ export class CoursesController {
     return this.coursesService.createCourse(createCourseDto);
   }
 
-  @UseGuards(AuthGuard, RolesUserGuard)
+  @UseGuards(AuthGuard)
   @Get()
   async getAllCourses(): Promise<Course[]> {
     return this.coursesService.getAllCourses();
   }
 
-  @UseGuards(AuthGuard, RolesUserGuard)
+  @UseGuards(AuthGuard)
   @Get(':id')
   async getCourseById(@Param('id') id: number): Promise<Course> {
     return this.coursesService.getCourseById(id);
