@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards } from '@nestjs/common';
 import { GroupsService } from './group.service';
 import { CreateGroupDto } from './dto/create-group.dto';
-import { GroupUpdateDto } from './dto/update-group.dto';
+import { UpdateGroupDto } from './dto/update-group.dto';
 import { Group } from './entities/group.entity';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { Roles, RolesGuard } from 'src/auth/roles.guard';
@@ -33,7 +33,7 @@ export class GroupsController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles("admin")
   @Put(':id')
-  async updateGroup(@Param('id') id: number, @Body() updateGroupDto: GroupUpdateDto): Promise<Group> {
+  async updateGroup(@Param('id') id: number, @Body() updateGroupDto: UpdateGroupDto): Promise<Group> {
     return this.groupsService.updateGroup(id, updateGroupDto);
   }
 

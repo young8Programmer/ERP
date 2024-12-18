@@ -1,10 +1,28 @@
+import { IsOptional, IsString, IsArray, ArrayNotEmpty, IsNumber } from 'class-validator';
+import { Course } from '../../courses/entities/course.entity';
+import { Student } from '../../students/entities/user.entity';
+import { Teacher } from '../../teacher/entities/teacher.entity';
 
-// GroupUpdateDto.ts
-import { IsString, Length, IsOptional } from 'class-validator';
-
-export class GroupUpdateDto {
-  @IsString()
-  @Length(5, 100)
+export class UpdateGroupDto {
   @IsOptional()
+  @IsString()
   name?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsNumber()
+  courses?: number[];  // Array of course IDs
+
+  @IsOptional()
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsNumber()
+  students?: number[];  // Array of student IDs
+
+  @IsOptional()
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsNumber()
+  teachers?: number[];  // Array of teacher IDs
 }
