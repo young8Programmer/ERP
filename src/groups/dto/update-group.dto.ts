@@ -10,19 +10,16 @@ export class UpdateGroupDto {
 
   @IsOptional()
   @IsArray()
-  @ArrayNotEmpty()
-  @IsNumber()
-  courses?: number[];  // Array of course IDs
+  @IsNumber({}, { each: true })
+  courses: number[];  // Array of course IDs
 
   @IsOptional()
   @IsArray()
-  @ArrayNotEmpty()
-  @IsNumber()
-  students?: number[];  // Array of student IDs
+  @IsNumber({}, { each: true })
+  students: number[];  // Array of student IDs
 
   @IsOptional()
   @IsArray()
-  @ArrayNotEmpty()
-  @IsNumber()
-  teachers?: number[];  // Array of teacher IDs
+  @IsNumber({}, { each: true })
+  teachers: number[];  // Array of teacher IDs
 }
