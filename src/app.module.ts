@@ -21,7 +21,7 @@ import { GroupModule } from './groups/group.module';
       port: 5432,
       username: 'postgres',
       password: '1234',
-      database: 'erp',
+      database: 'erpp',
       entities: [User, Course, Group, Profile, Student, Teacher],
       synchronize: true,
     }),
