@@ -1,25 +1,18 @@
-import { IsNotEmpty, IsString, IsArray, ArrayNotEmpty, IsNumber } from 'class-validator';
-import { Course } from '../../courses/entities/course.entity';
-import { Student } from '../../students/entities/user.entity';
-import { Teacher } from '../../teacher/entities/teacher.entity';
+import { IsString, IsArray, IsNumber } from 'class-validator';
 
 export class CreateGroupDto {
   @IsString()
-  @IsNotEmpty()
   name: string;
 
   @IsArray()
-  @ArrayNotEmpty()
-  @IsNumber()
-  courses: number[]; 
+  @IsNumber({}, { each: true })
+  courses: number[];  // Array of course IDs
 
   @IsArray()
-  @ArrayNotEmpty()
-  @IsNumber()
-  students: number[];
+  @IsNumber({}, { each: true })
+  students: number[];  // Array of student IDs
 
   @IsArray()
-  @ArrayNotEmpty()
-  @IsNumber()
-  teachers: number[];
+  @IsNumber({}, { each: true })
+  teachers: number[];  // Array of teacher IDs
 }
