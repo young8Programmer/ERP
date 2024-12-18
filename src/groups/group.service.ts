@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Group } from './entities/group.entity';
@@ -27,9 +27,20 @@ export class GroupsService {
   async createGroup(createGroupDto: CreateGroupDto): Promise<Group> {
     const { name, courses, students, teachers } = createGroupDto;
 
+    // Tekshirish: Agar kurslar, talabalar yoki o'qituvchilar mavjud bo'lsa, yaratishga urinmaslik
+    if (courses.length === 0 || students.length === 0 || teachers.length === 0) {
+      throw new BadRequestException('Courses, students, or teachers not found');
+    }
+
     const courseEntities = await this.courseRepository.findByIds(courses);
     const studentEntities = await this.studentRepository.findByIds(students);
     const teacherEntities = await this.teacherRepository.findByIds(teachers);
+
+    // Tekshirish: Guruh avvalroq mavjudmi
+    const existingGroup = await this.groupRepository.findOne({ where: { name }, relations: ['courses', 'students', 'teachers'] });
+    if (existingGroup) {
+      throw new BadRequestException('Group with this name already exists');
+    }
 
     const group = this.groupRepository.create({
       name,
@@ -69,6 +80,12 @@ export class GroupsService {
     if (updateGroupDto.teachers) {
       const teacherEntities = await this.teacherRepository.findByIds(updateGroupDto.teachers);
       group.teachers = teacherEntities;
+    }
+
+    // Tekshirish: Yangi yangilangan guruh mavjudmi
+    const existingGroup = await this.groupRepository.findOne({ where: { name: group.name }, relations: ['courses', 'students', 'teachers'] });
+    if (existingGroup && existingGroup.id !== id) {
+      throw new BadRequestException('Group with this name already exists');
     }
 
     Object.assign(group, updateGroupDto);
