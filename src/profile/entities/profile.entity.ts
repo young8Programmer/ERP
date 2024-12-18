@@ -2,18 +2,24 @@ import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity('profiles')
 export class Profile {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-  @Column({ type: 'varchar', length: 255 })
-  name: string;
+  @Column({ type: 'varchar', length: 50 })
+  firstName: string;
 
-  @Column({ type: 'varchar', length: 255, unique: true })
-  email: string;
+  @Column({ type: 'varchar', length: 50 })
+  lastName: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  role: string; // Admin yoki user rolini saqlash uchun
+  @Column({ type: 'varchar', nullable: true })
+  photo: string; // Profil rasmi
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  userId: string; // Faqat userga tegishli profillar uchun
+  @Column({ type: 'text', nullable: true })
+  bio: string; // Qisqacha ma'lumot
+
+  @Column({ type: 'int', nullable: true })
+  age: number; // Yoshi
+
+  @Column({ type: 'varchar', length: 15, nullable: true })
+  contactNumber: string; // Telefon raqami
 }

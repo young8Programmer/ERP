@@ -1,30 +1,25 @@
-import {
-  IsString,
-  IsNotEmpty,
-  IsEmail,
-  IsInt,
-  MinLength,
-  MaxLength,
-  IsOptional,
-} from 'class-validator';
+import { IsNotEmpty, IsString, IsPhoneNumber, Length } from 'class-validator';
 
 export class CreateTeacherDto {
   @IsString()
   @IsNotEmpty()
-  @MinLength(3)
-  @MaxLength(100)
-  username: string;
-
-  @IsEmail()
-  @IsNotEmpty()
-  email: string;
+  @Length(3, 50)
+  firstName: string;
 
   @IsString()
   @IsNotEmpty()
-  @MinLength(6)
-  password: string;
+  @Length(3, 50)
+  lastName: string;
+
+  @IsPhoneNumber()
+  @IsNotEmpty()
+  phone: string;
 
   @IsString()
-  @IsOptional()
-  role?: string;
+  @IsNotEmpty()
+  address: string;
+
+  @IsString()
+  @IsNotEmpty()
+  specialty: string;
 }

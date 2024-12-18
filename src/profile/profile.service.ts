@@ -1,40 +1,45 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
-import { CreateProfileDto } from './dto/create-profile.dto';
-import { UpdateProfileDto } from './dto/create-profile.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Profile } from './entities/profile.entity';
+import { CreateProfileDto } from "./dto/create-profile.dto";
+import { UpdateProfileDto } from "./dto/update-profile.dto";
 
 @Injectable()
-export class ProfileService {
-  private profiles = [];
+export class ProfilesService {
+  constructor(
+    @InjectRepository(Profile)
+    private readonly profileRepository: Repository<Profile>,
+  ) {}
 
-  async create(createProfileDto: CreateProfileDto) {
-    const newProfile = { id: Date.now().toString(), ...createProfileDto };
-    this.profiles.push(newProfile);
-    return newProfile;
+  async createProfile(createProfileDto: CreateProfileDto): Promise<Profile> {
+    const profile = this.profileRepository.create(createProfileDto);
+    return this.profileRepository.save(profile);
   }
 
-  async findAll() {
-    return this.profiles;
+  async getAllProfiles(): Promise<Profile[]> {
+    return this.profileRepository.find();
   }
 
-  async remove(id: string) {
-    const index = this.profiles.findIndex((p) => p.id === id);
-    if (index === -1) {
-      throw new NotFoundException('Profile not found');
-    }
-    this.profiles.splice(index, 1);
-  }
-
-  async update(id: string, user: any, updateProfileDto: UpdateProfileDto) {
-    const profile = this.profiles.find((p) => p.id === id);
+  async getProfileById(id: number): Promise<Profile> {
+    const profile = await this.profileRepository.findOne({ where: { id } });
     if (!profile) {
-      throw new NotFoundException('Profile not found');
+      throw new NotFoundException(`Profile with ID ${id} not found`);
     }
-
-    if (user.role !== 'admin' && user.id !== profile.userId) {
-      throw new ForbiddenException('You do not have permission to update this profile');
-    }
-
-    Object.assign(profile, updateProfileDto);
     return profile;
+  }
+
+  async updateProfile(id: number, updateProfileDto: UpdateProfileDto): Promise<Profile> {
+    const profile = await this.getProfileById(id);
+    Object.assign(profile, updateProfileDto);
+    return this.profileRepository.save(profile);
+  }
+
+  async deleteProfile(id: number): Promise<void> {
+    const profile = await this.getProfileById(id);
+    if (!profile) {
+      throw new NotFoundException(`Profile with ID ${id} not found`);
+    }
+    await this.profileRepository.remove(profile);
   }
 }

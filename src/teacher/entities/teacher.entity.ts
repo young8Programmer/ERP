@@ -1,22 +1,29 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from 'typeorm';
+import { Group } from '../../groups/entities/group.entity';
 
-@Entity()
-export class Teacher {
+@Entity('teachers')
+export class Teacher {   
   @PrimaryGeneratedColumn()
-  id: string;
+  id: number;
 
-  @Column()
-  fullname: string;
+  @Column({ type: 'varchar', length: 50 })
+  firstName: string;
 
-  @Column()
-  email: string;
+  @Column({ type: 'varchar', length: 50 })
+  lastName: string;
 
-  @Column()
-  password: string;
+  @Column({ type: 'varchar', length: 15, unique: true })
+  phone: string;
 
-  @Column()
-  age: number;
+  @Column({ type: 'varchar', length: 255 })
+  address: string;
 
-  @Column()
-  role: string; // Masalan, "teacher", "admin"
+  @Column({ type: 'varchar', length: 100 })
+  specialty: string;
+
+  @Column({default: "teacher"})
+  role: string;
+
+  @ManyToMany(() => Group, (group) => group.teachers)
+  groups: Group[];
 }

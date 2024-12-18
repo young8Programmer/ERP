@@ -6,18 +6,18 @@ import {
 } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/students/entities/user.entity';
+import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { StudentService } from 'src/students/student.service';
+import { StudentsService } from 'src/students/student.service';
+import { TeachersService } from '../teacher/teacher.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-    private readonly jwtService: JwtService,
-    private readonly StudentService: StudentService,
+    private readonly jwtService: JwtService
   ) {}
 
   async registerAdmin(createAuthDto: CreateAuthDto) {
@@ -55,6 +55,25 @@ export class AuthService {
 
     await this.userRepository.save(user);
     return { message: 'You are successfully registered' };
+  }
+
+  async registerTeacher(createAuthDto: CreateAuthDto) {
+    const existingUser = await this.userRepository.findOne({
+      where: { username: createAuthDto.username },
+    });
+    if (existingUser) {
+      throw new ConflictException('Username already exists');
+    }
+
+    const user = this.userRepository.create({
+      username: createAuthDto.username,
+      email: createAuthDto.email,
+      password: await bcrypt.hash(createAuthDto.password, 10),
+      role: 'teacher',
+    });
+
+    await this.userRepository.save(user);
+    return { message: 'You are successfully registered as a teacher' };
   }
 
   async login(loginDto: { username: string; password: string }) {

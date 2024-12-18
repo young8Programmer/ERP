@@ -23,8 +23,13 @@ export class AuthController {
   }
 
   @Post('register/student')
-  async registerUser(@Body() createAuthDto: CreateAuthDto) {
+  async registerStudent(@Body() createAuthDto: CreateAuthDto) {
     return this.authService.register(createAuthDto);
+  }
+
+  @Post('register/teacher')
+  async registerTeacher(@Body() createAuthDto: CreateAuthDto) {
+    return this.authService.registerTeacher(createAuthDto);
   }
 
   @Post('login')

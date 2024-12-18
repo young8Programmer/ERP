@@ -5,24 +5,24 @@ import {
   MinLength,
   MaxLength,
   IsEmail,
+  IsPhoneNumber,
 } from 'class-validator';
+
 
 export class UpdateTeacherDto {
   @IsString()
-  @IsOptional()
-  @MinLength(3)
-  @MaxLength(100)
-  username?: string;
-
-  @IsEmail()
-  @IsOptional()
-  email?: string;
+  firstName?: string;
 
   @IsString()
-  @IsOptional()
-  password?: string;
+  lastName?: string;
+
+  @IsPhoneNumber()
+  phone?: string;
 
   @IsString()
-  @IsOptional()
-  role?: string;
+  address?: string;
+
+  @IsString()
+  specialty?: string;
 }
+

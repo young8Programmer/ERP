@@ -1,54 +1,47 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Param,
-  Body,
-  UseGuards,
-} from '@nestjs/common';
-import { StudentService } from './student.service';
+import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards } from '@nestjs/common';
+import { StudentsService } from './student.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
-import { Roles } from '../auth/roles.guard';
-import { RolesGuard } from '../auth/roles.guard';
-import { AuthGuard } from '../auth/auth.guard';
+import { Student } from './entities/user.entity';
+import { AuthGuard } from 'src/auth/auth.guard';
+import { Roles, RolesGuard } from 'src/auth/roles.guard';
 
 @Controller('students')
-export class StudentController {
-  constructor(private readonly studentService: StudentService) {}
+export class StudentsController {
+  constructor(private readonly studentsService: StudentsService) {}
 
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles("admin", "teacher")
   @Post()
-  async createStudent(@Body() createStudentDto: CreateStudentDto) {
-    return this.studentService.createStudent(createStudentDto);
+  async createStudent(@Body() createStudentDto: CreateStudentDto): Promise<Student> {
+    return this.studentsService.createStudent(createStudentDto);
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles("admin", "teacher")
   @Get()
-  async findAllStudents() {
-    return this.studentService.findAll();
+  async getAllStudents(): Promise<Student[]> {
+    return this.studentsService.getAllStudents();
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles("admin", "teacher")
   @Get(':id')
-  async findOneStudent(@Param('id') id: number) {
-    return this.studentService.findOne(id);
+  async getStudentById(@Param('id') id: number): Promise<Student> {
+    return this.studentsService.getStudentById(id);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('admin')
-  @Patch(':id')
-  async updateStudent(@Param('id') id: number, @Body() updateStudent: UpdateStudentDto) {
-    return this.studentService.update(id, updateStudent);
+  @Roles("admin", "teacher")
+  @Put(':id')
+  async updateStudent(@Param('id') id: number, @Body() updateStudentDto: UpdateStudentDto): Promise<Student> {
+    return this.studentsService.updateStudent(id, updateStudentDto);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles("admin")
   @Delete(':id')
-  async removeStudent(@Param('id') id: number) {
-    return this.studentService.remove(id);
+  async deleteStudent(@Param('id') id: number): Promise<void> {
+    await this.studentsService.deleteStudent(id);
   }
 }

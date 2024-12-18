@@ -1,27 +1,21 @@
-import {
-  IsString,
-  IsEmail,
-  IsOptional,
-  IsIn,
-  MinLength,
-  MaxLength,
-} from 'class-validator';
+import { IsNotEmpty, IsString, IsPhoneNumber, Length } from 'class-validator';
 
 export class CreateStudentDto {
   @IsString()
-  @MaxLength(50)
-  username: string;
-
-  @IsEmail()
-  @MaxLength(50)
-  email: string;
+  @IsNotEmpty()
+  @Length(3, 50)
+  firstName: string;
 
   @IsString()
-  @MinLength(8)
-  @MaxLength(40)
-  password: string;
+  @IsNotEmpty()
+  @Length(3, 50)
+  lastName: string;
 
-  @IsOptional()
-  @IsIn(['admin', 'student', 'teacher'])
-  role?: string;
+  @IsPhoneNumber()
+  @IsNotEmpty()
+  phone: string;
+
+  @IsString()
+  @IsNotEmpty()
+  address: string;
 }

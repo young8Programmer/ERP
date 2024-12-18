@@ -1,17 +1,17 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './students/entities/user.entity';
+import { User } from './auth/entities/user.entity';
 import { Course } from './courses/entities/course.entity';
-import { StudentModel } from './students/student.module';
+import { StudentsModule } from './students/student.module';
 import { CoursesModule } from './courses/courses.module';
 import { AuthModule } from './auth/auth.module';
-import { Auth } from './auth/entities/auth.entity';
-import { ProfileModule } from './profile/profile.module';
+import { ProfilesModule } from './profile/profile.module';
 import { Profile } from './profile/entities/profile.entity';
-import { AdminModule } from './admin/admin.module';
-import { TeacherModule } from './teacher/teacher.module';
-import { PaymentsModule } from './payments/payments.module';
-import { Payment } from './payments/entities/payment.entity';
+import { TeachersModule } from './teacher/teacher.module';
+import { Group } from './groups/entities/group.entity';
+import { Student } from './students/entities/user.entity';
+import { Teacher } from './teacher/entities/teacher.entity';
+import { GroupModule } from './groups/group.module';
 
 @Module({
   imports: [
@@ -22,16 +22,15 @@ import { Payment } from './payments/entities/payment.entity';
       username: 'postgres',
       password: '1234',
       database: 'erp',
-      entities: [User, Course, Auth, Profile, Payment],
+      entities: [User, Course, Group, Profile, Student, Teacher],
       synchronize: true,
     }),
     CoursesModule,
-    StudentModel,
+    StudentsModule,
     AuthModule,
-    ProfileModule,
-    AdminModule,
-    TeacherModule,
-    PaymentsModule
+    ProfilesModule,
+    TeachersModule,
+    GroupModule
   ],
 })
 export class AppModule {}

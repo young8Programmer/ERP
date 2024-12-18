@@ -1,14 +1,13 @@
-import { IsString, IsInt, Min, Max } from 'class-validator';
+import { IsNotEmpty, IsString, Length } from 'class-validator';
 
 export class CreateCourseDto {
   @IsString()
-  title: string;
+  @IsNotEmpty()
+  @Length(3, 100)
+  name: string;
 
   @IsString()
+  @IsNotEmpty()
+  @Length(10, 500)
   description: string;
-
-  @IsInt()
-  @Min(0)
-  @Max(10000)
-  price: number;
 }

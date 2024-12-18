@@ -1,14 +1,11 @@
-import { IsString, IsInt, Min, Max } from 'class-validator';
+import { IsString, IsInt, Min, Max, Length } from 'class-validator';
+
 
 export class UpdateCourseDto {
   @IsString()
-  title?: string;
+  name?: string;
 
   @IsString()
+  @Length(10, 500)
   description?: string;
-
-  @IsInt()
-  @Min(0)
-  @Max(10000)
-  price?: number;
 }

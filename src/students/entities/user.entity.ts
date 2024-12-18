@@ -1,35 +1,26 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  ManyToMany,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from 'typeorm';
+import { Group } from '../../groups/entities/group.entity';
 
-@Entity('users')
-export class User {
+@Entity('students')
+export class Student {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column({ type: 'varchar', length: 50 })
-  username: string;
+  firstName: string;
 
-  @Column({ type: 'varchar', length: 100, unique: true })
-  email: string;
+  @Column({ type: 'varchar', length: 50 })
+  lastName: string;
 
-  @Column({ type: 'varchar', length: 2500 })
-  password: string;
+  @Column({ type: 'varchar', length: 15, unique: true })
+  phone: string;
 
-  @Column({ type: 'varchar', length: 50})
+  @Column({ type: 'varchar', length: 255 })
+  address: string;
+
+  @Column({default: "student"})
   role: string;
 
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
-
-  @Column({ nullable: true })
-  refreshToken?: string;
+  @ManyToMany(() => Group, (group) => group.students)
+  groups: Group[];
 }

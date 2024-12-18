@@ -1,80 +1,46 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-  Param,
-  Body,
-  NotFoundException,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards } from '@nestjs/common';
 import { CoursesService } from './courses.service';
-import { Course } from './entities/course.entity';
 import { CreateCourseDto } from './dto/create-course.dto';
+import { UpdateCourseDto } from './dto/update-course.dto';
+import { Course } from './entities/course.entity';
 import { AuthGuard } from 'src/auth/auth.guard';
-import { RolesGuard } from 'src/auth/roles.guard';
+import { Roles, RolesGuard } from 'src/auth/roles.guard';
+import { RolesUserGuard } from 'src/auth/rolesUserGuard';
 
 @Controller('courses')
 export class CoursesController {
   constructor(private readonly coursesService: CoursesService) {}
 
-  @UseGuards(AuthGuard)
-  @Get()
-  findAll() {
-    const courses = this.coursesService.getAll();
-    return {
-      message: 'All courses retrieved successfully!',
-      data: courses,
-    };
-  }
-
-  @UseGuards(AuthGuard)
-  @Get(':id')
-  findOne(@Param('id') id: number) {
-    const course = this.coursesService.getById(id);
-    if (!course) {
-      throw new NotFoundException(`Course with ID ${id} not found!`);
-    }
-    return {
-      message: `Course with ID ${id} retrieved successfully!`,
-      data: course,
-    };
-  }
-
   @UseGuards(AuthGuard, RolesGuard)
+  @Roles("admin")
   @Post()
-  create(@Body() createCourseDto: CreateCourseDto) {
-    const newCourse = this.coursesService.create(createCourseDto);
-    return {
-      message: 'Course created successfully!',
-      data: newCourse,
-    };
+  async createCourse(@Body() createCourseDto: CreateCourseDto): Promise<Course> {
+    return this.coursesService.createCourse(createCourseDto);
+  }
+
+  @UseGuards(AuthGuard, RolesUserGuard)
+  @Get()
+  async getAllCourses(): Promise<Course[]> {
+    return this.coursesService.getAllCourses();
+  }
+
+  @UseGuards(AuthGuard, RolesUserGuard)
+  @Get(':id')
+  async getCourseById(@Param('id') id: number): Promise<Course> {
+    return this.coursesService.getCourseById(id);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
+  @Roles("admin")
   @Put(':id')
-  update(@Param('id') id: number, @Body() updateCourseDto: Partial<Course>) {
-    const updatedCourse = this.coursesService.update(id, updateCourseDto);
-    if (!updatedCourse) {
-      throw new NotFoundException(`Course with ID ${id} not found!`);
-    }
-    return {
-      message: `Course with ID ${id} updated successfully!`,
-      data: updatedCourse,
-    };
+  async updateCourse(@Param('id') id: number, @Body() updateCourseDto: UpdateCourseDto): Promise<Course> {
+    return this.coursesService.updateCourse(id, updateCourseDto);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
+  @Roles("admin")
   @Delete(':id')
-  remove(@Param('id') id: number) {
-    const deletedCourse = this.coursesService.delete(id);
-    if (!deletedCourse) {
-      throw new NotFoundException(`Course with ID ${id} not found!`);
-    }
-    return {
-      message: `Course with ID ${id} deleted successfully!`,
-      data: deletedCourse,
-    };
+  async deleteCourse(@Param('id') id: number): Promise<void> {
+    await this.coursesService.deleteCourse(id);
   }
 }

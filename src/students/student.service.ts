@@ -1,68 +1,45 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Not, Repository } from 'typeorm';
-import { User } from './entities/user.entity';
-import { CreateStudentDto } from "./dto/create-student.dto";
+import { Repository } from 'typeorm';
+import { Student } from './entities/user.entity';
+import { CreateStudentDto} from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 
 @Injectable()
-export class StudentService {
+export class StudentsService {
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    @InjectRepository(Student)
+    private readonly studentRepository: Repository<Student>,
   ) {}
 
-  async createStudent(createStudentDto: CreateStudentDto) {
-    const existingStudent = await this.userRepository.findOne({ where: { username: createStudentDto.username, role: 'student' } });
-    if (existingStudent) {
-      throw new ConflictException('A student with this username already exists.');
-    }
-
-    const student = this.userRepository.create({
-      ...createStudentDto,
-      role: 'student',
-    });
-    return this.userRepository.save(student);
+  async createStudent(createStudentDto: CreateStudentDto): Promise<Student> {
+    const student = this.studentRepository.create(createStudentDto);
+    return this.studentRepository.save(student);
   }
 
-  async findAll() {
-    const students = await this.userRepository.find({ where: { role: 'student' } });
-    if (!students.length) {
-      throw new NotFoundException('No students found.');
-    }
-    return students;
+  async getAllStudents(): Promise<Student[]> {
+    return this.studentRepository.find({ relations: ['groups'] });
   }
 
-  async findOne(id: number) {
-    const student = await this.userRepository.findOne({ where: { id, role: 'student' } });
+  async getStudentById(id: number): Promise<Student> {
+    const student = await this.studentRepository.findOne({ where: { id }, relations: ['groups'] });
     if (!student) {
-      throw new NotFoundException(`Student with ID ${id} not found.`);
+      throw new NotFoundException(`Student with ID ${id} not found`);
     }
     return student;
   }
 
-  async update(id: number, updateStudentDto: UpdateStudentDto) {
-    const student = await this.userRepository.findOne({ where: { id, role: 'student' } });
-    if (!student) {
-      throw new NotFoundException(`Student with ID ${id} not found.`);
-    }
-
-    const usernameConflict = await this.userRepository.findOne({ where: { username: updateStudentDto.username, id: Not(id) } });
-    if (usernameConflict) {
-      throw new ConflictException('A student with this username already exists.');
-    }
-
-    await this.userRepository.update(id, updateStudentDto);
-    return this.userRepository.findOne({ where: { id, role: 'student' } });
+  async updateStudent(id: number, updateStudentDto: UpdateStudentDto): Promise<Student> {
+    const student = await this.getStudentById(id);
+    Object.assign(student, updateStudentDto);
+    return this.studentRepository.save(student);
   }
 
-  async remove(id: number) {
-    const student = await this.userRepository.findOne({ where: { id, role: 'student' } });
+  async deleteStudent(id: number): Promise<void> {
+    const student = await this.getStudentById(id);
     if (!student) {
-      throw new NotFoundException(`Student with ID ${id} not found.`);
+      throw new NotFoundException(`Student with ID ${id} not found`);
     }
-
-    const result = await this.userRepository.delete(id);
-    return { success: result.affected > 0 };
+    await this.studentRepository.remove(student);
   }
 }
