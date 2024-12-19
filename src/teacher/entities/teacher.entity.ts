@@ -1,8 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { Group } from '../../groups/entities/group.entity';
 
 @Entity('teachers')
-export class Teacher {   
+export class Teacher {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -21,9 +21,9 @@ export class Teacher {
   @Column({ type: 'varchar', length: 100 })
   specialty: string;
 
-  @Column({default: "teacher"})
+  @Column({ default: "teacher" })
   role: string;
 
-  @ManyToMany(() => Group, (group) => group.teacher)
-  groups: Group[];
+  @OneToMany(() => Group, (group) => group.teacher)
+  groups: Group[]; // Bir nechta guruhlar
 }
