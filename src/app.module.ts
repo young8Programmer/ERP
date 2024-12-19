@@ -11,7 +11,7 @@ import { TeachersModule } from './teacher/teacher.module';
 import { Group } from './groups/entities/group.entity';
 import { Student } from './students/entities/user.entity';
 import { Teacher } from './teacher/entities/teacher.entity';
-import { GroupModule } from './groups/group.module';
+import { GroupsModule } from './groups/group.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -31,7 +31,7 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     ProfilesModule,
     TeachersModule,
-    GroupModule,
+    GroupsModule,
     UsersModule
   ],
 })
