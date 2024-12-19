@@ -13,32 +13,43 @@ export class TeachersService {
   ) {}
 
   async createTeacher(createTeacherDto: CreateTeacherDto): Promise<Teacher> {
+    const existingTeacher = await this.teacherRepository.findOne({ where: { phone: createTeacherDto.phone } });
+    if (existingTeacher) {
+      throw new NotFoundException(`O'qituvchi telefon raqami ${createTeacherDto.phone} allaqachon mavjud`);
+    }
     const teacher = this.teacherRepository.create(createTeacherDto);
-    return this.teacherRepository.save(teacher);
+    return await this.teacherRepository.save(teacher);
   }
 
   async getAllTeachers(): Promise<Teacher[]> {
-    return this.teacherRepository.find({ relations: ['groups'] });
+    const teachers = await this.teacherRepository.find({ relations: ['groups'] });
+    if (teachers.length === 0) {
+      throw new NotFoundException('Hech qanday o‘qituvchi topilmadi');
+    }
+    return teachers;
   }
 
   async getTeacherById(id: number): Promise<Teacher> {
     const teacher = await this.teacherRepository.findOne({ where: { id }, relations: ['groups'] });
     if (!teacher) {
-      throw new NotFoundException(`Teacher with ID ${id} not found`);
+      throw new NotFoundException(`O'qituvchi ID ${id} topilmadi`);
     }
     return teacher;
   }
 
   async updateTeacher(id: number, updateTeacherDto: UpdateTeacherDto): Promise<Teacher> {
     const teacher = await this.getTeacherById(id);
+    if (!teacher) {
+      throw new NotFoundException(`O'qituvchi ID ${id} topilmadi`);
+    }
     Object.assign(teacher, updateTeacherDto);
-    return this.teacherRepository.save(teacher);
+    return await this.teacherRepository.save(teacher);
   }
 
   async deleteTeacher(id: number): Promise<void> {
     const teacher = await this.getTeacherById(id);
     if (!teacher) {
-      throw new NotFoundException(`Teacher with ID ${id} not found`);
+      throw new NotFoundException(`O'qituvchi ID ${id} topilmadi`);
     }
     await this.teacherRepository.remove(teacher);
   }

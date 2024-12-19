@@ -20,7 +20,7 @@ export class ProfilesService {
     const { userId } = createProfileDto;
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
-      throw new NotFoundException(`User with ID ${userId} not found`);
+      throw new NotFoundException(`Foydalanuvchi ID ${userId} topilmadi`);
     }
 
     const profile = this.profileRepository.create({ ...createProfileDto, user });
@@ -34,7 +34,7 @@ export class ProfilesService {
   async getProfileById(id: number): Promise<Profile> {
     const profile = await this.profileRepository.findOne({ where: { id }, relations: ['user'] });
     if (!profile) {
-      throw new NotFoundException(`Profile with ID ${id} not found`);
+      throw new NotFoundException(`Profile ID ${id} topilmadi`);
     }
     return profile;
   }
@@ -44,14 +44,14 @@ export class ProfilesService {
     const profile = await this.profileRepository.findOne({ where: { id } });
   
     if (!profile) {
-      throw new NotFoundException(`Profile with ID ${id} not found`);
+      throw new NotFoundException(`Profile ID ${id} topilmadi`);
     }
   
     // Agar `userId` berilgan bo‘lsa, foydalanuvchini tekshiramiz
     if (updateProfileDto.userId) {
       const user = await this.userRepository.findOne({ where: { id: updateProfileDto.userId } });
       if (!user) {
-        throw new NotFoundException(`User with ID ${updateProfileDto.userId} not found`);
+        throw new NotFoundException(`Foydalanuvchi ID ${updateProfileDto.userId} topilmadi`);
       }
   
       // User IDni qo'shamiz (bog‘lanish uchun)
@@ -69,7 +69,7 @@ export class ProfilesService {
   async deleteProfile(id: number): Promise<void> {
     const profile = await this.getProfileById(id);
     if (!profile) {
-      throw new NotFoundException(`Profile with ID ${id} not found`);
+      throw new NotFoundException(`Profile ID ${id} topilmadi`);
     }
     await this.profileRepository.remove(profile);
   }

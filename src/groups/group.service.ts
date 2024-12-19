@@ -30,18 +30,18 @@ export class GroupsService {
     // Kursni tekshirish
     const course = await this.courseRepository.findOne({ where: { id: courseId } });
     if (!course) {
-      throw new BadRequestException('Course not found');
+      throw new BadRequestException('Kurs topilmadi');
     }
   
     // O'qituvchini tekshirish
     const teacher = await this.teacherRepository.findOne({ where: { id: teacherId } });
     if (!teacher) {
-      throw new BadRequestException('Teacher not found');
+      throw new BadRequestException("O'qituvchi topilmadi");
     }
   
     // Talabalar ro'yxatini tekshirish
     if (students.length === 0) {
-      throw new BadRequestException('Students not found');
+      throw new BadRequestException('Talabalar ro‘yxati topilmadi');
     }
   
     const studentEntities = await this.studentRepository.findByIds(students);
@@ -49,7 +49,7 @@ export class GroupsService {
     // Guruh mavjudligini tekshirish
     const existingGroup = await this.groupRepository.findOne({ where: { name }, relations: ['course', 'teacher', 'students'] });
     if (existingGroup) {
-      throw new BadRequestException('Group with this name already exists');
+      throw new BadRequestException('Bunday nomli guruh mavjud');
     }
   
     const group = this.groupRepository.create({
@@ -69,7 +69,7 @@ export class GroupsService {
   async getGroupById(id: number): Promise<Group> {
     const group = await this.groupRepository.findOne({ where: { id }, relations: ['course', 'teacher', 'students'] });
     if (!group) {
-      throw new NotFoundException(`Group with ID ${id} not found`);
+      throw new NotFoundException(`Guruh ID ${id} topilmadi`);
     }
     return group;
   }
@@ -84,7 +84,7 @@ export class GroupsService {
     if (updateGroupDto.courseId) {
       const course = await this.courseRepository.findOne({ where: { id: updateGroupDto.courseId } });
       if (!course) {
-        throw new BadRequestException('Course not found');
+        throw new BadRequestException('Kurs topilmadi');
       }
       group.course = course;
     }
@@ -92,7 +92,7 @@ export class GroupsService {
     if (updateGroupDto.teacherId) {
       const teacher = await this.teacherRepository.findOne({ where: { id: updateGroupDto.teacherId } });
       if (!teacher) {
-        throw new BadRequestException('Teacher not found');
+        throw new BadRequestException("O'qituvchi topilmadi");
       }
       group.teacher = teacher;
     }
@@ -105,7 +105,7 @@ export class GroupsService {
     // Tekshirish: Yangi yangilangan guruh mavjudmi
     const existingGroup = await this.groupRepository.findOne({ where: { name: group.name }, relations: ['course', 'teacher', 'students'] });
     if (existingGroup && existingGroup.id !== id) {
-      throw new BadRequestException('Group with this name already exists');
+      throw new BadRequestException('Bunday nomli guruh allaqachon mavjud');
     }
   
     return this.groupRepository.save(group);
@@ -114,7 +114,7 @@ export class GroupsService {
   async deleteGroup(id: number): Promise<void> {
     const group = await this.getGroupById(id);
     if (!group) {
-      throw new NotFoundException(`Group with ID ${id} not found`);
+      throw new NotFoundException(`Guruh ID ${id} topilmadi`);
     }
     await this.groupRepository.remove(group);
   }
