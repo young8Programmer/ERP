@@ -24,6 +24,7 @@ export class Teacher {
   @Column({ default: "teacher" })
   role: string;
 
-  @OneToMany(() => Group, (group) => group.teacher)
+  @OneToMany(() => Group, (group) => group.teacher, { cascade: true })
   groups: Group[]; // Bir nechta guruhlar
+
 }

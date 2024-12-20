@@ -21,6 +21,7 @@ export class Student {
   @Column({default: "student"})
   role: string;
 
-  @ManyToMany(() => Group, (group) => group.students)
+  @ManyToMany(() => Group, (group) => group.students, { cascade: true })
   groups: Group[];
+
 }
