@@ -8,6 +8,7 @@ import { Roles, RolesGuard } from 'src/auth/roles.guard';
 import { RolesUserGuard } from 'src/auth/rolesUserGuard';
 import { RolesStudentGuard } from 'src/auth/rolesStudentGuard';
 import { RolesSuperAdminGuard } from 'src/auth/superAdmin.guard';
+import { User } from 'src/auth/entities/user.entity';
 
 @Controller('profiles')
 export class ProfilesController {
@@ -28,13 +29,9 @@ export class ProfilesController {
 
   @UseGuards(AuthGuard)
   @Get('me')
-  async getMyProfile(@Req() req: any): Promise<{ success: boolean; message: string; user: any }> {
+  async getMyProfile(@Req() req: any): Promise<User> {
     const user = req.user; // Guard orqali request.user aniqlangan
-    return {
-      success: true,
-      message: 'Profil muvaffaqiyatli olindi',
-      user
-    };
+    return user.profile
   }
 
   @UseGuards(AuthGuard)
