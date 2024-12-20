@@ -73,4 +73,14 @@ export class ProfilesService {
     }
     await this.profileRepository.remove(profile);
   }
+
+  async getMyProfile(userId: number): Promise<{ success: boolean; message: string; data: Profile }> {
+    const profile = await this.profileRepository.findOne({ where: { user: { id: userId } }, relations: ['user'] });
+    if (!profile) {
+      throw new NotFoundException(`Sizning profilingiz topilmadi`);
+    }
+    return { success: true, message: 'Profil topildi', data: profile };
+  }
 }
+
+

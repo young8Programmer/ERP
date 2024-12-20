@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards, Req } from '@nestjs/common';
 import { ProfilesService } from './profile.service';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { Profile } from './entities/profile.entity';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { Roles, RolesGuard } from 'src/auth/roles.guard';
+import { RolesUserGuard } from 'src/auth/rolesUserGuard';
 
 @Controller('profiles')
 export class ProfilesController {
@@ -21,6 +22,17 @@ export class ProfilesController {
   @Get()
   async getAllProfiles(): Promise<Profile[]> {
     return this.profilesService.getAllProfiles();
+  }
+
+  @UseGuards(RolesUserGuard)
+  @Get('me')
+  async getMyProfile(@Req() req: any): Promise<{ success: boolean; message: string; user: any }> {
+    const user = req.user; // Guard orqali request.user aniqlangan
+    return {
+      success: true,
+      message: 'Profil muvaffaqiyatli olindi',
+      user
+    };
   }
 
   @UseGuards(AuthGuard)
