@@ -15,4 +15,5 @@ export class Course {
   @ManyToMany(() => Group, (group) => group.course)
   @JoinTable()
   groups: Group[];
+  students: any;
 }
