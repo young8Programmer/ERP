@@ -20,15 +20,15 @@ import { RolesUserGuard } from 'src/auth/rolesUserGuard';
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
 
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles('admin')
+  @UseGuards(AuthGuard, RolesGuard, RolesUserGuard)
+  @Roles('user')
   @Post()
   async createProfile(@Body() createProfileDto: CreateProfileDto) {
     const profile = await this.profileService.create(createProfileDto);
     return { message: 'Profile successfully created', profile };
   }
 
-  @UseGuards(AuthGuard, RolesGuard)
+  @UseGuards(AuthGuard, RolesGuard, RolesUserGuard)
   @Roles('admin')
   @Get()
   async getProfiles() {
@@ -51,7 +51,11 @@ export class ProfileController {
     @Body() updateProfileDto: UpdateProfileDto,
     @Req() req: any,
   ) {
-    const profile = await this.profileService.update(id, req.user, updateProfileDto);
+    const profile = await this.profileService.update(
+      id,
+      req.user,
+      updateProfileDto,
+    );
     return { message: 'Profile successfully updated', profile };
   }
 }
