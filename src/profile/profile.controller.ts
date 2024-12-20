@@ -27,10 +27,10 @@ export class ProfilesController {
     return this.profilesService.getAllProfiles();
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard) 
   @Get('me')
-  async getMyProfile(@Req() req: any): Promise<{ success: boolean; message: string; data: Profile }> {
-  const userId = req.user.id; // Token orqali foydalanuvchini aniqlaymiz
+  async getMyProfile(@Req() req: any): Promise<Profile> {
+  const userId = req.user.id;
   return this.profilesService.getMyProfile(userId);
 }
 

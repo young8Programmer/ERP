@@ -73,8 +73,7 @@ export class ProfilesService {
     }
     await this.profileRepository.remove(profile);
   }
-
-  async getMyProfile(userId: number): Promise<{ success: boolean; message: string; data: Profile }> {
+  async getMyProfile(userId: number): Promise<Profile> {
     const profile = await this.profileRepository.findOne({
       where: { user: { id: userId } },
       relations: ['user'], // Bog'langan ma'lumotlarni olish
@@ -84,12 +83,9 @@ export class ProfilesService {
       throw new NotFoundException(`Sizning profilingiz topilmadi`);
     }
   
-    return {
-      success: true,
-      message: 'Profil muvaffaqiyatli topildi',
-      data: profile,
-    };
+    return profile; // Faqat profilni qaytarish
   }
+  
   
 }
 
