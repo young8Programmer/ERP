@@ -6,6 +6,8 @@ import { Profile } from './entities/profile.entity';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { Roles, RolesGuard } from 'src/auth/roles.guard';
 import { RolesUserGuard } from 'src/auth/rolesUserGuard';
+import { RolesStudentGuard } from 'src/auth/rolesStudentGuard';
+import { RolesSuperAdminGuard } from 'src/auth/superAdmin.guard';
 
 @Controller('profiles')
 export class ProfilesController {
@@ -24,7 +26,8 @@ export class ProfilesController {
     return this.profilesService.getAllProfiles();
   }
 
-  @UseGuards(RolesUserGuard)
+  @UseGuards(RolesStudentGuard, RolesSuperAdminGuard, RolesGuard)
+  @Roles("student", "admin", "teacher")
   @Get('me')
   async getMyProfile(@Req() req: any): Promise<{ success: boolean; message: string; user: any }> {
     const user = req.user; // Guard orqali request.user aniqlangan
