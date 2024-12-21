@@ -18,4 +18,14 @@ export class CreateStudentDto {
   @IsString()
   @IsNotEmpty()
   address: string;
+
+  
+  @IsString()
+  @IsNotEmpty()
+  courseId: number;
+
+  
+  @IsString()
+  @IsNotEmpty()
+  groupIds: number[];
 }
