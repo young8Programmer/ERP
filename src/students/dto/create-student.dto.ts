@@ -1,31 +1,22 @@
-import { IsNotEmpty, IsString, IsPhoneNumber, Length } from 'class-validator';
+import { IsArray, IsInt, IsString, ArrayNotEmpty } from 'class-validator';
 
 export class CreateStudentDto {
   @IsString()
-  @IsNotEmpty()
-  @Length(3, 50)
   firstName: string;
 
   @IsString()
-  @IsNotEmpty()
-  @Length(3, 50)
   lastName: string;
 
-  @IsPhoneNumber()
-  @IsNotEmpty()
+  @IsString()
   phone: string;
 
   @IsString()
-  @IsNotEmpty()
   address: string;
 
-  
-  @IsString()
-  @IsNotEmpty()
+  @IsInt()
   courseId: number;
 
-  
-  @IsString()
-  @IsNotEmpty()
+  @IsArray() 
+  @ArrayNotEmpty()
   groupIds: number[];
 }
