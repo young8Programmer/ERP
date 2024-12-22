@@ -11,14 +11,14 @@ export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
 
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles("admin")
+  @Roles('admin')
   @Post()
   async createStudent(@Body() createStudentDto: CreateStudentDto): Promise<Student> {
     return this.studentsService.createStudent(createStudentDto);
   }
 
   @UseGuards(AuthGuard)
-  @Roles("admin", "teacher")
+  @Roles('admin', 'teacher')
   @Get()
   async getAllStudents(): Promise<Student[]> {
     return this.studentsService.getAllStudents();
@@ -31,14 +31,14 @@ export class StudentsController {
   }
 
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles("admin")
+  @Roles('admin')
   @Put(':id')
   async updateStudent(@Param('id') id: number, @Body() updateStudentDto: UpdateStudentDto): Promise<Student> {
     return this.studentsService.updateStudent(id, updateStudentDto);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles("admin")
+  @Roles('admin')
   @Delete(':id')
   async deleteStudent(@Param('id') id: number): Promise<void> {
     await this.studentsService.deleteStudent(id);

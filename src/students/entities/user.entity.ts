@@ -23,5 +23,4 @@ export class Student {
 
   @ManyToMany(() => Group, (group) => group.students, { cascade: true })
   groups: Group[];
-
 }

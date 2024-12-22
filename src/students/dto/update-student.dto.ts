@@ -10,4 +10,7 @@ export class UpdateStudentDto {
 
   @IsString()
   address?: string;
+
+  courseId?: number
+  groupId?: number
 }

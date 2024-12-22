@@ -43,4 +43,10 @@ export class GroupsController {
   async deleteGroup(@Param('id') id: number): Promise<void> {
     await this.groupsService.deleteGroup(id);
   }
+
+  @UseGuards(AuthGuard)
+  @Get('/course/:courseId')
+  async getGroupsByCourseId(@Param('courseId') courseId: number): Promise<Group[]> {
+  return this.groupsService.getGroupsByCourseId(courseId);
+}
 }

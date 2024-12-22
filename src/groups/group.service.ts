@@ -124,4 +124,21 @@ export class GroupsService {
     }
     await this.groupRepository.remove(group);
   }
+
+  async getGroupsByCourseId(courseId: number): Promise<Group[]> {
+    const course = await this.courseRepository.findOne({ where: { id: courseId } });
+    if (!course) {
+      throw new NotFoundException(`Kurs ID ${courseId} topilmadi`);
+    }
+    
+    const groups = await this.groupRepository.find({
+      where: { course: { id: courseId } },
+      relations: ['course', 'teacher', 'students'],
+    });
+  
+    return groups;
+  }
+  
+
+  
 }
