@@ -8,14 +8,14 @@ export class UpdateGroupDto {
 
   @IsOptional()
   @IsNumber()
-  courseId: number; // Bitta kurs ID
+  courseId?: number; // Bitta kurs ID
 
   @IsOptional()
   @IsNumber()
-  teacherId: number; // Bitta o'qituvchi ID
+  teacherId?: number; // Bitta o'qituvchi ID
 
   @IsOptional()
   @IsArray()
   @IsNumber({}, { each: true })
-  students: number[]; // Array of student IDs
+  students?: number[]; // Array of student IDs
 }

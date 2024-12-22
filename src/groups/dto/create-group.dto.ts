@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsArray } from 'class-validator';
+import { IsString, IsNumber, IsArray, IsOptional } from 'class-validator';
 
 export class CreateGroupDto {
   @IsString()
@@ -7,10 +7,12 @@ export class CreateGroupDto {
   @IsNumber()
   courseId: number; // Bitta kurs ID
 
+  @IsOptional()
   @IsNumber()
-  teacherId: number; // Bitta o'qituvchi ID
+  teacherId?: number; // Bitta o'qituvchi ID
 
+  @IsOptional()
   @IsArray()
   @IsNumber({}, { each: true })
-  students: number[]; // Array of student IDs
+  students?: number[]; // Array of student IDs
 }
