@@ -33,18 +33,23 @@ export class GroupsService {
       throw new BadRequestException('Kurs topilmadi');
     }
   
-    // O'qituvchini tekshirish
-    const teacher = await this.teacherRepository.findOne({ where: { id: teacherId } });
-    if (!teacher) {
-      throw new BadRequestException("O'qituvchi topilmadi");
+    // O'qituvchini tekshirish (agar teacherId bo'lsa)
+    let teacher = null;
+    if (teacherId) {
+      teacher = await this.teacherRepository.findOne({ where: { id: teacherId } });
+      if (!teacher) {
+        throw new BadRequestException("O'qituvchi topilmadi");
+      }
     }
   
-    // Talabalar ro'yxatini tekshirish
-    if (students.length === 0) {
-      throw new BadRequestException('Talabalar ro‘yxati topilmadi');
+    // Talabalarni tekshirish (agar students bo'lsa)
+    let studentEntities = [];
+    if (students && students.length > 0) {
+      studentEntities = await this.studentRepository.findByIds(students);
+      if (studentEntities.length !== students.length) {
+        throw new BadRequestException('Baʼzi talabalar topilmadi');
+      }
     }
-  
-    const studentEntities = await this.studentRepository.findByIds(students);
   
     // Guruh mavjudligini tekshirish
     const existingGroup = await this.groupRepository.findOne({ where: { name }, relations: ['course', 'teacher', 'students'] });
@@ -52,6 +57,7 @@ export class GroupsService {
       throw new BadRequestException('Bunday nomli guruh mavjud');
     }
   
+    // Guruhni yaratish
     const group = this.groupRepository.create({
       name,
       course,
