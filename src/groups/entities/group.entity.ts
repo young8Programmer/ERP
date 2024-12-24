@@ -11,10 +11,10 @@ export class Group {
   @Column({ type: 'varchar', length: 100 })
   name: string;
 
-  @ManyToOne(() => Course, (course) => course.groups)
+  @ManyToOne(() => Course, (course) => course.groups, { onDelete: 'CASCADE' })
   course: Course; // Bitta kurs
 
-  @ManyToOne(() => Teacher, (teacher) => teacher.groups)
+  @ManyToOne(() => Teacher, (teacher) => teacher.groups, { onDelete: 'CASCADE' })
   teacher: Teacher; // Bitta o'qituvchi
 
   @ManyToMany(() => Student, (student) => student.groups)

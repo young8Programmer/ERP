@@ -33,8 +33,8 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
-  
-  @OneToOne(() => Profile, profile => profile.user, { cascade: true }) // Profil bilan bog‘laymiz
+
+  @OneToOne(() => Profile, (profile) => profile.user, { cascade: true, onDelete: 'CASCADE' })
   @JoinColumn() // Bog‘lanishni amalga oshiramiz
   profile: Profile;
 }

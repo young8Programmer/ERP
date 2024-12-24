@@ -29,10 +29,7 @@ export class Student {
   @Column({ default: 'student' })
   role: string;
 
-  @ManyToMany(() => Group, (group) => group.students)
-  @JoinTable()
+  @ManyToMany(() => Group, (group) => group.students, { cascade: true })
   groups: Group[];
-
-  @ManyToOne(() => Course, (course) => course.students)
   course: Course;
 }
