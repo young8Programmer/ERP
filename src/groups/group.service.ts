@@ -74,6 +74,7 @@ export class GroupsService {
     return this.groupRepository.save(group);
   }
 
+  // Guruhga o'quvchini qo'shish
   async addStudentToGroup(groupId: number, studentId: number): Promise<Group> {
     const group = await this.getGroupById(groupId);
 
@@ -89,7 +90,8 @@ export class GroupsService {
     return this.updateGroup(groupId, group);
   }
 
-  async getAllGroups(): Promise<Group[]> {
+  // Admin uchun barcha guruhlarni olish
+  async getAllGroupsForAdmin(): Promise<Group[]> {
     return this.groupRepository.find({
       relations: ['course', 'teacher', 'students'],
     });

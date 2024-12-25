@@ -89,11 +89,20 @@ export class GroupsController {
     return this.groupsService.getGroupsByStudentId(studentId);
   }
 
+  // Admin guruhdagi o'quvchilar ro'yxatini ko'rishi uchun
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
   @Get(':groupId/students')
   async getStudentsInGroup(@Param('groupId') groupId: number) {
     return this.groupsService.getStudentsInGroup(groupId);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('admin')
+  @Get('all')
+  async getAllGroupsForAdmin(): Promise<Group[]> {
+    // Admin uchun barcha guruhlarni olish
+    return this.groupsService.getAllGroupsForAdmin();
   }
 
   @UseGuards(AuthGuard, RolesGuard)
@@ -152,6 +161,7 @@ export class GroupsController {
     await this.groupsService.deleteGroup(id);
   }
 
+  // Admin guruhdan o'quvchini o'chirishi uchun
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
   @Delete(':groupId/students/:studentId')
