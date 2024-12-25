@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Body,
+  UseGuards,
+} from '@nestjs/common';
 import { StudentsService } from './student.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
@@ -11,14 +20,16 @@ export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
 
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles("admin")
+  @Roles('admin')
   @Post()
-  async createStudent(@Body() createStudentDto: CreateStudentDto): Promise<Student> {
+  async createStudent(
+    @Body() createStudentDto: CreateStudentDto,
+  ): Promise<Student> {
     return this.studentsService.createStudent(createStudentDto);
   }
 
   @UseGuards(AuthGuard)
-  @Roles("admin", "teacher")
+  @Roles('admin', 'teacher')
   @Get()
   async getAllStudents(): Promise<Student[]> {
     return this.studentsService.getAllStudents();
@@ -31,14 +42,17 @@ export class StudentsController {
   }
 
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles("admin")
+  @Roles('admin')
   @Put(':id')
-  async updateStudent(@Param('id') id: number, @Body() updateStudentDto: UpdateStudentDto): Promise<Student> {
+  async updateStudent(
+    @Param('id') id: number,
+    @Body() updateStudentDto: UpdateStudentDto,
+  ): Promise<Student> {
     return this.studentsService.updateStudent(id, updateStudentDto);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles("admin")
+  @Roles('admin')
   @Delete(':id')
   async deleteStudent(@Param('id') id: number): Promise<void> {
     await this.studentsService.deleteStudent(id);

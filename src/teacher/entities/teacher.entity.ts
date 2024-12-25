@@ -25,6 +25,6 @@ export class Teacher {
   role: string;
 
   @OneToMany(() => Group, (group) => group.teacher, { cascade: true })
-  groups: Group[]; // Bir nechta guruhlar
+  groups: Group[];
 
 }

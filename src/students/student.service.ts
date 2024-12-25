@@ -4,8 +4,7 @@ import { Repository } from 'typeorm';
 import { Student } from './entities/user.entity';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
-import { Group } from 'src/groups/entities/group.entity';
-import { Course } from 'src/courses/entities/course.entity';
+import { Group } from '../groups/entities/group.entity';
 
 @Injectable()
 export class StudentsService {
@@ -14,16 +13,32 @@ export class StudentsService {
     private readonly studentRepository: Repository<Student>,
     @InjectRepository(Group)
     private readonly groupRepository: Repository<Group>,
-    @InjectRepository(Course)
-    private readonly courseRepository: Repository<Course>,
   ) {}
 
-  // Talaba yaratish
-  async createStudent(createStudentDto: CreateStudentDto): Promise<Student> {
-    const { firstName, lastName, phone, address, courseId, groupId } =
-      createStudentDto;
+  async getAllStudents(): Promise<Student[]> {
+    const students = await this.studentRepository.find({
+      relations: ['groups', 'groups.course'],
+    });
+    if (students.length === 0) {
+      throw new NotFoundException('Hech qanday talaba topilmadi');
+    }
+    return students;
+  }
 
-    // Telefon raqami bo'yicha mavjud talabani tekshirish
+  async getStudentById(id: number): Promise<Student> {
+    const student = await this.studentRepository.findOne({
+      where: { id },
+      relations: ['groups', 'groups.course'],
+    });
+    if (!student) {
+      throw new NotFoundException(`ID ${id} bo‘yicha talaba topilmadi`);
+    }
+    return student;
+  }
+
+  async createStudent(createStudentDto: CreateStudentDto): Promise<Student> {
+    const { phone, groupId } = createStudentDto;
+
     const existingStudent = await this.studentRepository.findOne({
       where: { phone },
     });
@@ -33,86 +48,32 @@ export class StudentsService {
       );
     }
 
-    // Kurs mavjudligini tekshirish
-    const course = await this.courseRepository.findOne({
-      where: { id: courseId },
-    });
-    if (!course) {
-      throw new NotFoundException(`ID ${courseId} bo‘yicha kurs topilmadi`);
-    }
-
-    // Guruh mavjudligini tekshirish
     const group = await this.groupRepository.findOne({
       where: { id: groupId },
+      relations: ['course'],
     });
     if (!group) {
       throw new NotFoundException(`ID ${groupId} bo‘yicha guruh topilmadi`);
     }
 
-    // Talabani yaratish
     const student = this.studentRepository.create({
-      firstName,
-      lastName,
-      phone,
-      address,
+      ...createStudentDto,
+      groups: [group],
     });
-
-    // Kursni va guruhni bog‘lash
-    student.course = course;
-    student.groups = [group];
-
-    // Talabani saqlash
     return await this.studentRepository.save(student);
   }
 
-  // Barcha talabalarni olish
-  async getAllStudents(): Promise<Student[]> {
-    const students = await this.studentRepository.find({
-      relations: ['groups', 'course'],
-    });
-    if (students.length === 0) {
-      throw new NotFoundException('Hech qanday talaba topilmadi');
-    }
-    return students;
-  }
-
-  // Talabani ID bo'yicha olish
-  async getStudentById(id: number): Promise<Student> {
-    const student = await this.studentRepository.findOne({
-      where: { id },
-      relations: ['groups', 'course'],
-    });
-    if (!student) {
-      throw new NotFoundException(`ID ${id} bo‘yicha talaba topilmadi`);
-    }
-    return student;
-  }
-
-  // Talabani yangilash
   async updateStudent(
     id: number,
     updateStudentDto: UpdateStudentDto,
   ): Promise<Student> {
-    const { courseId, groupId } = updateStudentDto;
-
-    // Talabani tekshirish
     const student = await this.getStudentById(id);
 
-    // Agar kurs ID ko'rsatilgan bo'lsa, tekshirish
-    if (courseId) {
-      const course = await this.courseRepository.findOne({
-        where: { id: courseId },
-      });
-      if (!course) {
-        throw new NotFoundException(`ID ${courseId} bo‘yicha kurs topilmadi`);
-      }
-      student.course = course;
-    }
-
-    // Agar guruh ID ko'rsatilgan bo'lsa, tekshirish
+    const { groupId } = updateStudentDto;
     if (groupId) {
       const group = await this.groupRepository.findOne({
         where: { id: groupId },
+        relations: ['course'],
       });
       if (!group) {
         throw new NotFoundException(`ID ${groupId} bo‘yicha guruh topilmadi`);
@@ -124,9 +85,11 @@ export class StudentsService {
     return await this.studentRepository.save(student);
   }
 
-  // Talabani o'chirish
   async deleteStudent(id: number): Promise<void> {
     const student = await this.getStudentById(id);
+    if (!student) {
+      throw new NotFoundException(`ID ${id} bo‘yicha talaba topilmadi`);
+    }
     await this.studentRepository.remove(student);
   }
 }

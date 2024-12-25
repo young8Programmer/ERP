@@ -12,12 +12,12 @@ export class Group {
   name: string;
 
   @ManyToOne(() => Course, (course) => course.groups, { onDelete: 'CASCADE' })
-  course: Course; // Bitta kurs
+  course: Course;
 
   @ManyToOne(() => Teacher, (teacher) => teacher.groups, { onDelete: 'CASCADE' })
-  teacher: Teacher; // Bitta o'qituvchi
+  teacher: Teacher;
 
   @ManyToMany(() => Student, (student) => student.groups)
   @JoinTable()
-  students: Student[]; // Bir nechta talabalar
+  students: Student[];
 }
