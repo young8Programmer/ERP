@@ -1,4 +1,4 @@
-import { IsOptional, IsString, } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 export class UpdateStudentDto {
   @IsString()
   firstName?: string;
@@ -11,6 +11,6 @@ export class UpdateStudentDto {
   @IsString()
   address?: string;
 
-  courseId?: number
-  groupId?: number
+  courseId?: number;
+  groupId?: number;
 }

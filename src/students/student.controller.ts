@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Body,
+  UseGuards,
+} from '@nestjs/common';
 import { StudentsService } from './student.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
@@ -13,7 +22,9 @@ export class StudentsController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
   @Post()
-  async createStudent(@Body() createStudentDto: CreateStudentDto): Promise<Student> {
+  async createStudent(
+    @Body() createStudentDto: CreateStudentDto,
+  ): Promise<Student> {
     return this.studentsService.createStudent(createStudentDto);
   }
 
@@ -33,7 +44,10 @@ export class StudentsController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
   @Put(':id')
-  async updateStudent(@Param('id') id: number, @Body() updateStudentDto: UpdateStudentDto): Promise<Student> {
+  async updateStudent(
+    @Param('id') id: number,
+    @Body() updateStudentDto: UpdateStudentDto,
+  ): Promise<Student> {
     return this.studentsService.updateStudent(id, updateStudentDto);
   }
 

@@ -18,7 +18,7 @@ export class Student {
   @Column({ type: 'varchar', length: 255 })
   address: string;
 
-  @Column({default: "student"})
+  @Column({ default: 'student' })
   role: string;
 
   @ManyToMany(() => Group, (group) => group.students, { cascade: true })
