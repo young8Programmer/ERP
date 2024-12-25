@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, ManyToMany, JoinTable } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
 import { Course } from '../../courses/entities/course.entity';
 import { Student } from '../../students/entities/user.entity';
 import { Teacher } from '../../teacher/entities/teacher.entity';
@@ -14,7 +21,9 @@ export class Group {
   @ManyToOne(() => Course, (course) => course.groups, { onDelete: 'CASCADE' })
   course: Course;
 
-  @ManyToOne(() => Teacher, (teacher) => teacher.groups, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Teacher, (teacher) => teacher.groups, {
+    onDelete: 'CASCADE',
+  })
   teacher: Teacher;
 
   @ManyToMany(() => Student, (student) => student.groups)

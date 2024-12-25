@@ -2,33 +2,33 @@ import {
   CanActivate,
   ExecutionContext,
   Injectable,
-  SetMetadata,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-
-export const Roles = (...roles: string[]) => SetMetadata('roles', roles);
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
-export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+export class RolesSuperAdminGuard implements CanActivate {
+  constructor(private jwtService: JwtService) {}
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
-    const user = request.user;
+    const authHeader = request.headers['authorization'];
+    if (!authHeader) {
+      throw new UnauthorizedException('Authorization header missing');
+    }
+
+    const token = authHeader.split(' ')[1];
     try {
-      if (!user || !user.role) {
+      const payload = this.jwtService.verify(token);
+      if (payload.role !== 'teacher') {
         throw new UnauthorizedException(
-          'Foydalanuvchi autentifikatsiya qilinmagan yoki rol etishmayapti',
+          'Faqat teacherlarga ushbu amalni bajarishga ruxsat beriladi',
         );
       }
-
-      if (user.role !== 'teacher') {
-        throw new UnauthorizedException('You are not allowed');
-      }
+      request.user = payload;
       return true;
     } catch (error) {
-      throw new UnauthorizedException(error.message);
+      throw new UnauthorizedException(error.message || 'Invalid access token');
     }
   }
 }
