@@ -30,5 +30,4 @@ export class Teacher {
 
   @OneToMany(() => User, (user) => user.teacher)
   users: User[];
-
 }
