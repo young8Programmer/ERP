@@ -81,27 +81,49 @@ export class GroupsService {
     }
   }
 
-  async getGroupsByTeacherId(userId: number): Promise<Group[]> {
-    let user = this.userRepository.findOne({where: {id: userId}})
-    let teacherId = (await user).teacher.id
 
+  async getGroupsByTeacherId(userId: number): Promise<Group[]> {
     try {
-      return await this.groupRepository.find({ where: { teacher: { id: teacherId } } });
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+        relations: ['teacher'], // teacherni olish uchun relation qo'shilmoqda
+      });
+  
+      if (!user || !user.teacher) {
+        throw new NotFoundException('Teacher not found for this user');
+      }
+  
+      const teacherId = user.teacher.id; // Teacher ID ni olish
+  
+      return await this.groupRepository.find({
+        where: { teacher: { id: teacherId } },
+      });
     } catch (error) {
       throw new BadRequestException(`Failed to fetch groups by teacher ID: ${error.message}`);
     }
   }
-
-  async getGroupsByStudentId(studentId: number): Promise<Group[]> {
+  
+  async getGroupsByStudentId(userId: number): Promise<Group[]> {
     try {
-      let user = this.userRepository.findOne({where: {id: studentId}})
-      let student = (await user).student.id
-      return await this.groupRepository.find({ where: { students: { id: student } } });
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+        relations: ['student'], // Studentni olish uchun relation qo'shilmoqda
+      });
+  
+      if (!user || !user.student) {
+        throw new NotFoundException('Student not found for this user');
+      }
+  
+      const studentId = user.student.id; // Student ID ni olish
+  
+      return await this.groupRepository.find({
+        where: { students: { id: studentId } },
+      });
     } catch (error) {
       throw new BadRequestException(`Failed to fetch groups by student ID: ${error.message}`);
     }
   }
-
+  
   async getAllGroupsForAdmin(): Promise<Group[]> {
     try {
       return await this.groupRepository.find({ relations: ['course', 'teacher', 'students'] });
