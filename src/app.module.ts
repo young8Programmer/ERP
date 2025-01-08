@@ -13,6 +13,14 @@ import { Student } from './students/entities/user.entity';
 import { Teacher } from './teacher/entities/teacher.entity';
 import { GroupsModule } from './groups/group.module';
 import { UsersModule } from './users/users.module';
+import { AssignmentsModule } from './assignments/assignments.module';
+import { SubmissionsModule } from './submissions/submissions.module';
+import { LessonsModule } from './lesson/lesson.module';
+import { Assignment } from './assignments/entities/assignment.entity';
+import { Submission } from './submissions/entities/submission.entity';
+import { Lesson } from './lesson/entities/lesson.entity';
+
+
 
 @Module({
   imports: [
@@ -22,8 +30,8 @@ import { UsersModule } from './users/users.module';
       port: 5432,
       username: 'postgres',
       password: 'azizbek002',
-      database: 'dfg',
-      entities: [User, Course, Group, Profile, Student, Teacher],
+      database: 'erp',
+      entities: [User, Course, Group, Profile, Student, Teacher, Assignment, Submission, Lesson],
       synchronize: true,
     }),
     CoursesModule,
@@ -33,6 +41,10 @@ import { UsersModule } from './users/users.module';
     TeachersModule,
     GroupsModule,
     UsersModule,
+    AssignmentsModule,
+    SubmissionsModule,
+    LessonsModule,
+  
   ],
 })
 export class AppModule {}
