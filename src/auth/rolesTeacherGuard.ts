@@ -7,7 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
-export class RolesSuperAdminGuard implements CanActivate {
+export class RolesTeacherGuard implements CanActivate {
   constructor(private jwtService: JwtService) {}
 
   canActivate(context: ExecutionContext): boolean {

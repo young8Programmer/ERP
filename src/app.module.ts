@@ -21,8 +21,8 @@ import { UsersModule } from './users/users.module';
       host: 'localhost',
       port: 5432,
       username: 'postgres',
-      password: 'azizbek002',
-      database: 'zxc',
+      password: '1234',
+      database: 'erppp',
       entities: [User, Course, Group, Profile, Student, Teacher],
       synchronize: true,
     }),
@@ -35,4 +35,10 @@ import { UsersModule } from './users/users.module';
     UsersModule
   ],
 })
+
+
 export class AppModule {}
+
+
+
+
