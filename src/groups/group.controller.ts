@@ -69,7 +69,7 @@ export class GroupsController {
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
-  @Get('all')
+  @Get()
   async getAllGroupsForAdmin(): Promise<Group[]> {
     return this.groupsService.getAllGroupsForAdmin();
   }
