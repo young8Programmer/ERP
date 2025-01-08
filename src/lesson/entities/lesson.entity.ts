@@ -19,7 +19,7 @@ export class Lesson {
   @Column()
   title: string;
 
-  @CreateDateColumn({ type: "decimal", nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   lessonDate: Date;
 
   @CreateDateColumn({ type: 'timestamp', nullable: true })
