@@ -4,7 +4,6 @@ import { UpdateLessonDto } from './dto/update-lesson.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesTeacherGuard } from 'src/auth/rolesTeacherGuard';
 import { Roles } from 'src/auth/roles.guard';
-import { CreateLessonDto } from './dto/create-lesson.dto';
 
 @Controller('lessons')
 export class LessonsController {
@@ -23,34 +22,25 @@ export class LessonsController {
   }
 
   @UseGuards(AuthGuard, RolesTeacherGuard)
-  @Roles('teacher')
-  @Post()
-  async create(@Body() lessonData: CreateLessonDto) {
-    try {
-      const createdLesson = await this.lessonsService.create(lessonData);
-      return {
-        message: 'Dars muvaffaqiyatli yaratildi.',
-        lesson: createdLesson,
-      };
-    } catch (error) {
-      throw new Error('Darsni yaratishda xatolik yuz berdi');
+@Roles('teacher')
+@Post()
+async create(@Body() lessonData: { title: string; groupId: number }) {
+  try {
+    const existingLesson = await this.lessonsService.findOneByTitle(lessonData.title);
+    if (existingLesson) {
+      throw new Error('Bunday dars allaqachon mavjud.');
     }
+    
+    const createdLesson = await this.lessonsService.create(lessonData);
+    return {
+      message: 'Dars muvaffaqiyatli yaratildi.',
+      lesson: createdLesson,
+    };
+  } catch (error) {
+    throw new Error('Darsni yaratishda xatolik yuz berdi: ' + error.message);
   }
+}
 
-  @UseGuards(AuthGuard, RolesTeacherGuard)
-  @Roles('teacher')
-  @Get('group/:groupId')  // Guruhga tegishli darslarni olish endpointi
-  async findLessonsByGroup(@Param('groupId') groupId: number) {
-    try {
-      const lessons = await this.lessonsService.findLessonsByGroup(groupId);
-      if (!lessons || lessons.length === 0) {
-        throw new NotFoundException(`Guruhga tegishli darslar topilmadi (Guruh ID: ${groupId})`);
-      }
-      return { message: 'Guruhga tegishli darslar muvaffaqiyatli olingan.', lessons };
-    } catch (error) {
-      throw new Error('Guruhga tegishli darslarni olishda xatolik yuz berdi');
-    }
-  }
 
   @UseGuards(AuthGuard, RolesTeacherGuard)
   @Roles('teacher')
