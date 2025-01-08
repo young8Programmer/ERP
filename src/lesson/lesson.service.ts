@@ -82,9 +82,8 @@ export class LessonsService {
     if (!lesson) {
       throw new NotFoundException(`Lesson with ID ${id} not found`);
     }
-
-    // Darsni o'chirish
     await this.lessonRepository.delete(lessonId);
     return { message: `Lesson with ID ${id} successfully deleted` };
   }
+
 }
