@@ -15,7 +15,7 @@ export class LessonsController {
   async findAll() {
     try {
       const lessons = await this.lessonsService.findAll();
-      return { message: 'Barcha darslar muvaffaqiyatli olingan.', lessons };
+      return lessons;
     } catch (error) {
       throw new HttpException(
         'Barcha darslarni olishda xatolik yuz berdi',
@@ -31,11 +31,17 @@ export class LessonsController {
     try {
       const lessons = await this.lessonsService.findLessonsByGroup(groupId);
       if (!lessons || lessons.length === 0) {
-        throw new NotFoundException(`Guruhga tegishli darslar topilmadi (Guruh ID: ${groupId})`);
+        throw new HttpException(
+          'guruhga tegishli darsliklar topilmadi.',
+          HttpStatus.BAD_REQUEST,
+        );
       }
       return { message: 'Guruhga tegishli darslar muvaffaqiyatli olingan.', lessons };
     } catch (error) {
-      throw new Error('Guruhga tegishli darslarni olishda xatolik yuz berdi');
+      throw new HttpException(
+        'hatolik yuz berdi',
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 
