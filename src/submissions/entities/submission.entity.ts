@@ -1,11 +1,6 @@
 // submission.entity.ts
 
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 import { Assignment } from 'src/assignments/entities/assignment.entity';
 import { Student } from 'src/students/entities/user.entity';
 
@@ -33,5 +28,3 @@ export class Submission {
   @Column()
   file: string;
 }
-
-

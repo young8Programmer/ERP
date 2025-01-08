@@ -9,6 +9,9 @@ export class Group {
   @Column()
   name: string;
 
+  @Column({ nullable: true }) // teacherId NULL bo'lishi mumkin emas
+  teacherId: number;
+
   @OneToMany(() => Lesson, (lesson) => lesson.group)
   lessons: Lesson[];
   teacher: any;
