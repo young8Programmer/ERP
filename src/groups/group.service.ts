@@ -81,7 +81,6 @@ export class GroupsService {
     }
   }
 
-
   async getGroupsByTeacherId(userId: number): Promise<Group[]> {
     try {
       const user = await this.userRepository.findOne({
@@ -93,9 +92,10 @@ export class GroupsService {
         throw new NotFoundException('Teacher not found for this user');
       }
   
-      const teacherId = user.teacher.id;
+      let teacherId = user.teacher.id;
   
       // teacherId qiymatini tekshirish
+      teacherId = Number(teacherId);  // Number() yordamida tekshiramiz
       if (isNaN(teacherId)) {
         throw new BadRequestException('Teacher ID is not valid');
       }
@@ -119,9 +119,10 @@ export class GroupsService {
         throw new NotFoundException('Student not found for this user');
       }
   
-      const studentId = user.student.id;
+      let studentId = user.student.id;
   
       // studentId qiymatini tekshirish
+      studentId = Number(studentId);  // Number() yordamida tekshiramiz
       if (isNaN(studentId)) {
         throw new BadRequestException('Student ID is not valid');
       }
@@ -133,6 +134,7 @@ export class GroupsService {
       throw new BadRequestException(`Failed to fetch groups by student ID: ${error.message}`);
     }
   }
+  
   
   async getAllGroupsForAdmin(): Promise<Group[]> {
     try {
