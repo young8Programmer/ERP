@@ -4,7 +4,6 @@ import { UpdateLessonDto } from './dto/update-lesson.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesTeacherGuard } from 'src/auth/rolesTeacherGuard';
 import { Roles } from 'src/auth/roles.guard';
-import { CreateLessonDto } from './dto/create-lesson.dto';
 
 @Controller('lessons')
 export class LessonsController {
@@ -25,8 +24,9 @@ export class LessonsController {
   @UseGuards(AuthGuard, RolesTeacherGuard)
 @Roles('teacher')
 @Post()
-async create(@Body() lessonData: CreateLessonDto) {
+async create(@Body() lessonData: { title: string; groupId: number }) {
   try {
+
     const existingLesson = await this.lessonsService.findOneByTitle(lessonData.title);
     if (existingLesson) {
       throw new Error('Bunday dars allaqachon mavjud.');
