@@ -7,6 +7,7 @@ import { UpdateGroupDto } from './dto/update-group.dto';
 import { Course } from '../courses/entities/course.entity';
 import { Student } from '../students/entities/user.entity';
 import { Teacher } from '../teacher/entities/teacher.entity';
+import { User } from 'src/auth/entities/user.entity';
 
 @Injectable()
 export class GroupsService {
@@ -19,6 +20,8 @@ export class GroupsService {
     private readonly studentRepository: Repository<Student>,
     @InjectRepository(Teacher)
     private readonly teacherRepository: Repository<Teacher>,
+    @InjectRepository(Teacher)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   async createGroup(createGroupDto: CreateGroupDto): Promise<Group> {
@@ -78,14 +81,12 @@ export class GroupsService {
     }
   }
 
-  async getGroupsByTeacherId(teacherId: string): Promise<Group[]> {
-    const parsedTeacherId = parseInt(teacherId, 10); // Stringni integerga aylantiramiz
-    if (isNaN(parsedTeacherId)) {
-      throw new BadRequestException('Teacher ID must be a valid number');
-    }
+  async getGroupsByTeacherId(userId: number): Promise<Group[]> {
+    let user = this.userRepository.findOne({where: {id: userId}})
+    let teacherId = (await user).teacher.id
 
     try {
-      return await this.groupRepository.find({ where: { teacher: { id: parsedTeacherId } } });
+      return await this.groupRepository.find({ where: { teacher: { id: teacherId } } });
     } catch (error) {
       throw new BadRequestException(`Failed to fetch groups by teacher ID: ${error.message}`);
     }
@@ -93,7 +94,9 @@ export class GroupsService {
 
   async getGroupsByStudentId(studentId: number): Promise<Group[]> {
     try {
-      return await this.groupRepository.find({ where: { students: { id: studentId } } });
+      let user = this.userRepository.findOne({where: {id: studentId}})
+      let student = (await user).student.id
+      return await this.groupRepository.find({ where: { students: { id: student } } });
     } catch (error) {
       throw new BadRequestException(`Failed to fetch groups by student ID: ${error.message}`);
     }
