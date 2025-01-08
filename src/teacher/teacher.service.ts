@@ -22,7 +22,7 @@ export class TeachersService {
   }
 
   async getAllTeachers(): Promise<Teacher[]> {
-    const teachers = await this.teacherRepository.find({ relations: ['groups'] });
+    const teachers = await this.teacherRepository.find({ relations: ['groups', "users"] });
     if (teachers.length === 0) {
       throw new NotFoundException('Hech qanday o‘qituvchi topilmadi');
     }
@@ -30,7 +30,7 @@ export class TeachersService {
   }
 
   async getTeacherById(id: number): Promise<Teacher> {
-    const teacher = await this.teacherRepository.findOne({ where: { id }, relations: ['groups'] });
+    const teacher = await this.teacherRepository.findOne({ where: { id }, relations: ['groups', "users"] });
     if (!teacher) {
       throw new NotFoundException(`O'qituvchi ID ${id} topilmadi`);
     }
