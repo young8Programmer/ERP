@@ -50,6 +50,7 @@ export class GroupsController {
   @UseGuards(AuthGuard)
   @Get('my-teacher-groups')
   async getMyGroups(@Request() req): Promise<Group[]> {
+    console.log(req.user);
     return this.groupsService.getGroupsByTeacherId(req.user.id);
   }
 
