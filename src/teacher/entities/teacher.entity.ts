@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { Group } from '../../groups/entities/group.entity';
+import { User } from 'src/auth/entities/user.entity';
 
 @Entity('teachers')
 export class Teacher {
@@ -26,5 +27,8 @@ export class Teacher {
 
   @OneToMany(() => Group, (group) => group.teacher, { cascade: true })
   groups: Group[];
+
+  @OneToMany(() => User, (user) => user.teacher)
+  users: User[];
 
 }

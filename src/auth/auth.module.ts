@@ -16,6 +16,8 @@ import { Course } from 'src/courses/entities/course.entity';
 import { UsersModule } from 'src/users/users.module';
 import { ProfilesModule } from 'src/profile/profile.module';
 import { CoursesModule } from 'src/courses/courses.module';
+import { TeachersService } from 'src/teacher/teacher.service';
+import { StudentsService } from 'src/students/student.service';
 
 dotenv.config();
 
@@ -35,6 +37,6 @@ dotenv.config();
     CoursesModule
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, TeachersService, StudentsService],
 })
 export class AuthModule {}

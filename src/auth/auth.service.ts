@@ -17,7 +17,9 @@ import { TeachersService } from '../teacher/teacher.service';
 export class AuthService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
+    private readonly studentsService: StudentsService,
+    private readonly teachersService: TeachersService
   ) {}
 
   async registerAdmin(createAuthDto: CreateAuthDto) {
@@ -38,7 +40,7 @@ export class AuthService {
     return { message: 'Admin is successfully registered' };
   }
 
-  async register(createAuthDto: CreateAuthDto) {
+  async registerStudent(createAuthDto: CreateAuthDto) {
     const existingUser = await this.userRepository.findOne({
       where: { username: createAuthDto.username },
     });
@@ -46,15 +48,20 @@ export class AuthService {
       throw new ConflictException('Username already exists');
     }
 
+    // Agar studentId mavjud bo'lsa, studentni topish
+    const student = createAuthDto.studentId
+      ? await this.studentsService.getStudentById(createAuthDto.studentId)
+      : null;
     const user = this.userRepository.create({
       username: createAuthDto.username,
       email: createAuthDto.email,
       password: await bcrypt.hash(createAuthDto.password, 10),
       role: 'student',
+      studentId: student ? student.id : null, // studentId ni ulash
     });
 
     await this.userRepository.save(user);
-    return { message: 'You are successfully registered' };
+    return { message: 'You are successfully registered as a student' };
   }
 
   async registerTeacher(createAuthDto: CreateAuthDto) {
@@ -65,11 +72,17 @@ export class AuthService {
       throw new ConflictException('Username already exists');
     }
 
+    // Agar teacherId mavjud bo'lsa, teacherni topish
+    const teacher = createAuthDto.teacherId
+      ? await this.teachersService.getTeacherById(createAuthDto.teacherId)
+      : null;
+
     const user = this.userRepository.create({
       username: createAuthDto.username,
       email: createAuthDto.email,
       password: await bcrypt.hash(createAuthDto.password, 10),
       role: 'teacher',
+      teacherId: teacher ? teacher.id : null, // teacherId ni ulash
     });
 
     await this.userRepository.save(user);
