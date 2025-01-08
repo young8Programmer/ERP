@@ -20,7 +20,7 @@ export class GroupsService {
     private readonly studentRepository: Repository<Student>,
     @InjectRepository(Teacher)
     private readonly teacherRepository: Repository<Teacher>,
-    @InjectRepository(Teacher)
+    @InjectRepository(User)
     private readonly userRepository: Repository<User>,
   ) {}
 
@@ -81,27 +81,16 @@ export class GroupsService {
     }
   }
 
-  async getGroupsByTeacherId(userId: number): Promise<Group[]> {
+  async getGroupsByTeacherId(userId: number): Promise<any> {
     try {
       const user = await this.userRepository.findOne({
-        where: { id: userId },
-        relations: ['teacher'], // teacher bilan bog'lanishni ta'minlash
+        where: { id: userId }
       });
   
-      if (!user || !user.teacher) {
-        throw new NotFoundException('Teacher not found for this user');
-      }
-  
-      let teacherId = user.teacher.id;
-  
-      // teacherId qiymatini tekshirish
-      teacherId = Number(teacherId);  // Number() yordamida tekshiramiz
-      if (isNaN(teacherId)) {
-        throw new BadRequestException('Teacher ID is not valid');
-      }
+      let teacherId = user.teacherId
   
       return await this.groupRepository.find({
-        where: { teacher: { id: teacherId } },
+        where: { teacher: { id: teacherId} },
       });
     } catch (error) {
       throw new BadRequestException(`Failed to fetch groups by teacher ID: ${error.message}`);
@@ -111,18 +100,10 @@ export class GroupsService {
   async getGroupsByStudentId(userId: number): Promise<Group[]> {
     try {
       const user = await this.userRepository.findOne({
-        where: { id: userId },
-        relations: ['student'], // student bilan bog'lanishni ta'minlash
+        where: { id: userId }
       });
   
-      if (!user || !user.student) {
-        throw new NotFoundException('Student not found for this user');
-      }
-  
-      let studentId = user.student.id;
-  
-      // studentId qiymatini tekshirish
-      studentId = Number(studentId);  // Number() yordamida tekshiramiz
+      let studentId = user.studentId;
       if (isNaN(studentId)) {
         throw new BadRequestException('Student ID is not valid');
       }
@@ -216,4 +197,27 @@ export class GroupsService {
       throw new BadRequestException(`Failed to fetch groups by course ID: ${error.message}`);
     }
   }
+
+  async getStudentsByGroupId(groupId: number): Promise<any[]> {
+    try {
+      const group = await this.groupRepository.findOne({
+        where: { id: groupId },
+        relations: ['students'],
+      });
+  
+      if (!group) throw new NotFoundException('Group not found');
+  
+      return group.students.map((student) => ({
+        id: student.id,
+        firstName: student.firstName,
+        lastName: student.lastName,
+        phone: student.phone,
+        address: student.address,
+         // Kerak bo'lsa, boshqa maydonlarni ham qo'shishingiz mumkin
+      }));
+    } catch (error) {
+      throw new BadRequestException(`Failed to fetch students by group ID: ${error.message}`);
+    }
+  }
+  
 }

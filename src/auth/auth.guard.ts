@@ -32,7 +32,7 @@ export class AuthGuard implements CanActivate {
       });
       request.user = payload
       request.teacher = payload
-
+      
       return true;
     } catch (error) {
       console.error('JWT tekshirish xatosi:', error);

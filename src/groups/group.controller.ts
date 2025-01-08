@@ -10,6 +10,7 @@ import {
   Request,
   BadRequestException,
   NotFoundException,
+  Req,
 } from '@nestjs/common';
 import { GroupsService } from './group.service';
 import { CreateGroupDto } from './dto/create-group.dto';
@@ -19,6 +20,7 @@ import { AuthGuard } from 'src/auth/auth.guard';
 import { Roles, RolesGuard } from 'src/auth/roles.guard';
 import { RolesStudentGuard } from 'src/auth/rolesStudentGuard';
 import { AddStudentDto } from 'src/students/dto/AddStudentDto';
+import { Student } from 'src/students/entities/user.entity';
 
 @Controller('groups')
 export class GroupsController {
@@ -47,19 +49,20 @@ export class GroupsController {
     return this.groupsService.getGroupById(id);
   }
 
+ 
   @UseGuards(AuthGuard)
-  @Get('my-teacher-groups')
-  async getMyGroups(@Request() req): Promise<Group[]> {
-    console.log(req.user);
-    return this.groupsService.getGroupsByTeacherId(req.user.id);
-  }
+@Get('my/teacher/groups')
+async getMyGroups(@Req() req: any): Promise<Group[]> {
+  const userId = req.user.id;
+  return this.groupsService.getGroupsByTeacherId(userId)
+}
 
-  @UseGuards(AuthGuard, RolesStudentGuard)
-  @Roles('student')
-  @Get('my-student-groups')
-  async getStudentGroups(@Request() req): Promise<Group[]> {
-    return this.groupsService.getGroupsByStudentId(req.user.id);
-  }
+@UseGuards(AuthGuard)
+@Get('my/student/groups')
+async getStudentGroups(@Req() req): Promise<Group[]> {
+  const userId = req.user.id;
+  return this.groupsService.getGroupsByStudentId(userId);
+}
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
@@ -106,5 +109,11 @@ export class GroupsController {
   @Get('/course/:courseId')
   async getGroupsByCourseId(@Param('courseId') courseId: number): Promise<Group[]> {
     return this.groupsService.getGroupsByCourseId(courseId);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get(':groupId/students/list')
+  async getStudentsByGroupId(@Param('groupId') groupId: number): Promise<Student[]> {
+   return this.groupsService.getStudentsByGroupId(groupId);
   }
 }
