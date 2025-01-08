@@ -14,10 +14,8 @@ export class CreateAuthDto {
   password: string;
 
   @IsOptional()
-  @IsString()
   teacherId?: number;
 
   @IsOptional()
-  @IsString()
   studentId?: number;
 }
