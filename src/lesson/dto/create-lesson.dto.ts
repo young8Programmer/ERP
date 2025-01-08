@@ -1,4 +1,4 @@
-import { IsString, IsInt, IsNotEmpty, IsDate, IsOptional } from 'class-validator';
+import { IsString, IsInt, IsNotEmpty, IsDate, IsOptional, IsDateString } from 'class-validator';
 
 export class CreateLessonDto {
   @IsString()
@@ -7,10 +7,14 @@ export class CreateLessonDto {
 
   @IsNotEmpty()
   @IsDate()
-  @IsOptional() // yoki @IsNotEmpty() agar zarur bo'lsa
+  @IsOptional() 
   dueDate: Date;
 
   @IsInt()
   @IsNotEmpty()
   groupId: number;
+
+  @IsOptional() // Bu optional bo'ladi
+  @IsDateString()
+  endDate?: string;
 }
