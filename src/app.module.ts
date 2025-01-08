@@ -22,7 +22,7 @@ import { UsersModule } from './users/users.module';
       port: 5432,
       username: 'postgres',
       password: '1234',
-      database: 'erppp',
+      database: 'erpp',
       entities: [User, Course, Group, Profile, Student, Teacher],
       synchronize: true,
     }),
