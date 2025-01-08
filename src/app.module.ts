@@ -22,7 +22,7 @@ import { UsersModule } from './users/users.module';
       port: 5432,
       username: 'postgres',
       password: 'azizbek002',
-      database: 'zxc',
+      database: 'dfg',
       entities: [User, Course, Group, Profile, Student, Teacher],
       synchronize: true,
     }),
@@ -32,7 +32,7 @@ import { UsersModule } from './users/users.module';
     ProfilesModule,
     TeachersModule,
     GroupsModule,
-    UsersModule
+    UsersModule,
   ],
 })
 export class AppModule {}

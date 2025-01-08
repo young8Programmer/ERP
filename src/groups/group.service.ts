@@ -7,7 +7,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Group } from './entities/group.entity';
 import { CreateGroupDto } from './dto/create-group.dto';
-import { UpdateGroupDto } from './dto/update-group.dto';
 import { Course } from '../courses/entities/course.entity';
 import { Student } from '../students/entities/user.entity';
 import { Teacher } from '../teacher/entities/teacher.entity';
@@ -107,13 +106,10 @@ export class GroupsService {
     }
     return group;
   }
-
   async getGroupsByTeacherId(teacherId: number): Promise<Group[]> {
-    const teacher = await this.teacherRepository.findOne({
-      where: { id: teacherId },
-    });
-    if (!teacher) {
-      throw new NotFoundException(`O'qituvchi ID ${teacherId} topilmadi`);
+    // teacherId ni validatsiya qilish
+    if (isNaN(teacherId)) {
+      throw new BadRequestException('Teacher ID must be a valid number');
     }
 
     return this.groupRepository.find({

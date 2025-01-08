@@ -37,7 +37,8 @@ export class AuthController {
     @Body() loginDto: { username: string; password: string },
     @Res() res: Response,
   ) {
-    const { accessToken, refreshToken, user } = await this.authService.login(loginDto);
+    const { accessToken, refreshToken, user } =
+      await this.authService.login(loginDto);
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
@@ -56,7 +57,8 @@ export class AuthController {
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token is missing ❌');
     }
-    const { accessToken, newRefreshToken } = await this.authService.refreshAccessToken(refreshToken);
+    const { accessToken, newRefreshToken } =
+      await this.authService.refreshAccessToken(refreshToken);
 
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
@@ -81,8 +83,6 @@ export class AuthController {
 
     res.clearCookie('refreshToken');
 
-    return res
-      .status(200)
-      .json({ message: 'User successfully logged out' });
+    return res.status(200).json({ message: 'User successfully logged out' });
   }
 }

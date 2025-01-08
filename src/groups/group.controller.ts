@@ -21,7 +21,8 @@ import { RolesStudentGuard } from 'src/auth/rolesStudentGuard';
 import { AddStudentDto } from 'src/students/dto/AddStudentDto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Student } from 'src/students/entities/user.entity'; // Add import for the Student entity
+import { Student } from 'src/students/entities/user.entity';
+import { RolesTeacherGuard } from 'src/auth/rolesTeacherGuard';
 
 @Controller('groups')
 export class GroupsController {
@@ -30,7 +31,7 @@ export class GroupsController {
   constructor(
     private readonly groupsService: GroupsService,
     @InjectRepository(Student)
-    private readonly studentRepository: Repository<Student>, // Inject repository for Student
+    private readonly studentRepository: Repository<Student>,
   ) {}
 
   @UseGuards(AuthGuard, RolesGuard)
@@ -73,12 +74,18 @@ export class GroupsController {
     return this.groupsService.getGroupById(id);
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesTeacherGuard)
   @Roles('teacher')
   @Get('my-groups')
   async getMyGroups(@Request() req): Promise<Group[]> {
-    const teacherId = req.user.id;
-    return this.groupsService.getGroupsByTeacherId(teacherId);
+    const teacherId = req.user?.id;
+
+    // teacherId tekshirish
+    if (!teacherId || isNaN(Number(teacherId))) {
+      throw new BadRequestException('Invalid teacher ID');
+    }
+
+    return this.groupsService.getGroupsByTeacherId(Number(teacherId));
   }
 
   @UseGuards(AuthGuard, RolesStudentGuard)
