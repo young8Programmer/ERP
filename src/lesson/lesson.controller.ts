@@ -26,6 +26,21 @@ export class LessonsController {
 
   @UseGuards(AuthGuard, RolesTeacherGuard)
   @Roles('teacher')
+  @Get('group/:groupId')
+  async findLessonsByGroup(@Param('groupId') groupId: number) {
+    try {
+      const lessons = await this.lessonsService.findLessonsByGroup(groupId);
+      if (!lessons || lessons.length === 0) {
+        throw new NotFoundException(`Guruhga tegishli darslar topilmadi (Guruh ID: ${groupId})`);
+      }
+      return { message: 'Guruhga tegishli darslar muvaffaqiyatli olingan.', lessons };
+    } catch (error) {
+      throw new Error('Guruhga tegishli darslarni olishda xatolik yuz berdi');
+    }
+  }
+
+  @UseGuards(AuthGuard, RolesTeacherGuard)
+  @Roles('teacher')
   @Post()
   async create(@Body() lessonData: { title: string; groupId: number }) {
     try {
