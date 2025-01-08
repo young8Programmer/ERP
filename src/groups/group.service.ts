@@ -86,14 +86,19 @@ export class GroupsService {
     try {
       const user = await this.userRepository.findOne({
         where: { id: userId },
-        relations: ['teacher'], // teacherni olish uchun relation qo'shilmoqda
+        relations: ['teacher'], // teacher bilan bog'lanishni ta'minlash
       });
   
       if (!user || !user.teacher) {
         throw new NotFoundException('Teacher not found for this user');
       }
   
-      const teacherId = user.teacher.id; // Teacher ID ni olish
+      const teacherId = user.teacher.id;
+  
+      // teacherId qiymatini tekshirish
+      if (isNaN(teacherId)) {
+        throw new BadRequestException('Teacher ID is not valid');
+      }
   
       return await this.groupRepository.find({
         where: { teacher: { id: teacherId } },
@@ -107,14 +112,19 @@ export class GroupsService {
     try {
       const user = await this.userRepository.findOne({
         where: { id: userId },
-        relations: ['student'], // Studentni olish uchun relation qo'shilmoqda
+        relations: ['student'], // student bilan bog'lanishni ta'minlash
       });
   
       if (!user || !user.student) {
         throw new NotFoundException('Student not found for this user');
       }
   
-      const studentId = user.student.id; // Student ID ni olish
+      const studentId = user.student.id;
+  
+      // studentId qiymatini tekshirish
+      if (isNaN(studentId)) {
+        throw new BadRequestException('Student ID is not valid');
+      }
   
       return await this.groupRepository.find({
         where: { students: { id: studentId } },
