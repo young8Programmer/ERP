@@ -39,7 +39,7 @@ export class User {
   @OneToOne(() => Profile, (profile) => profile.user, { cascade: true, onDelete: 'CASCADE' })
   @JoinColumn() // Bog‘lanishni amalga oshiramiz
   profile: Profile;
-
+  
   @Column({ nullable: true }) // Teacher bo'lmasa null bo'ladi
   teacherId: number;
 
