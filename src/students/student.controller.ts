@@ -7,6 +7,7 @@ import {
   Param,
   Body,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { StudentsService } from './student.service';
 import { CreateStudentDto } from './dto/create-student.dto';
@@ -33,6 +34,14 @@ export class StudentsController {
   @Get()
   async getAllStudents(): Promise<Student[]> {
     return this.studentsService.getAllStudents();
+  }
+
+  
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('admin')
+  @Get('search')
+  async searchStudents(@Query('name') name: string): Promise<Student[]> {
+    return this.studentsService.searchStudents(name);
   }
 
   @UseGuards(AuthGuard)
