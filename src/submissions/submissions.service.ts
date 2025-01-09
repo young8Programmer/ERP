@@ -20,21 +20,21 @@ export class SubmissionService {
   ) {}
 
   async submitAnswer(userId: number, assignmentId: number, content: string) {
-    const user = await this.userRepository.findOne({ where: { id: userId }});
+    const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
-      throw new ForbiddenException('Only students can submit assignments');
+      throw new ForbiddenException('Faqat talabalargina topshiriqlarni yuborishi mumkin.');
     }
 
     const studentGroups = await this.groupRepository.find({ where: { students: { id: userId } } });
-    const assignment = await this.assignmentRepository.findOne({ where: { id: assignmentId }});
+    const assignment = await this.assignmentRepository.findOne({ where: { id: assignmentId } });
 
     if (!assignment) {
-      throw new NotFoundException('Assignment not found');
+      throw new NotFoundException('Topshiriq topilmadi.');
     }
 
     const groupMatch = studentGroups.some(group => group.id === assignment.lesson.group.id);
     if (!groupMatch) {
-      throw new ForbiddenException('You can only submit assignments for your own group');
+      throw new ForbiddenException('Faqat o\'zingizning guruhingiz uchun topshiriqlarni yuborishingiz mumkin.');
     }
 
     const submission = this.submissionRepository.create({
@@ -46,37 +46,40 @@ export class SubmissionService {
     });
     await this.submissionRepository.save(submission);
 
-    return { message: 'Submission saved successfully', submissionId: submission.id };
+    return { message: 'Topshiriq muvaffaqiyatli saqlandi.', submissionId: submission.id };
   }
 
   async gradeSubmission(userId: number, submissionId: number, grade: number) {
     const teacher = await this.userRepository.findOne({ where: { id: userId }, relations: ['teacher'] });
     if (!teacher || !teacher.teacher) {
-      throw new ForbiddenException('Only teachers can grade submissions');
+      throw new ForbiddenException('Faqat o\'qituvchilargina topshiriqlarni baholashi mumkin.');
     }
 
-    const submission = await this.submissionRepository.findOne({ where: { id: submissionId }, relations: ['assignment', 'assignment.lesson', 'assignment.lesson.group'] });
+    const submission = await this.submissionRepository.findOne({
+      where: { id: submissionId },
+      relations: ['assignment', 'assignment.lesson', 'assignment.lesson.group'],
+    });
     if (!submission) {
-      throw new NotFoundException('Submission not found');
+      throw new NotFoundException('Topshiriq javobi topilmadi.');
     }
 
     const teacherGroups = await this.groupRepository.find({ where: { teacher: { id: teacher.teacher.id } } });
     const groupMatch = teacherGroups.some(group => group.id === submission.assignment.lesson.group.id);
     if (!groupMatch) {
-      throw new ForbiddenException('You can only grade submissions for your own group');
+      throw new ForbiddenException('Faqat o\'zingizning guruhingiz uchun topshiriqlarni baholashingiz mumkin.');
     }
 
     submission.grade = grade;
     submission.status = true;
     await this.submissionRepository.save(submission);
 
-    return { message: 'Submission graded successfully', grade: submission.grade };
+    return { message: 'Topshiriq muvaffaqiyatli baholandi.', grade: submission.grade };
   }
 
   async getDailyGrades(userId: number) {
     const teacher = await this.userRepository.findOne({ where: { id: userId }, relations: ['teacher'] });
     if (!teacher || !teacher.teacher) {
-      throw new ForbiddenException('Only teachers can view daily grades');
+      throw new ForbiddenException('Faqat o\'qituvchilargina kundalik baholarni ko\'rishi mumkin.');
     }
 
     return this.submissionRepository
@@ -91,7 +94,7 @@ export class SubmissionService {
   async getTotalScores(userId: number) {
     const teacher = await this.userRepository.findOne({ where: { id: userId }, relations: ['teacher'] });
     if (!teacher || !teacher.teacher) {
-      throw new ForbiddenException('Only teachers can view total scores');
+      throw new ForbiddenException('Faqat o\'qituvchilargina umumiy baholarni ko\'rishi mumkin.');
     }
 
     return this.submissionRepository
