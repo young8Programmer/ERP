@@ -20,39 +20,30 @@ export class SubmissionService {
   ) {}
 
   async submitAnswer(userId: number, assignmentId: number, content: string) {
-    // Userni id bo'yicha topish
-    const user = await this.userRepository.findOne({
-      where: { id: userId },
-      relations: ['student', 'student.groups'], // Groups ni yuklash
-    });
-
-    // Agar foydalanuvchi mavjud emas bo'lsa yoki talaba emas bo'lsa
+    // Userni topish
+    const user = await this.userRepository.findOne({ where: { id: userId }, relations: ['student', 'student.groups'] });
+    
     if (!user || !user.student || !user.student.groups || user.student.groups.length === 0) {
       throw new ForbiddenException('Faqat talabalar topshiriq yuborishi mumkin');
     }
 
-    // Assignment ni topish
+    // Assignmentni topish
     const assignment = await this.assignmentRepository.findOne({
       where: { id: assignmentId },
-      relations: ['lesson', 'lesson.group'],  // Group va lesson ni yuklash
+      relations: ['lesson', 'lesson.group'],
     });
 
-    // Agar assignment mavjud emas bo'lsa yoki lesson yoki group bo'lmasa
     if (!assignment || !assignment.lesson || !assignment.lesson.group) {
       throw new NotFoundException(`Assignment with ID ${assignmentId} not found`);
     }
 
-    // Talabaning guruhlari mavjudligini tekshirish
-    const studentGroupIds = user.student.groups.map((group) => group.id);
-
-    // Agar student guruhlari bo'lmasa yoki guruh assignment guruhiga to'g'ri kelmasa
+    // Studentning guruhini tekshirish
+    const studentGroupIds = user.student.groups.map(group => group.id);
     if (!studentGroupIds.includes(assignment.lesson.group.id)) {
-      throw new ForbiddenException(
-        'Faqat o‘zingizning guruhingizdagi topshiriqlarga javob bera olasiz',
-      );
+      throw new ForbiddenException('Faqat o‘zingizning guruhingizdagi topshiriqlarga javob bera olasiz');
     }
 
-    // Yangi submission yaratish
+    // Submission yaratish va saqlash
     const submission = this.submissionRepository.create({
       content,
       assignment,
@@ -61,20 +52,13 @@ export class SubmissionService {
       status: false,
     });
 
-    // Submission ni saqlash
     await this.submissionRepository.save(submission);
 
-    return {
-      message: 'Submission successfully saved',
-      submissionId: submission.id,
-    };
+    return { message: 'Submission successfully saved', submissionId: submission.id };
   }
 
   async gradeSubmission(userId: number, submissionId: number, grade: number) {
-    const user = await this.userRepository.findOne({
-      where: { id: userId },
-      relations: ['group'],
-    });
+    const user = await this.userRepository.findOne({ where: { id: userId }, relations: ['group'] });
 
     if (!user || !user.teacherId) {
       throw new ForbiddenException('Faqat o‘qituvchilar baho qo‘ya oladi');
@@ -82,21 +66,16 @@ export class SubmissionService {
 
     const submission = await this.submissionRepository.findOne({
       where: { id: submissionId },
-      relations: ['assignment', 'assignment.lesson', 'assignment.lesson.group'], // Additional relations
+      relations: ['assignment', 'assignment.lesson', 'assignment.lesson.group'],
     });
 
     if (!submission) {
       throw new NotFoundException(`Submission with ID ${submissionId} not found`);
     }
 
-    // O'qituvchining guruhlari ro'yxatini olish
-    const teacherGroupIds = user.teacher.groups.map((group) => group.id);
-
-    // Agar o'qituvchi guruhidagi assignment bilan mos kelmasa
+    const teacherGroupIds = user.teacher.groups.map(group => group.id);
     if (!teacherGroupIds.includes(submission.assignment.lesson.group.id)) {
-      throw new ForbiddenException(
-        'Faqat o‘z guruhingizdagi topshiriqlarga baho qo‘ya olasiz',
-      );
+      throw new ForbiddenException('Faqat o‘z guruhingizdagi topshiriqlarga baho qo‘ya olasiz');
     }
 
     // Baho va statusni yangilash
@@ -105,10 +84,7 @@ export class SubmissionService {
 
     await this.submissionRepository.save(submission);
 
-    return {
-      message: 'Submission successfully graded',
-      grade: submission.grade,
-    };
+    return { message: 'Submission successfully graded', grade: submission.grade };
   }
 
   // Talabalarning kunlik baholarini ko'rish
@@ -123,10 +99,7 @@ export class SubmissionService {
       .createQueryBuilder('submission')
       .leftJoinAndSelect('submission.student', 'student')
       .where('submission.createdAt >= CURRENT_DATE')
-      .select([
-        'student.studentId AS studentId',
-        'SUM(submission.grade) AS totalGrade',
-      ])
+      .select(['student.studentId AS studentId', 'SUM(submission.grade) AS totalGrade'])
       .groupBy('student.studentId')
       .getRawMany();
 
@@ -144,10 +117,7 @@ export class SubmissionService {
     const totalScores = await this.submissionRepository
       .createQueryBuilder('submission')
       .leftJoinAndSelect('submission.student', 'student')
-      .select([
-        'student.studentId AS studentId',
-        'SUM(submission.grade) AS totalGrade',
-      ])
+      .select(['student.studentId AS studentId', 'SUM(submission.grade) AS totalGrade'])
       .groupBy('student.studentId')
       .orderBy('totalGrade', 'DESC')
       .getRawMany();
