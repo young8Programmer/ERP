@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Lesson } from './entities/lesson.entity';
 import { Group } from '../groups/entities/group.entity';
-import { User } from 'src/auth/entities/user.entity'; // Foydalanuvchi importi
+import { User } from 'src/auth/entities/user.entity';
 
 @Injectable()
 export class LessonsService {
@@ -16,26 +16,21 @@ export class LessonsService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  // Guruhga tegishli darslarni olish
   async findLessonsByGroup(groupId: number, userId: number) {
-    // Foydalanuvchi malumotlarini olish
     const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException('Foydalanuvchi topilmadi');
+    if (!user) throw new NotFoundException('User not found');
 
-    // Guruhni olish va tekshirish
     const group = await this.groupRepository.findOne({
       where: { id: groupId },
-      relations: ['teacher', 'students'], // Guruhning o'qituvchisini va talabalari
+      relations: ['teacher', 'students'],
     });
+    if (!group) throw new NotFoundException('Group not found');
 
-    if (!group) throw new NotFoundException('Guruh topilmadi');
-
-    // Foydalanuvchi roli va guruhga tegishliligini tekshirish
     const isTeacher = group.teacher.id === user.teacherId;
-    const isStudent = group.students.some(student => student.id === user.studentId); // studentId orqali tekshirish
+    const isStudent = group.students.some(student => student.id === user.id);
 
     if (!isTeacher && !isStudent) {
-      throw new ForbiddenException('Siz faqat o\'zingizning guruhingizdagi darslarni ko\'rishingiz mumkin');
+      throw new ForbiddenException('You can only view lessons from your own group');
     }
 
     return this.lessonRepository.find({
@@ -43,31 +38,26 @@ export class LessonsService {
     });
   }
 
-  // Dars yaratish
   async create(userId: number, lessonData: { title: string; groupId: number }) {
-    // Foydalanuvchi malumotlarini olish
     const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException('Foydalanuvchi topilmadi');
+    if (!user) throw new NotFoundException('User not found');
 
-    // Guruhni olish va tekshirish
     const group = await this.groupRepository.findOne({
       where: { id: lessonData.groupId },
-      relations: ['teacher'], // Guruhning o'qituvchisini olish
+      relations: ['teacher'],
     });
+    if (!group) throw new NotFoundException('Group not found');
 
-    if (!group) throw new NotFoundException('Guruh topilmadi');
-
-    if (group.teacher.id !== user.teacherId) {
-      throw new ForbiddenException('Siz faqat o\'zingizning guruhingizda dars yaratishingiz mumkin');
+    // O'qituvchi faqat o'z guruhida dars yaratishi mumkin
+    if (group.teacher.id !== user.id) {
+      throw new ForbiddenException('You can only create lessons in your own group');
     }
 
-    // Darsni tekshirish, agar shu nomdagi dars allaqachon bo'lsa
     const existingLesson = await this.lessonRepository.findOne({
       where: { title: lessonData.title, group: { id: lessonData.groupId } },
     });
-
     if (existingLesson) {
-      throw new ForbiddenException('Bu dars allaqachon mavjud');
+      throw new ForbiddenException('Lesson already exists');
     }
 
     const lesson = this.lessonRepository.create({
@@ -77,23 +67,19 @@ export class LessonsService {
     return this.lessonRepository.save(lesson);
   }
 
-  // Darsni yangilash
   async update(id: number, updateLessonDto: any, userId: number) {
-    // Foydalanuvchi malumotlarini olish
     const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException('Foydalanuvchi topilmadi');
+    if (!user) throw new NotFoundException('User not found');
 
-    const lessonId = Number(id);
     const lesson = await this.lessonRepository.findOne({
-      where: { id: lessonId },
+      where: { id },
       relations: ['group'],
     });
+    if (!lesson) throw new NotFoundException(`Lesson with ID ${id} not found`);
 
-    if (!lesson) throw new NotFoundException(`Darslik ID ${id} topilmadi`);
-
-    // Guruhga tegishlilikni tekshirish
-    if (lesson.group.teacher.id !== user.teacherId) {
-      throw new ForbiddenException('Siz faqat o\'zingizning guruhingizdagi darsni yangilay olasiz');
+    // O'qituvchi faqat o'z guruhidagi darsni yangilay oladi
+    if (lesson.group.teacher.id !== user.id) {
+      throw new ForbiddenException('You can only update lessons in your own group');
     }
 
     const updatedLesson = await this.lessonRepository.save({
@@ -103,26 +89,22 @@ export class LessonsService {
     return updatedLesson;
   }
 
-  // Darsni o'chirish
   async remove(id: number, userId: number) {
-    // Foydalanuvchi malumotlarini olish
     const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException('Foydalanuvchi topilmadi');
+    if (!user) throw new NotFoundException('User not found');
 
-    const lessonId = Number(id);
     const lesson = await this.lessonRepository.findOne({
-      where: { id: lessonId },
+      where: { id },
       relations: ['group'],
     });
+    if (!lesson) throw new NotFoundException(`Lesson with ID ${id} not found`);
 
-    if (!lesson) throw new NotFoundException(`Darslik ID ${id} topilmadi`);
-
-    // Guruhga tegishlilikni tekshirish
-    if (lesson.group.teacher.id !== user.teacherId) {
-      throw new ForbiddenException('Siz faqat o\'zingizning guruhingizdagi darsni o\'chirishingiz mumkin');
+    // O'qituvchi faqat o'z guruhidagi darsni o'chirishi mumkin
+    if (lesson.group.teacher.id !== user.id) {
+      throw new ForbiddenException('You can only delete lessons from your own group');
     }
 
-    await this.lessonRepository.delete(lessonId);
-    return { message: `Darslik ID ${id} muvaffaqiyatli o'chirildi` };
+    await this.lessonRepository.delete(id);
+    return { message: `Lesson with ID ${id} successfully deleted` };
   }
 }
