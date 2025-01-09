@@ -23,7 +23,7 @@ export class SubmissionService {
     // Userni topish
     const user = await this.userRepository.findOne({ where: { id: userId }});
     
-    if (!user || !user.student || !user.student.groups || user.student.groups.length === 0) {
+    if (!user || !user.studentId) {
       throw new ForbiddenException('Faqat talabalar topshiriq yuborishi mumkin');
     }
 
