@@ -22,7 +22,7 @@ export class LessonsController {
 
   // Dars yaratish (faqat o'qituvchi uchun)
   @UseGuards(AuthGuard, RolesTeacherGuard)
-  @Post('create')
+  @Post()
   async create(
     @Body() lessonData: CreateLessonDto,
     @Request() req: any,  // Request obyektini olish
