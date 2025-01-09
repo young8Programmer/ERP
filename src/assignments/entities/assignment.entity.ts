@@ -15,8 +15,8 @@ export class Assignment {
   @Column()
   assignment: string;
 
-  @Column({ type: 'timestamp', nullable: false })
-  dueDate: Date; // Dedline ustuni
+  @Column({ type: 'timestamp', nullable: true })
+  dueDate: Date; // dueDate qo‘shildi
 
   @UpdateDateColumn({ type: 'timestamp', nullable: true })
   updatedAt: Date;

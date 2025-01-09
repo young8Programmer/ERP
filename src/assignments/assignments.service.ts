@@ -18,7 +18,7 @@ export class AssignmentsService {
   ) {}
 
   async createAssignment(teacherId: number, createAssignmentDto: CreateAssignmentDto) {
-    const { lesson_id, assignment } = createAssignmentDto;
+    const { lesson_id, assignment, dueDate } = createAssignmentDto;
   
     const lesson = await this.lessonRepository.findOne({
       where: { id: lesson_id },
@@ -34,7 +34,7 @@ export class AssignmentsService {
     if (lesson.group.teacher.id !== user.teacherId) {
       throw new ForbiddenException('Siz faqat o\'zingizga tegishli guruhdagi topshiriqni yaratishingiz mumkin');
     }
-
+  
     const existingAssignment = await this.assignmentRepository.findOne({
       where: { lesson: { id: lesson_id }, assignment },
     });
@@ -43,10 +43,18 @@ export class AssignmentsService {
       throw new ForbiddenException('Bu topshiriq ushbu dars uchun allaqachon mavjud');
     }
   
+    let dueDateString = null;
+    if (dueDate) {
+      const dueDateObj = new Date();
+      dueDateObj.setDate(dueDateObj.getDate() + dueDate); // Hozirgi sanaga 'dueDate' kunlar qo‘shiladi
+      dueDateString = dueDateObj.toISOString(); // ISO formatida sanani olish
+    }
+  
     const newAssignment = this.assignmentRepository.create({
       lesson,
       assignment,
       status: 'pending',
+      dueDate: dueDateString, // Yangi dueDate qiymatini saqlash
     });
   
     await this.assignmentRepository.save(newAssignment);
