@@ -22,8 +22,7 @@ export class SubmissionService {
   async submitAnswer(userId: number, assignmentId: number, content: string) {
     // Userni topish
     const user = await this.userRepository.findOne({
-      where: { id: userId },
-      relations: ['student', 'student.groups'], // student va groupsni chaqirish
+      where: { id: userId }
     });
   
     if (!user || !user.student || !user.student.groups || user.student.groups.length === 0) {
@@ -32,8 +31,7 @@ export class SubmissionService {
   
     // Assignmentni topish
     const assignment = await this.assignmentRepository.findOne({
-      where: { id: assignmentId },
-      relations: ['lesson', 'lesson.group'], // assignment va lesson.groupni chaqirish
+      where: { id: assignmentId }
     });
   
     if (!assignment || !assignment.lesson || !assignment.lesson.group) {
