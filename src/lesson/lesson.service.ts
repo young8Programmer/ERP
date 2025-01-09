@@ -17,39 +17,59 @@ export class LessonsService {
   ) {}
 
   async findLessonsByGroup(groupId: number, userId: number) {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException('User not found');
-
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['teacher', 'student'],
+    });
+  
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+  
     const group = await this.groupRepository.findOne({
       where: { id: groupId },
-      relations: ['teacher', 'students'],
+      relations: ['teacher', 'students', 'lessons'],
     });
-    if (!group) throw new NotFoundException('Group not found');
-
-    const isTeacher = group.teacher.id === user.teacherId;
-    const isStudent = group.students.some(student => student.id === user.id);
-
-    if (!isTeacher && !isStudent) {
-      throw new ForbiddenException('You can only view lessons from your own group');
+  
+    if (!group) {
+      throw new NotFoundException('Group not found');
     }
-
-    return this.lessonRepository.find({
-      where: { group: { id: groupId } },
-    });
+  
+    // O'qituvchi bo'lsa, faqat o'ziga biriktirilgan guruhda darsliklarni ko'rishi mumkin
+    if (user.teacherId) {
+      if (group.teacher.id !== user.teacherId) {
+        throw new ForbiddenException('You can only view lessons from your own group');
+      }
+    }
+  
+    // Talaba bo'lsa, faqat o'zi biriktirilgan guruhda darsliklarni ko'rishi mumkin
+    if (user.studentId) {
+      const isStudentInGroup = group.students.some(student => student.id === user.studentId);
+      if (!isStudentInGroup) {
+        throw new ForbiddenException('You can only view lessons from your own group');
+      }
+    }
+  
+    return group.lessons;
   }
+  
 
   async create(userId: number, lessonData: { title: string; groupId: number }) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
 
     const group = await this.groupRepository.findOne({
       where: { id: lessonData.groupId },
       relations: ['teacher'],
     });
-    if (!group) throw new NotFoundException('Group not found');
+    if (!group) {
+      throw new NotFoundException('Group not found');
+    }
 
     // O'qituvchi faqat o'z guruhida dars yaratishi mumkin
-    if (group.teacher.id !== user.id) {
+    if (group.teacher?.id !== user.teacherId) {
       throw new ForbiddenException('You can only create lessons in your own group');
     }
 
@@ -69,16 +89,20 @@ export class LessonsService {
 
   async update(id: number, updateLessonDto: any, userId: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
 
     const lesson = await this.lessonRepository.findOne({
       where: { id },
-      relations: ['group'],
+      relations: ['group', 'group.teacher'],
     });
-    if (!lesson) throw new NotFoundException(`Lesson with ID ${id} not found`);
+    if (!lesson) {
+      throw new NotFoundException(`Lesson with ID ${id} not found`);
+    }
 
     // O'qituvchi faqat o'z guruhidagi darsni yangilay oladi
-    if (lesson.group.teacher.id !== user.id) {
+    if (lesson.group.teacher?.id !== user.teacherId) {
       throw new ForbiddenException('You can only update lessons in your own group');
     }
 
@@ -91,16 +115,20 @@ export class LessonsService {
 
   async remove(id: number, userId: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
 
     const lesson = await this.lessonRepository.findOne({
       where: { id },
-      relations: ['group'],
+      relations: ['group', 'group.teacher'],
     });
-    if (!lesson) throw new NotFoundException(`Lesson with ID ${id} not found`);
+    if (!lesson) {
+      throw new NotFoundException(`Lesson with ID ${id} not found`);
+    }
 
     // O'qituvchi faqat o'z guruhidagi darsni o'chirishi mumkin
-    if (lesson.group.teacher.id !== user.id) {
+    if (lesson.group.teacher?.id !== user.teacherId) {
       throw new ForbiddenException('You can only delete lessons from your own group');
     }
 
