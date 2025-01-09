@@ -18,34 +18,43 @@ export class SubmissionController {
   constructor(private readonly submissionsService: SubmissionService) {}
 
   // Student tomonidan topshiriqqa javob yuborish
-  @Post(':assignmentId/submit')
-  async submitAnswer(
-    @Req() req,
-    @Param('assignmentId') assignmentId: number,
-    @Body() createSubmissionDto: CreateSubmissionDto,
-  ) {
-    const userId = req.user.id; // Token orqali foydalanuvchi ID olinadi
-    return this.submissionsService.submitAnswer(
-      userId,
-      assignmentId,
-      createSubmissionDto.content,
-    );
+@Post(':assignmentId/submit')
+async submitAnswer(
+  @Req() req,
+  @Param('assignmentId') assignmentId: number,
+  @Body() createSubmissionDto: CreateSubmissionDto,
+) {
+  if (!req.user || !req.user.id) {
+    throw new ForbiddenException('User not authenticated');
   }
 
-  // O'qituvchi tomonidan submission baholash
-  @Patch(':submissionId/grade')
-  async gradeSubmission(
-    @Req() req,
-    @Param('submissionId') submissionId: number,
-    @Body() gradeSubmissionDto: GradeSubmissionDto,
-  ) {
-    const userId = req.user.id; // Token orqali foydalanuvchi ID olinadi
-    return this.submissionsService.gradeSubmission(
-      userId,
-      submissionId,
-      gradeSubmissionDto.grade,
-    );
+  const userId = req.user.id;
+  return this.submissionsService.submitAnswer(
+    userId,
+    assignmentId,
+    createSubmissionDto.content,
+  );
+}
+
+// O'qituvchi tomonidan submission baholash
+@Patch(':submissionId/grade')
+async gradeSubmission(
+  @Req() req,
+  @Param('submissionId') submissionId: number,
+  @Body() gradeSubmissionDto: GradeSubmissionDto,
+) {
+  if (!req.user || !req.user.id) {
+    throw new ForbiddenException('User not authenticated');
   }
+
+  const userId = req.user.id;
+  return this.submissionsService.gradeSubmission(
+    userId,
+    submissionId,
+    gradeSubmissionDto.grade,
+  );
+}
+
 
   // Talabalarning kunlik baholarini ko'rish
   @Get('daily-grades')
