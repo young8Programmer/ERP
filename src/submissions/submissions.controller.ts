@@ -38,7 +38,6 @@ export class SubmissionController {
     const userId = req.user.id;
     return this.submissionsService.submitAnswer(
       userId,
-      assignmentId,
       createSubmissionDto.content,
     );
   }
