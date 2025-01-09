@@ -19,32 +19,40 @@ export class SubmissionService {
     private readonly groupRepository: Repository<Group>,
   ) {}
 
-  // Talaba faqat o'z guruhidagi topshiriqqa javob yuborishi mumkin
   async submitAnswer(userId: number, assignmentId: number, content: string) {
+    // Userni id bo'yicha topish
     const user = await this.userRepository.findOne({
-      where: { id: userId }
+      where: { id: userId },
+      relations: ['student', 'student.groups'],  // Groups ni yuklash
     });
-
+  
+    // Agar foydalanuvchi mavjud emas bo'lsa yoki talaba emas bo'lsa
     if (!user || !user.studentId) {
       throw new ForbiddenException('Faqat talabalar topshiriq yuborishi mumkin');
     }
-
+  
+    // Assignment ni topish
     const assignment = await this.assignmentRepository.findOne({
-      where: { id: assignmentId }
+      where: { id: assignmentId },
+      relations: ['lesson', 'lesson.group'],  // Group va lesson ni yuklash
     });
-
+  
+    // Agar assignment mavjud emas bo'lsa
     if (!assignment) {
       throw new NotFoundException(`Assignment with ID ${assignmentId} not found`);
     }
-
-    const studentGroupIds = user.student.groups.map((group) => group.id);
-
-   if (!studentGroupIds.includes(assignment.lesson.group.id)) {
-     throw new ForbiddenException(
-       ' Faqat o‘z guruhingizning topshiriqlariga javob yuborishingiz mumkin',
-    );
-  }
-
+  
+    // Talabaning guruhlari mavjudligini tekshirish
+    const studentGroupIds = user.student.groups ? user.student.groups.map((group) => group.id) : [];
+  
+    // Agar student guruhlari bo'lmasa yoki guruh assignment guruhiga to'g'ri kelmasa
+    if (!studentGroupIds.includes(assignment.lesson.group.id)) {
+      throw new ForbiddenException(
+        'Faqat o‘zingizning guruhingizdagi topshiriqlarga javob bera olasiz',
+      );
+    }
+  
+    // Yangi submission yaratish
     const submission = this.submissionRepository.create({
       content,
       assignment,
@@ -52,16 +60,18 @@ export class SubmissionService {
       grade: 0,
       status: false,
     });
-
+  
+    // Submission ni saqlash
     await this.submissionRepository.save(submission);
-
+  
     return {
       message: 'Submission successfully saved',
       submissionId: submission.id,
     };
   }
+  
+  
 
-  // O'qituvchi faqat o'z guruhidagi topshiriqlarni baholashi mumkin
   async gradeSubmission(userId: number, submissionId: number, grade: number) {
     const user = await this.userRepository.findOne({
       where: { id: userId },
