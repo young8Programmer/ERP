@@ -57,7 +57,8 @@ async getMyGroups(@Req() req: any): Promise<Group[]> {
   return this.groupsService.getGroupsByTeacherId(userId)
 }
 
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, RolesStudentGuard)
+@Roles("student")
 @Get('my/student/groups')
 async getStudentGroups(@Req() req): Promise<Group[]> {
   const userId = req.user.id;
