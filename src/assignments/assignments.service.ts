@@ -31,7 +31,7 @@ export class AssignmentsService {
 
     const user = await this.userRepository.findOne({ where: { id: teacherId } });
 
-    if (!user || lesson.group.teacher.id !== user.teacherId) {
+    if (lesson.group.teacher.id !== user.teacherId) {
       throw new ForbiddenException('Siz faqat o\'zingizga tegishli guruhdagi topshiriqni yaratishingiz mumkin');
     }
 
