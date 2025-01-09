@@ -21,40 +21,40 @@ export class SubmissionService {
 
   async submitAnswer(userId: number, assignmentId: number, content: string) {
     // Userni topish
-    const user = await this.userRepository.findOne({ where: { id: userId }});
-    
-    if (!user || !user.studentId) {
-      throw new ForbiddenException('Faqat talabalar topshiriq yuborishi mumkin');
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['student', 'student.groups'], // student va groupsni chaqirish
+    });
+  
+    if (!user || !user.student || !user.student.groups || user.student.groups.length === 0) {
+      throw new ForbiddenException('Talaba guruhiga kiritilmagan yoki guruhlar mavjud emas');
     }
-
+  
     // Assignmentni topish
     const assignment = await this.assignmentRepository.findOne({
-      where: { id: assignmentId }
+      where: { id: assignmentId },
+      relations: ['lesson', 'lesson.group'], // assignment va lesson.groupni chaqirish
     });
-
-    if (!assignment) {
-      throw new NotFoundException(`Assignment with ID ${assignmentId} not found`);
+  
+    if (!assignment || !assignment.lesson || !assignment.lesson.group) {
+      throw new NotFoundException('Topshiriq yoki guruh topilmadi');
     }
-
-     // Studentning guruhini tekshirish
-const studentGroups = user.student.groups;
-
-if (!studentGroups || studentGroups.length === 0) {
-  throw new ForbiddenException('Talabalar guruhlari mavjud emas');
-}
-
-let groupMatch = false;
-for (let i = 0; i < studentGroups.length; i++) {
-  if (studentGroups[i].id === assignment.lesson.group.id) {
-    groupMatch = true;
-    break; // Guruhni topganimizdan so'ng, to'xtatish
-  }
-}
-
-if (!groupMatch) {
-  throw new ForbiddenException('Faqat o‘zingizning guruhingizdagi topshiriqlarga javob bera olasiz');
-}
-    
+  
+    // Studentning guruhini tekshirish
+    const studentGroups = user.student.groups;
+    let groupMatch = false;
+  
+    for (const group of studentGroups) {
+      if (group.id === assignment.lesson.group.id) {
+        groupMatch = true;
+        break; // Guruhni topganimizdan so'ng, to'xtatish
+      }
+    }
+  
+    if (!groupMatch) {
+      throw new ForbiddenException('Faqat o‘zingizning guruhingizdagi topshiriqlarga javob bera olasiz');
+    }
+  
     // Submission yaratish va saqlash
     const submission = this.submissionRepository.create({
       content,
@@ -63,12 +63,12 @@ if (!groupMatch) {
       grade: 0,
       status: false,
     });
-
+  
     await this.submissionRepository.save(submission);
-
+  
     return { message: 'Submission successfully saved', submissionId: submission.id };
   }
-
+  
   async gradeSubmission(userId: number, submissionId: number, grade: number) {
     const user = await this.userRepository.findOne({ where: { id: userId }, relations: ['group'] });
 
