@@ -18,8 +18,7 @@ export class LessonsService {
 
   async findLessonsByGroup(groupId: number, userId: number) {
     const user = await this.userRepository.findOne({
-      where: { id: userId },
-      relations: ['teacher', 'student'],
+      where: { id: userId }
     });
   
     if (!user) {
@@ -27,8 +26,7 @@ export class LessonsService {
     }
   
     const group = await this.groupRepository.findOne({
-      where: { id: groupId },
-      relations: ['teacher', 'students', 'lessons'],
+      where: { id: groupId }
     });
   
     if (!group) {
