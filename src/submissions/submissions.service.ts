@@ -27,7 +27,7 @@ export class SubmissionService {
     });
   
     // Agar foydalanuvchi mavjud emas bo'lsa yoki talaba emas bo'lsa
-    if (!user || !user.student || !user.student.groups) {
+    if (!user || !user.student || !user.student.groups || user.student.groups.length === 0) {
       throw new ForbiddenException('Faqat talabalar topshiriq yuborishi mumkin');
     }
   
