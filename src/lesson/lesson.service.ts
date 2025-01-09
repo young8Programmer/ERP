@@ -104,7 +104,7 @@ export class LessonsService {
   }
 
   // Darsni o'chirish
-  async remove(id: string, userId: number) {
+  async remove(id: number, userId: number) {
     // Foydalanuvchi malumotlarini olish
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('Foydalanuvchi topilmadi');
