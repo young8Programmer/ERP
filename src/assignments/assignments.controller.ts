@@ -3,19 +3,22 @@ import { AssignmentsService } from './assignments.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { Roles } from 'src/auth/roles.guard';
 import { RolesTeacherGuard } from 'src/auth/rolesTeacherGuard';
+import { CreateAssignmentDto } from './dto/create-assignment.dto';  // Import qilish
 
 @Controller('assignments')
 export class AssignmentsController {
   constructor(private readonly assignmentsService: AssignmentsService) {}
 
+  // Topshiriq yaratish
   @UseGuards(AuthGuard, RolesTeacherGuard)
   @Roles('teacher')
   @Post()
-  async create(@Req() req, @Body() assignmentData: { group_id: number; lesson_id: number; assignment: string }) {
-    const teacherId = req.user.id; // Token orqali olingan ID
-    return this.assignmentsService.create(teacherId, assignmentData);
+  async create(@Req() req, @Body() createAssignmentDto: CreateAssignmentDto) {
+    const teacherId = req.user.id;
+    return this.assignmentsService.createAssignment(teacherId, createAssignmentDto);
   }
 
+  // Topshiriqni yangilash
   @UseGuards(AuthGuard, RolesTeacherGuard)
   @Roles('teacher')
   @Put(':id')
@@ -24,6 +27,7 @@ export class AssignmentsController {
     return this.assignmentsService.updateAssignment(teacherId, +id, updateData);
   }
 
+  // Topshiriqni o'chirish
   @UseGuards(AuthGuard, RolesTeacherGuard)
   @Roles('teacher')
   @Delete(':id')
