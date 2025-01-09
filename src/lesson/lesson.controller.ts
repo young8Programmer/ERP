@@ -35,7 +35,7 @@ export class LessonsController {
   @UseGuards(AuthGuard, RolesTeacherGuard)
   @Put(':id')
   async update(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() updateLessonDto: UpdateLessonDto,
     @Request() req: any,
   ) {

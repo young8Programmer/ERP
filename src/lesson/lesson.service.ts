@@ -78,7 +78,7 @@ export class LessonsService {
   }
 
   // Darsni yangilash
-  async update(id: string, updateLessonDto: any, userId: number) {
+  async update(id: number, updateLessonDto: any, userId: number) {
     // Foydalanuvchi malumotlarini olish
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('Foydalanuvchi topilmadi');
