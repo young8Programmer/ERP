@@ -35,4 +35,14 @@ export class AssignmentsController {
     const teacherId = req.user.id; // Token orqali olingan ID
     return this.assignmentsService.remove(teacherId, +id);
   }
+
+  @UseGuards(AuthGuard)
+  @Get('lesson/:lessonId')
+  async findAssignmentsForUser(@Req() req, @Param('lessonId') lessonId: string) {
+  const userId = req.user.id; // Token orqali user ID
+  const role = req.user.role; // `teacher` yoki `student` roli
+
+  return this.assignmentsService.findAssignmentsForUser(+lessonId, userId, role);
+}
+
 }

@@ -102,4 +102,47 @@ export class AssignmentsService {
 
     return { message: 'Assignment successfully removed' };
   }
+
+
+  async findAssignmentsForUser(lessonId: number, userId: number, role: 'teacher' | 'student') {
+    // Lessonni olish
+    const lesson = await this.lessonRepository.findOne({
+      where: { id: lessonId },
+      relations: ['group', 'group.teacher', 'group.students'], // Guruh, o'qituvchi va o'quvchilarni yuklash
+    });
+  
+    if (!lesson) {
+      throw new NotFoundException(`Lesson with ID ${lessonId} not found`);
+    }
+  
+    // Agar role teacher bo'lsa, o'qituvchi uchun tekshiruv
+    if (role === 'teacher') {
+      const user = await this.userRepository.findOne({ where: { id: userId } });
+      
+      if (!user || lesson.group.teacher.id !== user.teacherId) {
+        throw new ForbiddenException('Siz faqat o\'zingizga tegishli guruhdagi topshiriqlarni ko\'ra olasiz');
+      }
+    }
+  
+    // Agar role student bo'lsa, student uchun guruhga tegishli ekanligini tekshirish
+    if (role === 'student') {
+      const user = await this.userRepository.findOne({ where: { id: userId } });
+  
+      if (!user || !lesson.group.students.some((student) => student.id === user.studentId)) {
+        throw new ForbiddenException('Siz ushbu guruhga tegishli darslarni ko\'ra olmaysiz');
+      }
+    }
+  
+    // Ushbu darsga tegishli topshiriqlarni olish
+    const assignments = await this.assignmentRepository.find({
+      where: { lesson: { id: lessonId } },
+    });
+  
+    if (!assignments || assignments.length === 0) {
+      throw new NotFoundException('No assignments found for this lesson');
+    }
+  
+    return assignments;
+  }
+  
 }
