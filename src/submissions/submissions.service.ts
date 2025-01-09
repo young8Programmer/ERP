@@ -22,89 +22,185 @@ export class SubmissionService {
   async submitAnswer(userId: number, assignmentId: number, content: string) {
     // Userni topish
     const user = await this.userRepository.findOne({
-      where: { id: userId }
+      where: { id: userId },
     });
-  
-    if (!user || !user.student || !user.student.groups || user.student.groups.length === 0) {
+
+    if (!user) {
+      throw new ForbiddenException('User not found');
+    }
+
+    // Studentni tekshirish
+    const student = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['student'],
+    });
+
+    if (!student || !student.student) {
+      throw new ForbiddenException('Student not found');
+    }
+
+    // Talaba guruhlarini tekshirish
+    const studentGroups = await this.groupRepository.find({
+      where: { students: { id: userId } },
+    });
+
+    if (!studentGroups || studentGroups.length === 0) {
       throw new ForbiddenException('Talaba guruhiga kiritilmagan yoki guruhlar mavjud emas');
     }
-  
+
     // Assignmentni topish
     const assignment = await this.assignmentRepository.findOne({
-      where: { id: assignmentId }
+      where: { id: assignmentId },
     });
-  
-    if (!assignment || !assignment.lesson || !assignment.lesson.group) {
-      throw new NotFoundException('Topshiriq yoki guruh topilmadi');
+
+    if (!assignment) {
+      throw new NotFoundException('Topshiriq topilmadi');
     }
-  
-    // Studentning guruhini tekshirish
-    const studentGroups = user.student.groups;
+
+    // Lessonni olib kelish
+    const lesson = await this.assignmentRepository.findOne({
+      where: { id: assignmentId },
+      relations: ['lesson'],
+    });
+
+    if (!lesson) {
+      throw new NotFoundException('Lesson topilmadi');
+    }
+
+    // Groupni olib kelish
+    const group = await this.groupRepository.findOne({
+      where: { id: lesson.lesson.group.id }, // lesson.groupId orqali guruhni olib kelish
+    });
+
+    if (!group) {
+      throw new NotFoundException('Guruh topilmadi');
+    }
+
+    // Guruhni tekshirish
     let groupMatch = false;
-  
     for (const group of studentGroups) {
-      if (group.id === assignment.lesson.group.id) {
+      if (group.id === group.id) {
         groupMatch = true;
-        break; // Guruhni topganimizdan so'ng, to'xtatish
+        break;
       }
     }
-  
+
     if (!groupMatch) {
       throw new ForbiddenException('Faqat o‘zingizning guruhingizdagi topshiriqlarga javob bera olasiz');
     }
-  
+
     // Submission yaratish va saqlash
     const submission = this.submissionRepository.create({
       content,
       assignment,
-      student: user,
+      student: student,
       grade: 0,
       status: false,
     });
-  
+
     await this.submissionRepository.save(submission);
-  
+
     return { message: 'Submission successfully saved', submissionId: submission.id };
   }
-  
-  async gradeSubmission(userId: number, submissionId: number, grade: number) {
-    const user = await this.userRepository.findOne({ where: { id: userId }, relations: ['group'] });
 
+  async gradeSubmission(userId: number, submissionId: number, grade: number) {
+    // Userni topish
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+  
     if (!user || !user.teacherId) {
       throw new ForbiddenException('Faqat o‘qituvchilar baho qo‘ya oladi');
     }
-
+  
+    // Submissionni topish
     const submission = await this.submissionRepository.findOne({
       where: { id: submissionId },
-      relations: ['assignment', 'assignment.lesson', 'assignment.lesson.group'],
     });
-
+  
     if (!submission) {
       throw new NotFoundException(`Submission with ID ${submissionId} not found`);
     }
-
-    const teacherGroupIds = user.teacher.groups.map(group => group.id);
-    if (!teacherGroupIds.includes(submission.assignment.lesson.group.id)) {
+  
+    // Assignmentni topish
+    const assignment = await this.assignmentRepository.findOne({
+      where: { id: submission.assignment.id },
+    });
+  
+    if (!assignment) {
+      throw new NotFoundException('Assignment not found');
+    }
+  
+    // Lessonni topish
+    const lesson = await this.assignmentRepository.findOne({
+      where: { id: assignment.id },
+      relations: ['lesson'],
+    });
+  
+    if (!lesson) {
+      throw new NotFoundException('Lesson not found');
+    }
+  
+    // Groupni topish
+    const group = await this.groupRepository.findOne({
+      where: { id: lesson.lesson.group.id },
+    });
+  
+    if (!group) {
+      throw new NotFoundException('Group not found');
+    }
+  
+    // Teacher guruhlarini bitta-bitta olib tekshirish
+    const teacher = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['teacher'],
+    });
+  
+    if (!teacher || !teacher.teacher) {
+      throw new ForbiddenException('Teacher not found');
+    }
+  
+    // Teacher guruhlarini bitta-bitta olib tekshirish
+    const teacherGroups = await this.groupRepository.find({
+      where: { teacher: { id: teacher.id } },
+    });
+  
+    if (!teacherGroups || teacherGroups.length === 0) {
+      throw new ForbiddenException('Teacher is not assigned to any group');
+    }
+  
+    // Guruhni tekshirish
+    let groupMatch = false;
+    for (const teacherGroup of teacherGroups) {
+      if (teacherGroup.id === group.id) {
+        groupMatch = true;
+        break;
+      }
+    }
+  
+    if (!groupMatch) {
       throw new ForbiddenException('Faqat o‘z guruhingizdagi topshiriqlarga baho qo‘ya olasiz');
     }
-
+  
     // Baho va statusni yangilash
     submission.grade = grade;
     submission.status = true;
-
+  
     await this.submissionRepository.save(submission);
-
+  
     return { message: 'Submission successfully graded', grade: submission.grade };
   }
-
+  
   // Talabalarning kunlik baholarini ko'rish
   async getDailyGrades(userId: number) {
+    // Userni topish
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!user || !user.teacherId) {
       throw new ForbiddenException('Faqat o‘qituvchilar bu maʼlumotni ko‘ra oladi');
     }
 
+    // Kunlik baholarni olish
     const dailyGrades = await this.submissionRepository
       .createQueryBuilder('submission')
       .leftJoinAndSelect('submission.student', 'student')
@@ -118,12 +214,14 @@ export class SubmissionService {
 
   // Talabalarning jami ballarini kamayish tartibida ko'rish
   async getTotalScores(userId: number) {
+    // Userni topish
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!user || !user.teacherId) {
       throw new ForbiddenException('Faqat o‘qituvchilar bu maʼlumotni ko‘ra oladi');
     }
 
+    // Jami ballar
     const totalScores = await this.submissionRepository
       .createQueryBuilder('submission')
       .leftJoinAndSelect('submission.student', 'student')
