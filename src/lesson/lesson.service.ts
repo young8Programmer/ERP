@@ -61,6 +61,15 @@ export class LessonsService {
       throw new ForbiddenException('Siz faqat o\'zingizning guruhingizda dars yaratishingiz mumkin');
     }
 
+    // Darsni tekshirish, agar shu nomdagi dars allaqachon bo'lsa
+    const existingLesson = await this.lessonRepository.findOne({
+      where: { title: lessonData.title, group: { id: lessonData.groupId } },
+    });
+
+    if (existingLesson) {
+      throw new ForbiddenException('Bu dars allaqachon mavjud');
+    }
+
     const lesson = this.lessonRepository.create({
       title: lessonData.title,
       group,
