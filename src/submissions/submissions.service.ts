@@ -5,6 +5,7 @@ import { Submission } from './entities/submission.entity';
 import { Assignment } from '../assignments/entities/assignment.entity';
 import { User } from '../auth/entities/user.entity';
 import { Group } from '../groups/entities/group.entity';
+import { Lesson } from 'src/lesson/entities/lesson.entity';
 
 @Injectable()
 export class SubmissionService {
@@ -17,22 +18,38 @@ export class SubmissionService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Group)
     private readonly groupRepository: Repository<Group>,
+    @InjectRepository(Lesson)
+    private readonly lessonRepository: Repository<Lesson>,
   ) {}
 
   async submitAnswer(userId: number, assignmentId: number, content: string) {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) {
+    const user = await this.userRepository.findOne({ where: { id: userId }, relations: ['student'] });
+    if (!user || !user.student) {
       throw new ForbiddenException('Faqat talabalargina topshiriqlarni yuborishi mumkin.');
     }
 
-    const studentGroups = await this.groupRepository.find({ where: { students: { id: userId } } });
-    const assignment = await this.assignmentRepository.findOne({ where: { id: assignmentId } });
-
+    const assignment = await this.assignmentRepository.findOne({
+      where: { id: assignmentId },
+      relations: ['lesson'],
+    });
     if (!assignment) {
       throw new NotFoundException('Topshiriq topilmadi.');
     }
 
-    const groupMatch = studentGroups.some(group => group.id === assignment.lesson.group.id);
+    const lesson = await this.lessonRepository.findOne({
+      where: { id: assignment.lesson.id },
+      relations: ['group'],
+    });
+    if (!lesson) {
+      throw new NotFoundException('Dars topilmadi.');
+    }
+
+    const group = lesson.group;
+    const studentGroups = await this.groupRepository.find({
+      where: { students: { id: userId } },
+    });
+
+    const groupMatch = studentGroups.some(studentGroup => studentGroup.id === group.id);
     if (!groupMatch) {
       throw new ForbiddenException('Faqat o\'zingizning guruhingiz uchun topshiriqlarni yuborishingiz mumkin.');
     }
@@ -57,14 +74,23 @@ export class SubmissionService {
 
     const submission = await this.submissionRepository.findOne({
       where: { id: submissionId },
-      relations: ['assignment', 'assignment.lesson', 'assignment.lesson.group'],
+      relations: ['assignment', 'assignment.lesson'],
     });
     if (!submission) {
       throw new NotFoundException('Topshiriq javobi topilmadi.');
     }
 
+    const lesson = submission.assignment.lesson;
+    const group = await this.groupRepository.findOne({
+      where: { id: lesson.group.id },
+      relations: ['teacher'],
+    });
+    if (!group) {
+      throw new NotFoundException('Guruh topilmadi.');
+    }
+
     const teacherGroups = await this.groupRepository.find({ where: { teacher: { id: teacher.teacher.id } } });
-    const groupMatch = teacherGroups.some(group => group.id === submission.assignment.lesson.group.id);
+    const groupMatch = teacherGroups.some(teacherGroup => teacherGroup.id === group.id);
     if (!groupMatch) {
       throw new ForbiddenException('Faqat o\'zingizning guruhingiz uchun topshiriqlarni baholashingiz mumkin.');
     }
