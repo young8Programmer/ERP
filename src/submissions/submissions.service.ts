@@ -23,22 +23,20 @@ export class SubmissionService {
   ) {}
 
   async submitAnswer(userId: number, assignmentId: number, content: string) {
-    const user = await this.userRepository.findOne({ where: { id: userId }, relations: ['student'] });
-    if (!user || !user.student) {
+    const user = await this.userRepository.findOne({ where: { id: userId }});
+    if (!user) {
       throw new ForbiddenException('Faqat talabalargina topshiriqlarni yuborishi mumkin.');
     }
 
     const assignment = await this.assignmentRepository.findOne({
-      where: { id: assignmentId },
-      relations: ['lesson'],
+      where: { id: assignmentId }
     });
     if (!assignment) {
       throw new NotFoundException('Topshiriq topilmadi.');
     }
 
     const lesson = await this.lessonRepository.findOne({
-      where: { id: assignment.lesson.id },
-      relations: ['group'],
+      where: { id: assignment.lesson.id }
     });
     if (!lesson) {
       throw new NotFoundException('Dars topilmadi.');
