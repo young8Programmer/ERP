@@ -42,7 +42,6 @@ export class SubmissionController {
     );
   }
 
-  // O'qituvchi tomonidan submission baholash
   @UseGuards(AuthGuard, RolesTeacherGuard)
   @Roles("teacher")
   @Patch(':submissionId/grade')
@@ -63,20 +62,17 @@ export class SubmissionController {
     );
   }
 
-
-  // Talabalarning kunlik baholarini ko'rish
   @UseGuards(AuthGuard)
   @Get('daily-grades')
   async getDailyGrades(@Req() req) {
-    const userId = req.user.id; // O'qituvchi yoki adminni tekshirish uchun
+    const userId = req.user.id;
     return this.submissionsService.getDailyGrades(userId);
   }
 
-  // Talabalarning jami ballarini kamayish tartibida ko'rish
   @UseGuards(AuthGuard)
   @Get('total-scores')
   async getTotalScores(@Req() req) {
-    const userId = req.user.id; // O'qituvchi yoki adminni tekshirish uchun
+    const userId = req.user.id
     return this.submissionsService.getTotalScores(userId);
   }
 }

@@ -13,15 +13,12 @@ export class SubmissionService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  // Talabaning topshiriq javobini yuborishi
-async submitAnswer(userId: number, content: string) {
+  async submitAnswer(userId: number, content: string) {
   const user = await this.userRepository.findOne({ where: { id: userId } });
   
   if (!user?.studentId) {
     throw new ForbiddenException('Faqat talabalargina topshiriqlarni yuborishi mumkin.');
   }
-
-  // Talabaning shu topshiriqqa avvalgi javobini tekshirish
   const existingSubmission = await this.submissionRepository.findOne({ where: { content } });
 
   if (existingSubmission) {
@@ -39,7 +36,6 @@ async submitAnswer(userId: number, content: string) {
   return { message: 'Topshiriq muvaffaqiyatli saqlandi.', submissionId: submission.id };
 }
 
-  // O'qituvchi topshiriqni baholashi
   async gradeSubmission(userId: number, submissionId: number, grade: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user?.teacherId) {
@@ -51,7 +47,6 @@ async submitAnswer(userId: number, content: string) {
       throw new NotFoundException('Topshiriq javobi topilmadi.');
     }
 
-    // Baholash jarayoni
     submission.grade = grade;
     submission.status = true;
     await this.submissionRepository.save(submission);
@@ -59,7 +54,6 @@ async submitAnswer(userId: number, content: string) {
     return { message: 'Topshiriq muvaffaqiyatli baholandi.', grade: submission.grade };
   }
 
-  // Kundalik baholarni olish
   async getDailyGrades(userId: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user?.teacherId) {
@@ -75,11 +69,10 @@ async submitAnswer(userId: number, content: string) {
       .getRawMany();
   }
 
-  // Umumiy baholarni olish
   async getTotalScores(userId: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user?.teacherId) {
-      throw new ForbiddenException('Faqat o\'qituvchilargina umumiy baholarni ko\'rishi mumkin.');
+      throw new ForbiddenException("Faqat o'qituvchilargina umumiy baholarni ko'rishi mumkin");
     }
 
     return this.submissionRepository
