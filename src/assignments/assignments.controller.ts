@@ -1,18 +1,19 @@
 import {
-  Body,
   Controller,
-  Delete,
   Get,
-  NotFoundException,
-  Param,
   Post,
   Put,
+  Delete,
+  Body,
+  Param,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { AssignmentsService } from './assignments.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { Roles } from 'src/auth/roles.guard';
 import { RolesTeacherGuard } from 'src/auth/rolesTeacherGuard';
+import { CreateAssignmentDto } from './dto/create-assignment.dto'; // Import qilish
 
 @Controller('assignments')
 export class AssignmentsController {
@@ -20,102 +21,49 @@ export class AssignmentsController {
 
   @UseGuards(AuthGuard, RolesTeacherGuard)
   @Roles('teacher')
-  @Get()
-  async findAll() {
-    try {
-      const assignments = await this.assignmentsService.findAll();
-      return {
-        message: 'Barcha topshiriqlar muvaffaqiyatli olingan.',
-        assignments,
-      };
-    } catch (error) {
-      throw new Error('Barcha topshiriqlarni olishda xatolik yuz berdi');
-    }
-  }
-
-  @UseGuards(AuthGuard, RolesTeacherGuard)
-  @Roles('teacher')
-  @Get(':assignment_id')
-  async getAssignment(@Param('assignment_id') assignmentId: string) {
-    try {
-      const assignment =
-        await this.assignmentsService.getAssignmentById(+assignmentId);
-      if (!assignment) {
-        throw new NotFoundException('Topshiriq topilmadi');
-      }
-      return { message: 'Topshiriq muvaffaqiyatli topildi.', assignment };
-    } catch (error) {
-      throw new NotFoundException('Topshiriq topilmadi');
-    }
-  }
-
-  @UseGuards(AuthGuard, RolesTeacherGuard)
-  @Roles('teacher')
   @Post()
-  async create(
-    @Body()
-    assignmentData: {
-      group_id: number;
-      lesson_id: number;
-      assignment: string;
-    },
-  ) {
-    try {
-      const createdAssignment =
-        await this.assignmentsService.create(assignmentData);
-      return {
-        message: 'Topshiriq muvaffaqiyatli yaratildi.',
-        assignment: createdAssignment,
-      };
-    } catch (error) {
-      throw new Error('Topshiriqni yaratishda xatolik yuz berdi');
-    }
+  async create(@Req() req, @Body() createAssignmentDto: CreateAssignmentDto) {
+    const teacherId = req.user.id;
+    return this.assignmentsService.createAssignment(
+      teacherId,
+      createAssignmentDto,
+    );
   }
 
+  // Topshiriqni yangilash
   @UseGuards(AuthGuard, RolesTeacherGuard)
   @Roles('teacher')
-  @Put(':assignment_id')
+  @Put(':id')
   async updateAssignment(
-    @Param('assignment_id') assignmentId: string,
+    @Req() req,
+    @Param('id') id: string,
     @Body() updateData: { assignment?: string; status?: string },
   ) {
-    try {
-      const updatedAssignment = await this.assignmentsService.updateAssignment(
-        +assignmentId,
-        updateData,
-      );
-      if (!updatedAssignment) {
-        throw new NotFoundException('Topshiriq topilmadi');
-      }
-      return {
-        message: 'Topshiriq muvaffaqiyatli yangilandi.',
-        assignment: updatedAssignment,
-      };
-    } catch (error) {
-      throw new NotFoundException('Topshiriqni yangilashda xatolik yuz berdi');
-    }
+    const teacherId = req.user.id;
+    return this.assignmentsService.updateAssignment(teacherId, +id, updateData);
   }
 
   @UseGuards(AuthGuard, RolesTeacherGuard)
   @Roles('teacher')
   @Delete(':id')
-  async remove(@Param('id') id: string) {
-    try {
-      const assignmentId = Number(id); // Convert string id to number
-      const result = await this.assignmentsService.remove(assignmentId);
+  async remove(@Req() req, @Param('id') id: string) {
+    const teacherId = req.user.id;
+    return this.assignmentsService.remove(teacherId, +id);
+  }
 
-      if (!result) {
-        throw new NotFoundException(`Topshiriq topilmadi (ID: ${id})`);
-      }
+  @UseGuards(AuthGuard)
+  @Get('lesson/:lessonId')
+  async findAssignmentsForUser(
+    @Req() req,
+    @Param('lessonId') lessonId: string,
+  ) {
+    const userId = req.user.id;
+    const role = req.user.role;
 
-      return {
-        message: `Topshiriq muvaffaqiyatli o'chirildi (ID: ${id}).`,
-        ...result,
-      };
-    } catch (error) {
-      console.error('Xato:', error.message); // Xatolik haqida batafsil log
-      throw new Error("Topshiriqni o'chirishda xatolik yuz berdi");
-    }
+    return this.assignmentsService.findAssignmentsForUser(
+      +lessonId,
+      userId,
+      role,
+    );
   }
 }
-

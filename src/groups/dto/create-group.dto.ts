@@ -1,15 +1,18 @@
-import { IsString, IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
+import { IsString, IsNumber, IsArray, IsOptional } from 'class-validator';
 
 export class CreateGroupDto {
   @IsString()
-  @IsNotEmpty()
   name: string;
 
-  @IsString()
-  @IsOptional()
-  description?: string;
-
   @IsNumber()
-  @IsNotEmpty()
-  teacherId: number; // Teacher ID raqam ko‘rinishida bo‘ladi
+  courseId: number; // Bitta kurs ID
+
+  @IsOptional()
+  @IsNumber()
+  teacherId?: number; // Bitta o'qituvchi ID
+
+  @IsOptional()
+  @IsArray()
+  @IsNumber({}, { each: true })
+  students?: number[]; // Array of student IDs
 }

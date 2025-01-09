@@ -1,5 +1,8 @@
 import { Profile } from 'src/profile/entities/profile.entity';
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, CreateDateColumn, UpdateDateColumn, JoinColumn } from 'typeorm';
+import { Student } from 'src/students/entities/user.entity';
+import { Submission } from 'src/submissions/entities/submission.entity';
+import { Teacher } from 'src/teacher/entities/teacher.entity';
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne, CreateDateColumn, UpdateDateColumn, JoinColumn, ManyToMany } from 'typeorm';
 
 enum Role {
   SUPER_ADMIN = 'superAdmin',
@@ -37,6 +40,20 @@ export class User {
   @OneToOne(() => Profile, (profile) => profile.user, { cascade: true, onDelete: 'CASCADE' })
   @JoinColumn() // Bog‘lanishni amalga oshiramiz
   profile: Profile;
+  
+  @Column({ nullable: true }) // Teacher bo'lmasa null bo'ladi
+  teacherId: number;
+
+  @Column({ nullable: true }) // Student bo'lmasa null bo'ladi
+  studentId: number;
+
+  @ManyToMany(() => Teacher, (teacher) => teacher.users)
+  @JoinColumn({ name: 'teacherId' })
+  teacher: Teacher;
+
+  @ManyToMany(() => Student, (student) => student.users)
+  @JoinColumn({ name: 'studentId' })
+  student: Student;
 }
 
 

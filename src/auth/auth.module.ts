@@ -10,12 +10,20 @@ import { TeachersModule } from 'src/teacher/teacher.module';
 import { Student } from 'src/students/entities/user.entity';
 import { Teacher } from 'src/teacher/entities/teacher.entity';
 import { Profile } from 'src/profile/entities/profile.entity';
+import { GroupsModule } from 'src/groups/group.module';
+import { Group } from 'src/groups/entities/group.entity';
+import { Course } from 'src/courses/entities/course.entity';
+import { UsersModule } from 'src/users/users.module';
+import { ProfilesModule } from 'src/profile/profile.module';
+import { CoursesModule } from 'src/courses/courses.module';
+import { TeachersService } from 'src/teacher/teacher.service';
+import { StudentsService } from 'src/students/student.service';
 
 dotenv.config();
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Student, Teacher, Profile]),
+    TypeOrmModule.forFeature([User, Student, Teacher, Profile, Group, Course]),
     JwtModule.register({
       global: true,
       secret: "juda_secret_key",
@@ -23,8 +31,12 @@ dotenv.config();
     }),
     StudentsModule,
     TeachersModule,
+    GroupsModule,
+    UsersModule,
+    ProfilesModule,
+    CoursesModule
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, TeachersService, StudentsService],
 })
 export class AuthModule {}

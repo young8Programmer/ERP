@@ -1,62 +1,260 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Group } from './entities/group.entity';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
+import { Course } from '../courses/entities/course.entity';
+import { Student } from '../students/entities/user.entity';
+import { Teacher } from '../teacher/entities/teacher.entity';
+import { User } from 'src/auth/entities/user.entity';
 
 @Injectable()
 export class GroupsService {
-  private groups = []; // Guruhlarni saqlash uchun vaqtinchalik massiv
+  constructor(
+    @InjectRepository(Group)
+    private readonly groupRepository: Repository<Group>,
+    @InjectRepository(Course)
+    private readonly courseRepository: Repository<Course>,
+    @InjectRepository(Student)
+    private readonly studentRepository: Repository<Student>,
+    @InjectRepository(Teacher)
+    private readonly teacherRepository: Repository<Teacher>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+  ) {}
 
-  // Faqat o'qituvchining guruhlarini olish
-  async findByTeacherId(teacherId: number) {
-    const teacherGroups = this.groups.filter(
-      (group) => group.teacherId === teacherId,
-    );
-    return teacherGroups;
-  }
+  async createGroup(createGroupDto: CreateGroupDto): Promise<Group> {
+    try {
+      const { name, courseId, teacherId, students } = createGroupDto;
 
-  // Bitta guruhni ID bo'yicha topish
-  async findOne(groupId: number) {
-    const group = this.groups.find((group) => group.id === groupId);
-    if (!group) {
-      throw new NotFoundException(`Guruh topilmadi (ID: ${groupId})`);
+      const course = await this.courseRepository.findOne({
+        where: { id: courseId },
+      });
+      if (!course) throw new BadRequestException('Course not found');
+
+      const teacher = teacherId
+        ? await this.teacherRepository.findOne({ where: { id: teacherId } })
+        : null;
+
+      if (teacherId && !teacher)
+        throw new BadRequestException('Teacher not found');
+
+      const studentEntities = students
+        ? await this.studentRepository.findByIds(students)
+        : [];
+
+      const group = this.groupRepository.create({
+        name,
+        course,
+        teacher,
+        students: studentEntities,
+      });
+
+      return this.groupRepository.save(group);
+    } catch (error) {
+      throw new BadRequestException(`Failed to create group: ${error.message}`);
     }
-    return group;
   }
 
-  // Yangi guruh yaratish
-  async create(createGroupDto: CreateGroupDto) {
-    const newGroup = {
-      id: this.groups.length + 1, // ID avtomatik oshiriladi
-      ...createGroupDto,
-    };
-    this.groups.push(newGroup);
-    return newGroup;
-  }
+  async addStudentToGroup(groupId: number, studentId: number): Promise<Group> {
+    try {
+      const group = await this.getGroupById(groupId);
 
-  // Guruhni yangilash
-  async update(groupId: number, updateGroupDto: UpdateGroupDto) {
-    const groupIndex = this.groups.findIndex((group) => group.id === groupId);
-    if (groupIndex === -1) {
-      throw new NotFoundException(`Guruh topilmadi (ID: ${groupId})`);
+      const student = await this.studentRepository.findOne({
+        where: { id: studentId },
+      });
+      if (!student) throw new NotFoundException('Student not found');
+
+      group.students.push(student);
+      return this.groupRepository.save(group);
+    } catch (error) {
+      throw new BadRequestException(
+        `Failed to add student to group: ${error.message}`,
+      );
     }
-
-    const updatedGroup = {
-      ...this.groups[groupIndex],
-      ...updateGroupDto,
-    };
-    this.groups[groupIndex] = updatedGroup;
-
-    return updatedGroup;
   }
 
-  // Guruhni o'chirish
-  async remove(groupId: number) {
-    const groupIndex = this.groups.findIndex((group) => group.id === groupId);
-    if (groupIndex === -1) {
-      throw new NotFoundException(`Guruh topilmadi (ID: ${groupId})`);
+  async getGroupById(id: number): Promise<Group> {
+    try {
+      const group = await this.groupRepository.findOne({
+        where: { id },
+        relations: ['course', 'teacher', 'students'],
+      });
+      if (!group) throw new NotFoundException('Group not found');
+      return group;
+    } catch (error) {
+      throw new BadRequestException(`Failed to fetch group: ${error.message}`);
     }
+  }
 
-    const removedGroup = this.groups.splice(groupIndex, 1);
-    return removedGroup;
+  async getGroupsByTeacherId(userId: number): Promise<any> {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+      });
+
+      let teacherId = user.teacherId;
+
+      return await this.groupRepository.find({
+        where: { teacher: { id: teacherId } },
+      });
+    } catch (error) {
+      throw new BadRequestException(
+        `Failed to fetch groups by teacher ID: ${error.message}`,
+      );
+    }
+  }
+
+  async getGroupsByStudentId(userId: number): Promise<Group[]> {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+      });
+
+      let studentId = user.studentId;
+      if (isNaN(studentId)) {
+        throw new BadRequestException('Student ID is not valid');
+      }
+
+      return await this.groupRepository.find({
+        where: { students: { id: studentId } },
+      });
+    } catch (error) {
+      throw new BadRequestException(
+        `Failed to fetch groups by student ID: ${error.message}`,
+      );
+    }
+  }
+
+  async getAllGroupsForAdmin(): Promise<Group[]> {
+    try {
+      return await this.groupRepository.find({
+        relations: ['course', 'teacher', 'students'],
+      });
+    } catch (error) {
+      throw new BadRequestException(
+        `Failed to fetch all groups for admin: ${error.message}`,
+      );
+    }
+  }
+
+  async getStudentsInGroup(groupId: number): Promise<any[]> {
+    try {
+      const group = await this.getGroupById(groupId);
+      return group.students.map((student) => ({
+        id: student.id,
+        firstName: student.firstName,
+        lastName: student.lastName,
+      }));
+    } catch (error) {
+      throw new BadRequestException(
+        `Failed to get students in group: ${error.message}`,
+      );
+    }
+  }
+
+  async updateGroup(
+    id: number,
+    updateGroupDto: UpdateGroupDto,
+  ): Promise<Group> {
+    try {
+      const group = await this.getGroupById(id);
+
+      if (updateGroupDto.name) group.name = updateGroupDto.name;
+
+      if (updateGroupDto.courseId) {
+        const course = await this.courseRepository.findOne({
+          where: { id: updateGroupDto.courseId },
+        });
+        if (!course) throw new BadRequestException('Course not found');
+        group.course = course;
+      }
+
+      if (updateGroupDto.teacherId) {
+        const teacher = await this.teacherRepository.findOne({
+          where: { id: updateGroupDto.teacherId },
+        });
+        if (!teacher) throw new BadRequestException('Teacher not found');
+        group.teacher = teacher;
+      }
+
+      if (updateGroupDto.students) {
+        const students = await this.studentRepository.findByIds(
+          updateGroupDto.students,
+        );
+        group.students = students;
+      }
+
+      return this.groupRepository.save(group);
+    } catch (error) {
+      throw new BadRequestException(`Failed to update group: ${error.message}`);
+    }
+  }
+
+  async deleteGroup(id: number): Promise<void> {
+    try {
+      const group = await this.getGroupById(id);
+      await this.groupRepository.remove(group);
+    } catch (error) {
+      throw new BadRequestException(`Failed to delete group: ${error.message}`);
+    }
+  }
+
+  async removeStudentFromGroup(
+    groupId: number,
+    studentId: number,
+  ): Promise<Group> {
+    try {
+      const group = await this.getGroupById(groupId);
+      group.students = group.students.filter(
+        (student) => student.id !== studentId,
+      );
+      return this.groupRepository.save(group);
+    } catch (error) {
+      throw new BadRequestException(
+        `Failed to remove student from group: ${error.message}`,
+      );
+    }
+  }
+
+  async getGroupsByCourseId(courseId: number): Promise<Group[]> {
+    try {
+      return await this.groupRepository.find({
+        where: { course: { id: courseId } },
+      });
+    } catch (error) {
+      throw new BadRequestException(
+        `Failed to fetch groups by course ID: ${error.message}`,
+      );
+    }
+  }
+
+  async getStudentsByGroupId(groupId: number): Promise<any[]> {
+    try {
+      const group = await this.groupRepository.findOne({
+        where: { id: groupId },
+        relations: ['students'],
+      });
+
+      if (!group) throw new NotFoundException('Group not found');
+
+      return group.students.map((student) => ({
+        id: student.id,
+        firstName: student.firstName,
+        lastName: student.lastName,
+        phone: student.phone,
+        address: student.address,
+        // Kerak bo'lsa, boshqa maydonlarni ham qo'shishingiz mumkin
+      }));
+    } catch (error) {
+      throw new BadRequestException(
+        `Failed to fetch students by group ID: ${error.message}`,
+      );
+    }
   }
 }

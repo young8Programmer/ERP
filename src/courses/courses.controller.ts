@@ -5,7 +5,6 @@ import { UpdateCourseDto } from './dto/update-course.dto';
 import { Course } from './entities/course.entity';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { Roles, RolesGuard } from 'src/auth/roles.guard';
-import { RolesUserGuard } from 'src/auth/rolesUserGuard';
 
 @Controller('courses')
 export class CoursesController {

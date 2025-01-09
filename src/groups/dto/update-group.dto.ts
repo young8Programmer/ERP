@@ -1,16 +1,20 @@
-
 import { IsOptional, IsString, IsNumber, IsArray } from 'class-validator';
 
 export class UpdateGroupDto {
-  @IsString()
   @IsOptional()
+  @IsString()
   name?: string;
 
-  @IsString()
   @IsOptional()
-  description?: string;
-
   @IsNumber()
+  courseId?: number; // Bitta kurs ID
+
   @IsOptional()
-  teacherId?: number; // Teacher ID yangilash ixtiyoriy
+  @IsNumber()
+  teacherId?: number; // Bitta o'qituvchi ID
+
+  @IsOptional()
+  @IsArray()
+  @IsNumber({}, { each: true })
+  students?: number[]; // Array of student IDs
 }

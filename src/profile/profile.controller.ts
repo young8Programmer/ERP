@@ -21,7 +21,7 @@ import { RolesStudentGuard } from 'src/auth/rolesStudentGuard';
 export class ProfilesController {
   constructor(private readonly profilesService: ProfilesService) {}
 
-  @UseGuards(AuthGuard, RolesGuard, RolesStudentGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin', 'student')
   @Post()
   async createProfile(
@@ -29,7 +29,7 @@ export class ProfilesController {
   ): Promise<Profile> {
     return this.profilesService.createProfile(createProfileDto);
   }
-
+  
   @UseGuards(AuthGuard)
   @Get()
   async getAllProfiles(): Promise<Profile[]> {

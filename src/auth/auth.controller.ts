@@ -24,12 +24,12 @@ export class AuthController {
 
   @Post('register/student')
   async registerStudent(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.register(createAuthDto);
+    return this.authService.registerStudent(createAuthDto); // studentId optional bo'lsa, faqat kiriting
   }
 
   @Post('register/teacher')
   async registerTeacher(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.registerTeacher(createAuthDto);
+    return this.authService.registerTeacher(createAuthDto); // teacherId optional bo'lsa, faqat kiriting
   }
 
   @Post('login')
@@ -44,7 +44,7 @@ export class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 30 * 24 * 60 * 60 * 1000,
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 kun
     });
 
     return res.status(200).json({ accessToken, user });
@@ -62,9 +62,9 @@ export class AuthController {
 
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 30 * 24 * 60 * 60 * 1000,
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 kun
     });
 
     return res.status(200).json({ accessToken });

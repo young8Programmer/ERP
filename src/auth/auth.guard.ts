@@ -17,24 +17,35 @@ export class AuthGuard implements CanActivate {
     const authHeader = request.headers.authorization;
 
     if (!authHeader) {
-      throw new UnauthorizedException('Token is missing');
+      throw new UnauthorizedException('Token mavjud emas');
     }
 
     const [type, token] = authHeader.split(' ');
+
     if (type !== 'Bearer' || !token) {
-      throw new UnauthorizedException('Token format is invalid');
+      throw new UnauthorizedException('Token formati noto‘g‘ri');
     }
 
     try {
       const payload = this.jwtService.verify(token, {
         secret: process.env.JWT_SECRET,
       });
-      request.user = payload;
+      request.user = payload
+      request.teacher = payload
+      
       return true;
     } catch (error) {
-      console.error('JWT verification error:', error);
-      throw new UnauthorizedException('Token is invalid or expired');
+      console.error('JWT tekshirish xatosi:', error);
+
+      if (error.name === 'TokenExpiredError') {
+        throw new UnauthorizedException('Token muddati tugagan');
+      }
+
+      if (error.name === 'JsonWebTokenError') {
+        throw new UnauthorizedException('Token noto‘g‘ri');
+      }
+
+      throw new UnauthorizedException('Autentifikatsiya muvaffaqiyatsiz tugadi');
     }
   }
 }
-

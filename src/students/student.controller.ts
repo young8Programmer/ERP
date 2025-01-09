@@ -1,4 +1,3 @@
-// Students Controller (student.controller.ts)
 import {
   Controller,
   Get,

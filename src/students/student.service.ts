@@ -1,7 +1,6 @@
-// Students Service (student.service.ts)
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, ILike } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { Student } from './entities/user.entity';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';

@@ -1,20 +1,27 @@
 import {
   IsString,
+  IsInt,
   IsNotEmpty,
+  IsDate,
   IsOptional,
-  IsInt, // Raqam kutilmoqda
+  IsDateString,
 } from 'class-validator';
 
 export class CreateLessonDto {
   @IsString()
   @IsNotEmpty()
-  title: string; // Darslikning sarlavhasi
+  title: string;
 
-  @IsString()
+  @IsNotEmpty()
+  @IsDate()
   @IsOptional()
-  content?: string; // Darslikning mazmuni
+  dueDate: Date;
 
-  // groupId integer (raqam) bo'lishi kerak
-  @IsInt() // Raqam kutilmoqda
-  groupId: number; // Guruh ID raqam bo'lishi kerak
+  @IsInt()
+  @IsNotEmpty()
+  groupId: number;
+
+  @IsOptional() // Bu optional bo'ladi
+  @IsDateString()
+  endDate?: string;
 }
