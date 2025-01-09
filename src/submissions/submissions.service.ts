@@ -34,7 +34,7 @@ export class SubmissionService {
       where: { id: userId }
     });
 
-    if (!student || !student.student) {
+    if (!student) {
       throw new ForbiddenException('Student not found');
     }
 
@@ -43,7 +43,7 @@ export class SubmissionService {
       where: { students: { id: userId } },
     });
 
-    if (!studentGroups || studentGroups.length === 0) {
+    if (!studentGroups) {
       throw new ForbiddenException('Talaba guruhiga kiritilmagan yoki guruhlar mavjud emas');
     }
 
