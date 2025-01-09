@@ -20,13 +20,13 @@ export class SubmissionService {
   ) {}
 
   async submitAnswer(userId: number, assignmentId: number, content: string) {
-    const user = await this.userRepository.findOne({ where: { id: userId }, relations: ['student'] });
-    if (!user || !user.student) {
+    const user = await this.userRepository.findOne({ where: { id: userId }});
+    if (!user) {
       throw new ForbiddenException('Only students can submit assignments');
     }
 
     const studentGroups = await this.groupRepository.find({ where: { students: { id: userId } } });
-    const assignment = await this.assignmentRepository.findOne({ where: { id: assignmentId }, relations: ['lesson', 'lesson.group'] });
+    const assignment = await this.assignmentRepository.findOne({ where: { id: assignmentId }});
 
     if (!assignment) {
       throw new NotFoundException('Assignment not found');
