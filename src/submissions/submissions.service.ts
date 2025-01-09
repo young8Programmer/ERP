@@ -25,33 +25,33 @@ export class SubmissionService {
       where: { id: userId },
       relations: ['student', 'student.groups'], // Groups ni yuklash
     });
-  
+
     // Agar foydalanuvchi mavjud emas bo'lsa yoki talaba emas bo'lsa
     if (!user || !user.student || !user.student.groups || user.student.groups.length === 0) {
       throw new ForbiddenException('Faqat talabalar topshiriq yuborishi mumkin');
     }
-  
+
     // Assignment ni topish
     const assignment = await this.assignmentRepository.findOne({
       where: { id: assignmentId },
       relations: ['lesson', 'lesson.group'],  // Group va lesson ni yuklash
     });
-  
+
     // Agar assignment mavjud emas bo'lsa yoki lesson yoki group bo'lmasa
     if (!assignment || !assignment.lesson || !assignment.lesson.group) {
       throw new NotFoundException(`Assignment with ID ${assignmentId} not found`);
     }
-  
+
     // Talabaning guruhlari mavjudligini tekshirish
     const studentGroupIds = user.student.groups.map((group) => group.id);
-  
+
     // Agar student guruhlari bo'lmasa yoki guruh assignment guruhiga to'g'ri kelmasa
     if (!studentGroupIds.includes(assignment.lesson.group.id)) {
       throw new ForbiddenException(
         'Faqat o‘zingizning guruhingizdagi topshiriqlarga javob bera olasiz',
       );
     }
-  
+
     // Yangi submission yaratish
     const submission = this.submissionRepository.create({
       content,
@@ -60,17 +60,15 @@ export class SubmissionService {
       grade: 0,
       status: false,
     });
-  
+
     // Submission ni saqlash
     await this.submissionRepository.save(submission);
-  
+
     return {
       message: 'Submission successfully saved',
       submissionId: submission.id,
     };
   }
-  
-  
 
   async gradeSubmission(userId: number, submissionId: number, grade: number) {
     const user = await this.userRepository.findOne({
@@ -84,23 +82,24 @@ export class SubmissionService {
 
     const submission = await this.submissionRepository.findOne({
       where: { id: submissionId },
-      relations: ['assignment', 'assignment.group'],
+      relations: ['assignment', 'assignment.lesson', 'assignment.lesson.group'], // Additional relations
     });
 
     if (!submission) {
       throw new NotFoundException(`Submission with ID ${submissionId} not found`);
     }
 
+    // O'qituvchining guruhlari ro'yxatini olish
     const teacherGroupIds = user.teacher.groups.map((group) => group.id);
 
-if (!teacherGroupIds.includes(submission.assignment.lesson.group.id)) {
-  throw new ForbiddenException(
-    'Faqat o‘z guruhingizdagi topshiriqlarga baho qo‘ya olasiz',
-  );
-}
+    // Agar o'qituvchi guruhidagi assignment bilan mos kelmasa
+    if (!teacherGroupIds.includes(submission.assignment.lesson.group.id)) {
+      throw new ForbiddenException(
+        'Faqat o‘z guruhingizdagi topshiriqlarga baho qo‘ya olasiz',
+      );
+    }
 
-
-
+    // Baho va statusni yangilash
     submission.grade = grade;
     submission.status = true;
 
