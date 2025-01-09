@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Submission } from './entities/submission.entity';
@@ -14,22 +14,30 @@ export class SubmissionService {
   ) {}
 
   // Talabaning topshiriq javobini yuborishi
-  async submitAnswer(userId: number, content: string) {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user?.studentId) {
-      throw new ForbiddenException('Faqat talabalargina topshiriqlarni yuborishi mumkin.');
-    }
-
-    const submission = this.submissionRepository.create({
-      content,
-      grade: 0,
-      status: false,
-    });
-
-    await this.submissionRepository.save(submission);
-
-    return { message: 'Topshiriq muvaffaqiyatli saqlandi.', submissionId: submission.id };
+async submitAnswer(userId: number, content: string) {
+  const user = await this.userRepository.findOne({ where: { id: userId } });
+  
+  if (!user?.studentId) {
+    throw new ForbiddenException('Faqat talabalargina topshiriqlarni yuborishi mumkin.');
   }
+
+  // Talabaning shu topshiriqqa avvalgi javobini tekshirish
+  const existingSubmission = await this.submissionRepository.findOne({ where: { content } });
+
+  if (existingSubmission) {
+    throw new ConflictException('Siz bu topshiriqni allaqachon yuborgansiz.');
+  }
+
+  const submission = this.submissionRepository.create({
+    content,
+    grade: 0,
+    status: false,
+  });
+
+  await this.submissionRepository.save(submission);
+
+  return { message: 'Topshiriq muvaffaqiyatli saqlandi.', submissionId: submission.id };
+}
 
   // O'qituvchi topshiriqni baholashi
   async gradeSubmission(userId: number, submissionId: number, grade: number) {
