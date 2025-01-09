@@ -23,11 +23,11 @@ export class SubmissionService {
     // Userni id bo'yicha topish
     const user = await this.userRepository.findOne({
       where: { id: userId },
-      relations: ['student', 'student.groups'],  // Groups ni yuklash
+      relations: ['student', 'student.groups'], // Groups ni yuklash
     });
   
     // Agar foydalanuvchi mavjud emas bo'lsa yoki talaba emas bo'lsa
-    if (!user || !user.studentId) {
+    if (!user || !user.student || !user.student.groups) {
       throw new ForbiddenException('Faqat talabalar topshiriq yuborishi mumkin');
     }
   
@@ -37,13 +37,13 @@ export class SubmissionService {
       relations: ['lesson', 'lesson.group'],  // Group va lesson ni yuklash
     });
   
-    // Agar assignment mavjud emas bo'lsa
-    if (!assignment) {
+    // Agar assignment mavjud emas bo'lsa yoki lesson yoki group bo'lmasa
+    if (!assignment || !assignment.lesson || !assignment.lesson.group) {
       throw new NotFoundException(`Assignment with ID ${assignmentId} not found`);
     }
   
     // Talabaning guruhlari mavjudligini tekshirish
-    const studentGroupIds = user.student.groups ? user.student.groups.map((group) => group.id) : [];
+    const studentGroupIds = user.student.groups.map((group) => group.id);
   
     // Agar student guruhlari bo'lmasa yoki guruh assignment guruhiga to'g'ri kelmasa
     if (!studentGroupIds.includes(assignment.lesson.group.id)) {
