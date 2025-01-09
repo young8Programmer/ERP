@@ -9,7 +9,6 @@ import { CreateAssignmentDto } from './dto/create-assignment.dto';  // Import qi
 export class AssignmentsController {
   constructor(private readonly assignmentsService: AssignmentsService) {}
 
-  // Topshiriq yaratish
   @UseGuards(AuthGuard, RolesTeacherGuard)
   @Roles('teacher')
   @Post()
@@ -23,26 +22,25 @@ export class AssignmentsController {
   @Roles('teacher')
   @Put(':id')
   async updateAssignment(@Req() req, @Param('id') id: string, @Body() updateData: { assignment?: string; status?: string }) {
-    const teacherId = req.user.id; // Token orqali olingan ID
+    const teacherId = req.user.id; 
     return this.assignmentsService.updateAssignment(teacherId, +id, updateData);
   }
 
-  // Topshiriqni o'chirish
   @UseGuards(AuthGuard, RolesTeacherGuard)
   @Roles('teacher')
   @Delete(':id')
   async remove(@Req() req, @Param('id') id: string) {
-    const teacherId = req.user.id; // Token orqali olingan ID
+    const teacherId = req.user.id;
     return this.assignmentsService.remove(teacherId, +id);
   }
 
   @UseGuards(AuthGuard)
   @Get('lesson/:lessonId')
   async findAssignmentsForUser(@Req() req, @Param('lessonId') lessonId: string) {
-  const userId = req.user.id; // Token orqali user ID
-  const role = req.user.role; // `teacher` yoki `student` roli
+  const userId = req.user.id; 
+  const role = req.user.role; 
 
   return this.assignmentsService.findAssignmentsForUser(+lessonId, userId, role);
-}
+  }
 
 }

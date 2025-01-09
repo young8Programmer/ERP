@@ -1,4 +1,4 @@
-import { IsString, IsInt, IsNotEmpty } from 'class-validator';
+import { IsString, IsInt, IsNotEmpty, IsDateString } from 'class-validator';
 
 export class CreateAssignmentDto {
   @IsInt()
@@ -12,4 +12,8 @@ export class CreateAssignmentDto {
   @IsString()
   @IsNotEmpty()
   assignment: string;
+
+  @IsDateString()
+  @IsNotEmpty()
+  dueDate: string;
 }

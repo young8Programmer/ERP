@@ -1,5 +1,6 @@
 import { Profile } from 'src/profile/entities/profile.entity';
 import { Student } from 'src/students/entities/user.entity';
+import { Submission } from 'src/submissions/entities/submission.entity';
 import { Teacher } from 'src/teacher/entities/teacher.entity';
 import { Entity, PrimaryGeneratedColumn, Column, OneToOne, CreateDateColumn, UpdateDateColumn, JoinColumn, ManyToMany } from 'typeorm';
 

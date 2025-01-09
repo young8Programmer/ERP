@@ -15,13 +15,17 @@ export class Assignment {
   @Column()
   assignment: string;
 
+  @Column({ type: 'timestamp', nullable: false })
+  dueDate: Date; // Dedline ustuni
+
   @UpdateDateColumn({ type: 'timestamp', nullable: true })
-  dueDate: Date;
+  updatedAt: Date;
 
   @ManyToOne(() => Lesson, (lesson) => lesson.assignments, {
     onDelete: 'CASCADE',
   })
   lesson: Lesson;
+
   submissions: any;
   status: string;
 }

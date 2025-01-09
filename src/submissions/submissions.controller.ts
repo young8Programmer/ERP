@@ -1,24 +1,63 @@
-import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
-import { SubmissionsService } from './submissions.service';
+import {
+  Controller,
+  Post,
+  Patch,
+  Get,
+  Param,
+  Body,
+  Req,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
+import { SubmissionService } from './submissions.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
-import { Roles } from 'src/auth/roles.guard';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { RolesStudentGuard } from 'src/auth/rolesStudentGuard';
+import { GradeSubmissionDto } from './dto/GradeSubmissionDto';
 
 @Controller('submissions')
-export class SubmissionsController {
-  constructor(private readonly submissionsService: SubmissionsService) {}
+export class SubmissionController {
+  constructor(private readonly submissionsService: SubmissionService) {}
 
-  @UseGuards(AuthGuard, RolesStudentGuard)
-  @Roles('student')
-  @Post('submit')
-  async submitAssignment(@Body() createSubmissionDto: CreateSubmissionDto) {
-    try {
-      const submission =
-        await this.submissionsService.submitAssignment(createSubmissionDto);
-      return { message: 'Topshiriq muvaffaqiyatli topshirildi.', submission };
-    } catch (error) {
-      throw new Error('Topshiriqni topshirishda xatolik yuz berdi');
-    }
+  // Student tomonidan topshiriqqa javob yuborish
+  @Post(':assignmentId/submit')
+  async submitAnswer(
+    @Req() req,
+    @Param('assignmentId') assignmentId: number,
+    @Body() createSubmissionDto: CreateSubmissionDto,
+  ) {
+    const userId = req.user.id; // Token orqali foydalanuvchi ID olinadi
+    return this.submissionsService.submitAnswer(
+      userId,
+      assignmentId,
+      createSubmissionDto.content,
+    );
+  }
+
+  // O'qituvchi tomonidan submission baholash
+  @Patch(':submissionId/grade')
+  async gradeSubmission(
+    @Req() req,
+    @Param('submissionId') submissionId: number,
+    @Body() gradeSubmissionDto: GradeSubmissionDto,
+  ) {
+    const userId = req.user.id; // Token orqali foydalanuvchi ID olinadi
+    return this.submissionsService.gradeSubmission(
+      userId,
+      submissionId,
+      gradeSubmissionDto.grade,
+    );
+  }
+
+  // Talabalarning kunlik baholarini ko'rish
+  @Get('daily-grades')
+  async getDailyGrades(@Req() req) {
+    const userId = req.user.id; // O'qituvchi yoki adminni tekshirish uchun
+    return this.submissionsService.getDailyGrades(userId);
+  }
+
+  // Talabalarning jami ballarini kamayish tartibida ko'rish
+  @Get('total-scores')
+  async getTotalScores(@Req() req) {
+    const userId = req.user.id; // O'qituvchi yoki adminni tekshirish uchun
+    return this.submissionsService.getTotalScores(userId);
   }
 }
