@@ -24,69 +24,70 @@ export class SubmissionService {
     const user = await this.userRepository.findOne({
       where: { id: userId },
     });
-
+  
     if (!user) {
       throw new ForbiddenException('User not found');
     }
-
+  
     // Studentni tekshirish
     const student = await this.userRepository.findOne({
-      where: { id: userId }
+      where: { id: userId },
     });
-
+  
     if (!student) {
       throw new ForbiddenException('Student not found');
     }
-
+  
     // Talaba guruhlarini tekshirish
     const studentGroups = await this.groupRepository.find({
       where: { students: { id: userId } },
     });
-
-    if (!studentGroups) {
+  
+    if (!studentGroups || studentGroups.length === 0) {
       throw new ForbiddenException('Talaba guruhiga kiritilmagan yoki guruhlar mavjud emas');
     }
-
+  
     // Assignmentni topish
     const assignment = await this.assignmentRepository.findOne({
       where: { id: assignmentId },
     });
-
+  
     if (!assignment) {
       throw new NotFoundException('Topshiriq topilmadi');
     }
-
-    // Lessonni olib kelish
-    const lesson = await this.assignmentRepository.findOne({
-      where: { id: assignmentId }
+  
+    // Courseni olish (Assignmentga asoslanadi)
+    const course = await this.assignmentRepository.findOne({
+      where: { id: assignment.id },
+      relations: ['course'],  // Fetch the course related to the assignment
     });
-
-    if (!lesson) {
-      throw new NotFoundException('Lesson topilmadi');
+  
+    if (!course) {
+      throw new NotFoundException('Course not found');
     }
-
-    // Groupni olib kelish
+  
+    // Groupni olish (Coursega asoslanadi)
     const group = await this.groupRepository.findOne({
-      where: { id: lesson.lesson.group.id }, // lesson.groupId orqali guruhni olib kelish
+      where: { id: course.lesson.group.id },  // Fetch the group based on course
     });
-
+  
     if (!group) {
       throw new NotFoundException('Guruh topilmadi');
     }
-
+  
     // Guruhni tekshirish
     let groupMatch = false;
-    for (const group of studentGroups) {
-      if (group.id === group.id) {
+    for (const studentGroup of studentGroups) {
+      if (studentGroup.id === group.id) {
         groupMatch = true;
         break;
       }
     }
-
+  
     if (!groupMatch) {
       throw new ForbiddenException('Faqat o‘zingizning guruhingizdagi topshiriqlarga javob bera olasiz');
     }
-
+  
     // Submission yaratish va saqlash
     const submission = this.submissionRepository.create({
       content,
@@ -95,12 +96,12 @@ export class SubmissionService {
       grade: 0,
       status: false,
     });
-
+  
     await this.submissionRepository.save(submission);
-
+  
     return { message: 'Submission successfully saved', submissionId: submission.id };
   }
-
+  
   async gradeSubmission(userId: number, submissionId: number, grade: number) {
     // Userni topish
     const user = await this.userRepository.findOne({
