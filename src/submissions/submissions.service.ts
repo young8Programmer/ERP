@@ -36,20 +36,24 @@ export class SubmissionService {
       throw new NotFoundException(`Assignment with ID ${assignmentId} not found`);
     }
 
-        // Studentning guruhini tekshirish
-    let groupFound = false;
-    for (const group of user.student.groups) {
-      if (group.id === assignment.lesson.group.id) {
-        groupFound = true;
-        break;
-    }
+     // Studentning guruhini tekshirish
+const studentGroups = user.student.groups;
 
-    if (!groupFound) {
-      throw new ForbiddenException('Faqat o‘zingizning guruhingizdagi topshiriqlarga javob bera olasiz');
-    }
+if (!studentGroups || studentGroups.length === 0) {
+  throw new ForbiddenException('Talabalar guruhlari mavjud emas');
+}
+
+let groupMatch = false;
+for (let i = 0; i < studentGroups.length; i++) {
+  if (studentGroups[i].id === assignment.lesson.group.id) {
+    groupMatch = true;
+    break; // Guruhni topganimizdan so'ng, to'xtatish
   }
+}
 
-
+if (!groupMatch) {
+  throw new ForbiddenException('Faqat o‘zingizning guruhingizdagi topshiriqlarga javob bera olasiz');
+}
     
     // Submission yaratish va saqlash
     const submission = this.submissionRepository.create({
