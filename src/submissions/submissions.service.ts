@@ -32,7 +32,7 @@ export class SubmissionService {
       where: { id: assignmentId }
     });
 
-    if (!assignment || !assignment.lesson || !assignment.lesson.group) {
+    if (!assignment) {
       throw new NotFoundException(`Assignment with ID ${assignmentId} not found`);
     }
 
