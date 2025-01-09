@@ -31,8 +31,7 @@ export class SubmissionService {
 
     // Studentni tekshirish
     const student = await this.userRepository.findOne({
-      where: { id: userId },
-      relations: ['student'],
+      where: { id: userId }
     });
 
     if (!student || !student.student) {
@@ -59,8 +58,7 @@ export class SubmissionService {
 
     // Lessonni olib kelish
     const lesson = await this.assignmentRepository.findOne({
-      where: { id: assignmentId },
-      relations: ['lesson'],
+      where: { id: assignmentId }
     });
 
     if (!lesson) {
