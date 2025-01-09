@@ -16,41 +16,33 @@ export class LessonsService {
     private readonly userRepository: Repository<User>,
   ) {}
 
+  
+  // Guruhga tegishli darslarni olish
   async findLessonsByGroup(groupId: number, userId: number) {
-    const user = await this.userRepository.findOne({
-      where: { id: userId }
-    });
-  
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-  
+    // Foydalanuvchi malumotlarini olish
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('Foydalanuvchi topilmadi');
+
+    // Guruhni olish va tekshirish
     const group = await this.groupRepository.findOne({
-      where: { id: groupId }
+      where: { id: groupId },
+      relations: ['teacher', 'students'], // Guruhning o'qituvchisini va talabalari
     });
-  
-    if (!group) {
-      throw new NotFoundException('Group not found');
+
+    if (!group) throw new NotFoundException('Guruh topilmadi');
+
+    // Foydalanuvchi roli va guruhga tegishliligini tekshirish
+    const isTeacher = group.teacher.id === user.teacherId;
+    const isStudent = group.students.some(student => student.id === user.studentId); // studentId orqali tekshirish
+
+    if (!isTeacher && !isStudent) {
+      throw new ForbiddenException('Siz faqat o\'zingizning guruhingizdagi darslarni ko\'rishingiz mumkin');
     }
-  
-    // O'qituvchi bo'lsa, faqat o'ziga biriktirilgan guruhda darsliklarni ko'rishi mumkin
-    if (user.teacherId) {
-      if (group.teacher.id !== user.teacherId) {
-        throw new ForbiddenException('You can only view lessons from your own group');
-      }
-    }
-  
-    // Talaba bo'lsa, faqat o'zi biriktirilgan guruhda darsliklarni ko'rishi mumkin
-    if (user.studentId) {
-      const isStudentInGroup = group.students.some(student => student.id === user.studentId);
-      if (!isStudentInGroup) {
-        throw new ForbiddenException('You can only view lessons from your own group');
-      }
-    }
-  
-    return group.lessons;
+
+    return this.lessonRepository.find({
+      where: { group: { id: groupId } },
+    });
   }
-  
 
   async create(userId: number, lessonData: { title: string; groupId: number }) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
