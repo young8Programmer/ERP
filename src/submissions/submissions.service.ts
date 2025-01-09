@@ -22,8 +22,7 @@ export class SubmissionService {
   // Talaba faqat o'z guruhidagi topshiriqqa javob yuborishi mumkin
   async submitAnswer(userId: number, assignmentId: number, content: string) {
     const user = await this.userRepository.findOne({
-      where: { id: userId },
-      relations: ['group'],
+      where: { id: userId }
     });
 
     if (!user || !user.studentId) {
@@ -44,8 +43,7 @@ export class SubmissionService {
      throw new ForbiddenException(
        ' Faqat o‘z guruhingizning topshiriqlariga javob yuborishingiz mumkin',
     );
-}
-
+  }
 
     const submission = this.submissionRepository.create({
       content,
