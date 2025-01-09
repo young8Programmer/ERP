@@ -21,7 +21,7 @@ export class SubmissionService {
 
   async submitAnswer(userId: number, assignmentId: number, content: string) {
     // Userni topish
-    const user = await this.userRepository.findOne({ where: { id: userId }, relations: ['student', 'student.groups'] });
+    const user = await this.userRepository.findOne({ where: { id: userId }});
     
     if (!user || !user.student || !user.student.groups || user.student.groups.length === 0) {
       throw new ForbiddenException('Faqat talabalar topshiriq yuborishi mumkin');
@@ -29,20 +29,28 @@ export class SubmissionService {
 
     // Assignmentni topish
     const assignment = await this.assignmentRepository.findOne({
-      where: { id: assignmentId },
-      relations: ['lesson', 'lesson.group'],
+      where: { id: assignmentId }
     });
 
     if (!assignment || !assignment.lesson || !assignment.lesson.group) {
       throw new NotFoundException(`Assignment with ID ${assignmentId} not found`);
     }
 
-    // Studentning guruhini tekshirish
-    const studentGroupIds = user.student.groups.map(group => group.id);
-    if (!studentGroupIds.includes(assignment.lesson.group.id)) {
-      throw new ForbiddenException('Faqat o‘zingizning guruhingizdagi topshiriqlarga javob bera olasiz');
+        // Studentning guruhini tekshirish
+    let groupFound = false;
+    for (const group of user.student.groups) {
+      if (group.id === assignment.lesson.group.id) {
+        groupFound = true;
+        break;
     }
 
+    if (!groupFound) {
+      throw new ForbiddenException('Faqat o‘zingizning guruhingizdagi topshiriqlarga javob bera olasiz');
+    }
+  }
+
+
+    
     // Submission yaratish va saqlash
     const submission = this.submissionRepository.create({
       content,
