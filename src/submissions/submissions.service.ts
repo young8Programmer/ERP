@@ -31,8 +31,7 @@ export class SubmissionService {
     }
 
     const assignment = await this.assignmentRepository.findOne({
-      where: { id: assignmentId },
-      relations: ['group'],
+      where: { id: assignmentId }
     });
 
     if (!assignment) {
