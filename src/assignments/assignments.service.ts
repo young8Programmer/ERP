@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Assignment } from './entities/assignment.entity';
 import { Lesson } from 'src/lesson/entities/lesson.entity';
-import { UpdateAssignmentDto } from './dto/update-assignment.dto';
 
 @Injectable()
 export class AssignmentsService {
@@ -14,7 +13,7 @@ export class AssignmentsService {
     private readonly lessonRepository: Repository<Lesson>,
   ) {}
 
-  // All assignments
+  // Barcha topshiriqlar
   async findAll() {
     const assignments = await this.assignmentRepository.find({
       relations: ['lesson', 'lesson.group'],
@@ -27,7 +26,7 @@ export class AssignmentsService {
     }));
   }
 
-  // Get single assignment by ID
+  // Topshiriq ID bo'yicha olish
   async getAssignmentById(assignmentId: number) {
     const assignment = await this.assignmentRepository.findOne({
       where: { id: assignmentId },
@@ -47,7 +46,7 @@ export class AssignmentsService {
     };
   }
 
-  // Create assignment
+  // Topshiriq yaratish
   async create(assignmentData: {
     group_id: number;
     lesson_id: number;
@@ -70,7 +69,7 @@ export class AssignmentsService {
     return this.assignmentRepository.save(assignment);
   }
 
-  // Update assignment
+  // Topshiriqni yangilash
   async updateAssignment(
     assignmentId: number,
     updateData: { assignment?: string; status?: string },
@@ -95,32 +94,17 @@ export class AssignmentsService {
     return this.assignmentRepository.save(assignment);
   }
 
+  // Topshiriqni o'chirish
   async remove(id: number) {
-    try {
-      const assignment = await this.assignmentRepository.findOne({
-        where: { id },
-      });
+    const assignment = await this.assignmentRepository.findOne({
+      where: { id },
+    });
 
-      if (!assignment) {
-        throw new Error(`Topshiriq topilmadi (ID: ${id})`);
-      }
-
-      // Submission yozuvlarini tekshirib, o'chirish
-      const submissions = await this.lessonRepository.find({
-        where: { assignment: { id } },
-      });
-
-      if (submissions.length > 0) {
-        // Agar submission mavjud bo'lsa, ularni o'chirish
-        await this.lessonRepository.remove(submissions);
-      }
-
-      // Assignmentni o'chirish
-      await this.assignmentRepository.delete(id);
-      return { message: "Topshiriq muvaffaqiyatli o'chirildi." };
-    } catch (error) {
-      console.error('Xatolik:', error.message);
-      throw new Error("Topshiriqni o'chirishda xatolik yuz berdi");
+    if (!assignment) {
+      throw new NotFoundException(`Assignment with ID ${id} not found`);
     }
+
+    await this.assignmentRepository.remove(assignment);
+    return { message: 'Assignment successfully deleted' };
   }
 }

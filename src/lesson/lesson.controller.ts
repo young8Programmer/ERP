@@ -2,110 +2,143 @@ import {
   Controller,
   Get,
   Post,
-  Body,
   Put,
-  Param,
   Delete,
-  NotFoundException,
+  Param,
+  Body,
   UseGuards,
-  Req,
-  HttpException,
-  HttpStatus,
+  Request,
+  NotFoundException,
+  UnauthorizedException,
+  ParseIntPipe, // ParseIntPipe ni import qilish
 } from '@nestjs/common';
-import { LessonsService } from './lesson.service';
-import { UpdateLessonDto } from './dto/update-lesson.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { LessonsService } from './lesson.service';
+import { GroupsService } from 'src/groups/group.service'; // GroupsService ni import qilish
+import { CreateLessonDto } from './dto/create-lesson.dto';
+import { UpdateLessonDto } from './dto/update-lesson.dto';
 import { RolesTeacherGuard } from 'src/auth/rolesTeacherGuard';
 import { Roles } from 'src/auth/roles.guard';
 
 @Controller('lessons')
 export class LessonsController {
-  constructor(private readonly lessonsService: LessonsService) {}
+  constructor(
+    private readonly lessonsService: LessonsService,
+    private readonly groupsService: GroupsService, // GroupsService ni dependency sifatida olish
+  ) {}
 
+  // Guruhdagi darsliklarni ko'rish
   @UseGuards(AuthGuard, RolesTeacherGuard)
   @Roles('teacher')
-  @Get()
-  async findAll(@Req() req) {
-    const teacherId = req.user?.id;
-    if (!teacherId) {
-      throw new HttpException(
-        'Foydalanuvchi maʼlumotlari topilmadi',
-        HttpStatus.UNAUTHORIZED,
+  @Get(':groupId')
+  async getLessons(
+    @Param('groupId', ParseIntPipe) groupId: number, // groupId ni raqamga aylantirish
+    @Request() req,
+  ) {
+    const teacherId = req.user.id;
+    const group = await this.groupsService.findOne(groupId);
+
+    if (!group || group.teacherId !== teacherId) {
+      throw new UnauthorizedException(
+        'Siz bu guruhdagi darsliklarni ko‘rish huquqiga ega emassiz',
       );
     }
 
-    const lessons = await this.lessonsService.findAllByTeacher(teacherId);
-    return { message: 'Barcha darslar muvaffaqiyatli olingan.', lessons };
+    const lessons = await this.lessonsService.findByGroupId(groupId);
+    return {
+      message: 'Darsliklar muvaffaqiyatli olindi',
+      lessons,
+    };
   }
 
+  // Darslik yaratish
   @UseGuards(AuthGuard, RolesTeacherGuard)
   @Roles('teacher')
-  @Post()
-  async create(
-    @Body() lessonData: { title: string; groupId: number },
-    @Req() req,
+  @Post(':groupId')
+  async createLesson(
+    @Param('groupId', ParseIntPipe) groupId: number,
+    @Body() createLessonDto: CreateLessonDto,
+    @Request() req,
   ) {
-    const teacherId = req.user?.id;
-    if (!teacherId) {
-      throw new HttpException(
-        'Foydalanuvchi maʼlumotlari topilmadi',
-        HttpStatus.UNAUTHORIZED,
+    const teacherId = req.user.id; // O'quvchi ID sini olish
+    const group = await this.groupsService.findOne(groupId);
+
+    if (!group) {
+      throw new NotFoundException('Guruh topilmadi');
+    }
+
+    // Guruhni faqat o'quvchi boshqarishiga ruxsat berish
+    if (group.teacherId !== teacherId) {
+      throw new UnauthorizedException(
+        'Siz bu guruhda darslik yaratish huquqiga ega emassiz',
       );
     }
 
-    const createdLesson = await this.lessonsService.create(
-      lessonData,
-      teacherId,
-    );
+    const lesson = await this.lessonsService.create(groupId, createLessonDto);
     return {
-      message: 'Dars muvaffaqiyatli yaratildi.',
-      lesson: createdLesson,
+      message: 'Darslik muvaffaqiyatli yaratildi',
+      lesson,
     };
   }
 
   @UseGuards(AuthGuard, RolesTeacherGuard)
   @Roles('teacher')
-  @Put(':id')
-  async update(
-    @Param('id') id: string,
+  @Put(':lessonId')
+  async updateLesson(
+    @Param('lessonId', ParseIntPipe) lessonId: number, // lessonId ni raqamga aylantirish
     @Body() updateLessonDto: UpdateLessonDto,
-    @Req() req,
+    @Request() req,
   ) {
-    const teacherId = req.user?.id;
-    if (!teacherId) {
-      throw new HttpException(
-        'Foydalanuvchi maʼlumotlari topilmadi',
-        HttpStatus.UNAUTHORIZED,
+    const teacherId = req.user.id;
+    const lesson = await this.lessonsService.findOne(lessonId);
+
+    if (!lesson) {
+      throw new NotFoundException('Darslik topilmadi');
+    }
+
+    const group = await this.groupsService.findOne(lesson.groupId);
+
+    if (!group || group.teacherId !== teacherId) {
+      throw new UnauthorizedException(
+        'Siz bu darslikni boshqarish huquqiga ega emassiz',
       );
     }
 
     const updatedLesson = await this.lessonsService.update(
-      id,
+      lessonId,
       updateLessonDto,
-      teacherId,
     );
-    if (!updatedLesson) {
-      throw new NotFoundException(`Dars topilmadi (ID: ${id})`);
-    }
     return {
-      message: 'Dars muvaffaqiyatli yangilandi.',
+      message: 'Darslik muvaffaqiyatli yangilandi',
       lesson: updatedLesson,
     };
   }
 
   @UseGuards(AuthGuard, RolesTeacherGuard)
   @Roles('teacher')
-  @Delete(':id')
-  async remove(@Param('id') id: string, @Req() req) {
-    const teacherId = req.user?.id;
-    if (!teacherId) {
-      throw new HttpException(
-        'Foydalanuvchi maʼlumotlari topilmadi',
-        HttpStatus.UNAUTHORIZED,
+  @Delete(':lessonId')
+  async removeLesson(
+    @Param('lessonId', ParseIntPipe) lessonId: number,
+    @Request() req,
+  ) {
+    const teacherId = req.user.id;
+    const lesson = await this.lessonsService.findOne(lessonId);
+
+    if (!lesson) {
+      throw new NotFoundException('Darslik topilmadi');
+    }
+
+    const group = await this.groupsService.findOne(lesson.groupId);
+
+    if (!group || group.teacherId !== teacherId) {
+      throw new UnauthorizedException(
+        'Siz bu darslikni o‘chirish huquqiga ega emassiz',
       );
     }
 
-    await this.lessonsService.remove(id, teacherId);
-    return { message: `Dars muvaffaqiyatli o'chirildi (ID: ${id})` };
+    await this.lessonsService.remove(lessonId);
+    return {
+      message: 'Darslik muvaffaqiyatli o‘chirildi',
+    };
   }
 }

@@ -1,57 +1,62 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Group } from './entities/group.entity';
+import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 
 @Injectable()
 export class GroupsService {
-  constructor(
-    @InjectRepository(Group)
-    private readonly groupRepository: Repository<Group>,
-  ) {}
+  private groups = []; // Guruhlarni saqlash uchun vaqtinchalik massiv
 
-  findAll() {
-    return this.groupRepository.find({ relations: ['lessons'] });
+  // Faqat o'qituvchining guruhlarini olish
+  async findByTeacherId(teacherId: number) {
+    const teacherGroups = this.groups.filter(
+      (group) => group.teacherId === teacherId,
+    );
+    return teacherGroups;
   }
 
-  create(groupData: Partial<Group>) {
-    const group = this.groupRepository.create(groupData);
-    return this.groupRepository.save(group);
-  }
-
-  // Update Group by ID (converting id to number)
-  async update(id: string, updateGroupDto: UpdateGroupDto) {
-    const groupId = Number(id); // Convert string id to number
-    const group = await this.groupRepository.findOne({
-      where: { id: groupId },
-    });
-
+  // Bitta guruhni ID bo'yicha topish
+  async findOne(groupId: number) {
+    const group = this.groups.find((group) => group.id === groupId);
     if (!group) {
-      throw new NotFoundException(`Group with ID ${id} not found`);
+      throw new NotFoundException(`Guruh topilmadi (ID: ${groupId})`);
+    }
+    return group;
+  }
+
+  // Yangi guruh yaratish
+  async create(createGroupDto: CreateGroupDto) {
+    const newGroup = {
+      id: this.groups.length + 1, // ID avtomatik oshiriladi
+      ...createGroupDto,
+    };
+    this.groups.push(newGroup);
+    return newGroup;
+  }
+
+  // Guruhni yangilash
+  async update(groupId: number, updateGroupDto: UpdateGroupDto) {
+    const groupIndex = this.groups.findIndex((group) => group.id === groupId);
+    if (groupIndex === -1) {
+      throw new NotFoundException(`Guruh topilmadi (ID: ${groupId})`);
     }
 
-    // Guruhni yangilash
-    const updatedGroup = await this.groupRepository.save({
-      ...group,
+    const updatedGroup = {
+      ...this.groups[groupIndex],
       ...updateGroupDto,
-    });
+    };
+    this.groups[groupIndex] = updatedGroup;
+
     return updatedGroup;
   }
 
-  // Delete Group by ID (converting id to number)
-  async remove(id: string) {
-    const groupId = Number(id); // Convert string id to number
-    const group = await this.groupRepository.findOne({
-      where: { id: groupId },
-    });
-
-    if (!group) {
-      throw new NotFoundException(`Group with ID ${id} not found`);
+  // Guruhni o'chirish
+  async remove(groupId: number) {
+    const groupIndex = this.groups.findIndex((group) => group.id === groupId);
+    if (groupIndex === -1) {
+      throw new NotFoundException(`Guruh topilmadi (ID: ${groupId})`);
     }
 
-    // Guruhni o'chirish
-    await this.groupRepository.delete(groupId);
-    return { message: `Group with ID ${id} successfully deleted` };
+    const removedGroup = this.groups.splice(groupIndex, 1);
+    return removedGroup;
   }
 }

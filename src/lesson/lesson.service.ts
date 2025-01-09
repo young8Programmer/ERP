@@ -1,95 +1,81 @@
-import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Lesson } from './entities/lesson.entity';
-import { Group } from '../groups/entities/group.entity';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { CreateLessonDto } from './dto/create-lesson.dto';
 import { UpdateLessonDto } from './dto/update-lesson.dto';
 
 @Injectable()
 export class LessonsService {
-  constructor(
-    @InjectRepository(Lesson)
-    private readonly lessonRepository: Repository<Lesson>,
-    @InjectRepository(Group)
-    private readonly groupRepository: Repository<Group>,
-  ) {}
+  private lessons = []; // Oddiy massiv orqali darsliklarni saqlaymiz
 
-  // Faqat o'zi a'zo bo'lgan guruhdagi darslarni olish
-  async findAllByTeacher(teacherId: number) {
-    const groups = await this.groupRepository.find({
-      where: { teacherId },
-      relations: ['lessons'],
-    });
+  // Guruhdagi barcha darsliklarni olish
+  async findByGroupId(groupId: number) {
+    // Guruhga tegishli barcha darsliklarni qaytaradi
+    const groupLessons = this.lessons.filter(
+      (lesson) => lesson.groupId === groupId,
+    );
+    if (groupLessons.length === 0) {
+      throw new NotFoundException(
+        `Guruhga tegishli darsliklar topilmadi (groupId: ${groupId})`,
+      );
+    }
+    return groupLessons;
+  }
 
-    const lessons = groups.flatMap((group) => group.lessons);
+  // Bitta darslikni ID bo'yicha topish
+  async findOne(lessonId: number) {
+    // ID bo‘yicha darsni topadi
+    const lesson = this.lessons.find((lesson) => lesson.id === lessonId);
+    if (!lesson) {
+      throw new NotFoundException(`Darslik topilmadi (ID: ${lessonId})`);
+    }
+    return lesson;
+  }
 
-    return {
-      lessons: lessons.map((lesson) => ({
-        id: lesson.id,
-        name: lesson.title,
-        description: `Dars ${lesson.id} haqida batafsil ma'lumot.`,
-      })),
+  // Yangi darslik yaratish
+  async create(groupId: number, createLessonDto: CreateLessonDto) {
+    const newLesson = {
+      id: this.lessons.length
+        ? Math.max(...this.lessons.map((lesson) => lesson.id)) + 1
+        : 1,
+      ...createLessonDto,
+      groupId, // Guruhni saqlash
     };
+
+    // Yangi darslikni saqlash
+    this.lessons.push(newLesson);
+    return newLesson;
   }
 
-  // Faqat o'zi a'zo bo'lgan guruhda dars yaratish
-  async create(
-    lessonData: { title: string; groupId: number },
-    teacherId: number,
-  ) {
-    const group = await this.groupRepository.findOne({
-      where: { id: lessonData.groupId, teacherId },
-    });
-    if (!group)
-      throw new ForbiddenException("Bu guruhda dars yaratishga ruxsat yo'q.");
-
-    const lesson = this.lessonRepository.create({
-      title: lessonData.title,
-      group,
-    });
-    return this.lessonRepository.save(lesson);
-  }
-
-  // Faqat o'zi a'zo bo'lgan guruhdagi darsni yangilash
-  async update(
-    id: string,
-    updateLessonDto: UpdateLessonDto,
-    teacherId: number,
-  ) {
-    const lessonId = Number(id); // IDni raqamga o'zgartirish
-    const lesson = await this.lessonRepository.findOne({
-      where: { id: lessonId },
-      relations: ['group'],
-    });
-
-    if (!lesson || lesson.group.teacherId !== teacherId) {
-      throw new ForbiddenException("Bu darsni yangilashga ruxsat yo'q.");
+  // Darslikni yangilash
+  async update(lessonId: number, updateLessonDto: UpdateLessonDto) {
+    const lessonIndex = this.lessons.findIndex(
+      (lesson) => lesson.id === lessonId,
+    );
+    if (lessonIndex === -1) {
+      throw new NotFoundException(`Darslik topilmadi (ID: ${lessonId})`);
     }
 
-    const updatedLesson = await this.lessonRepository.save({
-      ...lesson,
+    const updatedLesson = {
+      ...this.lessons[lessonIndex],
       ...updateLessonDto,
-    });
+    };
+
+    // Yangilangan darslikni o'zgartirish
+    this.lessons[lessonIndex] = updatedLesson;
+
     return updatedLesson;
   }
 
-  // Faqat o'zi a'zo bo'lgan guruhdagi darsni o'chirish
-  async remove(id: string, teacherId: number) {
-    const lessonId = Number(id); // IDni raqamga o'zgartirish
-    const lesson = await this.lessonRepository.findOne({
-      where: { id: lessonId },
-      relations: ['group'],
-    });
-
-    if (!lesson || lesson.group.teacherId !== teacherId) {
-      throw new ForbiddenException("Bu darsni o'chirishga ruxsat yo'q.");
+  // Darslikni o'chirish
+  async remove(lessonId: number) {
+    const lessonIndex = this.lessons.findIndex(
+      (lesson) => lesson.id === lessonId,
+    );
+    if (lessonIndex === -1) {
+      throw new NotFoundException(`Darslik topilmadi (ID: ${lessonId})`);
     }
 
-    await this.lessonRepository.delete(lessonId);
-    return { message: `Lesson with ID ${id} successfully deleted` };
+    // O'chirilgan darslikni qaytarish
+    const removedLesson = this.lessons.splice(lessonIndex, 1);
+    return removedLesson[0]; // Bir nechta darsliklar o'chirilsa ham, faqat birinchi elementni qaytarish
   }
 }

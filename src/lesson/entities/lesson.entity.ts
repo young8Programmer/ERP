@@ -19,10 +19,10 @@ export class Lesson {
   @Column()
   title: string;
 
-  @CreateDateColumn({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   lessonDate: Date;
 
-  @CreateDateColumn({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   endDate: Date;
 
   @ManyToOne(() => Group, (group) => group.lessons, { onDelete: 'CASCADE' })
@@ -30,8 +30,5 @@ export class Lesson {
 
   @OneToMany(() => Assignment, (assignment) => assignment.lesson)
   assignments: Assignment[];
-
-  @ManyToOne(() => Assignment, (assignment) => assignment.lesson)
-  @JoinColumn({ name: 'assignment_id' })
-  assignment: Assignment;
 }
+
