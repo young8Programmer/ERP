@@ -43,7 +43,7 @@ export class SubmissionService {
       where: { students: { id: userId } },
     });
   
-    if (!studentGroups || studentGroups.length === 0) {
+    if (!studentGroups) {
       throw new ForbiddenException('Talaba guruhiga kiritilmagan yoki guruhlar mavjud emas');
     }
   
