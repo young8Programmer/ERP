@@ -23,20 +23,22 @@ export class SubmissionService {
   ) {}
 
   async submitAnswer(userId: number, assignmentId: number, content: string) {
-    const user = await this.userRepository.findOne({ where: { id: userId }});
-    if (!user) {
+    const user = await this.userRepository.findOne({ where: { id: userId }, relations: ['student'] });
+    if (!user || !user.studentId) {
       throw new ForbiddenException('Faqat talabalargina topshiriqlarni yuborishi mumkin.');
     }
 
     const assignment = await this.assignmentRepository.findOne({
-      where: { id: assignmentId }
+      where: { id: assignmentId },
+      relations: ['lesson'],
     });
     if (!assignment) {
       throw new NotFoundException('Topshiriq topilmadi.');
     }
 
     const lesson = await this.lessonRepository.findOne({
-      where: { id: assignment.lesson.id }
+      where: { id: assignment.lesson.id },
+      relations: ['group'],
     });
     if (!lesson) {
       throw new NotFoundException('Dars topilmadi.');
@@ -44,18 +46,18 @@ export class SubmissionService {
 
     const group = lesson.group;
     const studentGroups = await this.groupRepository.find({
-      where: { students: { id: userId } },
+      where: { students: { id: user.studentId } },
     });
 
     const groupMatch = studentGroups.some(studentGroup => studentGroup.id === group.id);
     if (!groupMatch) {
-      throw new ForbiddenException('Faqat o\'zingizning guruhingiz uchun topshiriqlarni yuborishingiz mumkin.');
+      throw new ForbiddenException('Faqat ozingizning guruhingiz uchun topshiriqlarni yuborishingiz mumkin.')
     }
 
     const submission = this.submissionRepository.create({
       content,
       assignment,
-      student: user.student,
+      student: { id: user.studentId },
       grade: 0,
       status: false,
     });
@@ -65,10 +67,12 @@ export class SubmissionService {
   }
 
   async gradeSubmission(userId: number, submissionId: number, grade: number) {
-    const teacher = await this.userRepository.findOne({ where: { id: userId }, relations: ['teacher'] });
-    if (!teacher || !teacher.teacher) {
-      throw new ForbiddenException('Faqat o\'qituvchilargina topshiriqlarni baholashi mumkin.');
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user || !user.teacherId) {
+      throw new ForbiddenException('Faqat oqituvchilargina topshiriqlarni baholashi mumkin.');
     }
+
+    const teacherId = user.teacherId;
 
     const submission = await this.submissionRepository.findOne({
       where: { id: submissionId },
@@ -87,10 +91,8 @@ export class SubmissionService {
       throw new NotFoundException('Guruh topilmadi.');
     }
 
-    const teacherGroups = await this.groupRepository.find({ where: { teacher: { id: teacher.teacher.id } } });
-    const groupMatch = teacherGroups.some(teacherGroup => teacherGroup.id === group.id);
-    if (!groupMatch) {
-      throw new ForbiddenException('Faqat o\'zingizning guruhingiz uchun topshiriqlarni baholashingiz mumkin.');
+    if (group.teacher.id !== teacherId) {
+      throw new ForbiddenException('Faqat ozingizning guruhingiz uchun topshiriqlarni baholashingiz mumkin.');
     }
 
     submission.grade = grade;
@@ -101,9 +103,9 @@ export class SubmissionService {
   }
 
   async getDailyGrades(userId: number) {
-    const teacher = await this.userRepository.findOne({ where: { id: userId }, relations: ['teacher'] });
-    if (!teacher || !teacher.teacher) {
-      throw new ForbiddenException('Faqat o\'qituvchilargina kundalik baholarni ko\'rishi mumkin.');
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user || !user.teacherId) {
+      throw new ForbiddenException('Faqat oqituvchilargina kundalik baholarni korishi mumkin.');
     }
 
     return this.submissionRepository
@@ -116,9 +118,9 @@ export class SubmissionService {
   }
 
   async getTotalScores(userId: number) {
-    const teacher = await this.userRepository.findOne({ where: { id: userId }, relations: ['teacher'] });
-    if (!teacher || !teacher.teacher) {
-      throw new ForbiddenException('Faqat o\'qituvchilargina umumiy baholarni ko\'rishi mumkin.');
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user || !user.teacherId) {
+      throw new ForbiddenException('Faqat oqituvchilargina umumiy baholarni korishi mumkin.');
     }
 
     return this.submissionRepository
