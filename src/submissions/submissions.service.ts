@@ -21,7 +21,7 @@ export class SubmissionService {
   }
 
 
-  const existingSubmission = await this.submissionRepository.findOne({ where: { content }, relations: ["student"]});
+  const existingSubmission = await this.submissionRepository.findOne({ where: { content }, relations: ["studentId"]});
   if (existingSubmission) {
     throw new ConflictException('Siz bu topshiriqqa javob yuborgansiz', existingSubmission.student.address);
   }
