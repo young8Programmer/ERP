@@ -26,7 +26,9 @@ export class SubmissionService {
     throw new ConflictException('Siz bu topshiriqqa javob yuborgansiz');
   }
 
-  
+  if (existingSubmission.student.id == user.studentId) {
+    throw new ForbiddenException("Siz topshiriqni bajarib bo'lgansiz")
+  }
 
   const submission = this.submissionRepository.create({
     content,
