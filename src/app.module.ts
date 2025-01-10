@@ -27,8 +27,8 @@ import { SubmissionsModule } from './submissions/submissions.module';
       host: 'localhost',
       port: 5432,
       username: 'postgres',
-      password: 'azizbek002',
-      database: 'erp3',
+      password: '1234',
+      database: 'erpp',
       entities: [
         User,
         Course,
