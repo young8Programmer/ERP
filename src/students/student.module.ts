@@ -8,10 +8,12 @@ import { Course } from 'src/courses/entities/course.entity';
 import { Teacher } from 'src/teacher/entities/teacher.entity';
 import { User } from 'src/auth/entities/user.entity';
 import { CoursesModule } from 'src/courses/courses.module';
+import { GroupsModule } from 'src/groups/group.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Student, Teacher, User, Group, Course]),
+    GroupsModule,
     CoursesModule,
   ],
   controllers: [StudentsController],

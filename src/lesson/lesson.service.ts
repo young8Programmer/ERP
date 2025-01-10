@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Lesson } from './entities/lesson.entity';
@@ -20,6 +16,7 @@ export class LessonsService {
     private readonly userRepository: Repository<User>,
   ) {}
 
+  
   // Guruhga tegishli darslarni olish
   async findLessonsByGroup(groupId: number, userId: number) {
     // Foydalanuvchi malumotlarini olish
@@ -36,14 +33,10 @@ export class LessonsService {
 
     // Foydalanuvchi roli va guruhga tegishliligini tekshirish
     const isTeacher = group.teacher.id === user.teacherId;
-    const isStudent = group.students.some(
-      (student) => student.id === user.studentId,
-    ); // studentId orqali tekshirish
+    const isStudent = group.students.some(student => student.id === user.studentId); // studentId orqali tekshirish
 
     if (!isTeacher && !isStudent) {
-      throw new ForbiddenException(
-        "Siz faqat o'zingizning guruhingizdagi darslarni ko'rishingiz mumkin",
-      );
+      throw new ForbiddenException('Siz faqat o\'zingizning guruhingizdagi darslarni ko\'rishingiz mumkin');
     }
 
     return this.lessonRepository.find({
@@ -67,9 +60,7 @@ export class LessonsService {
 
     // O'qituvchi faqat o'z guruhida dars yaratishi mumkin
     if (group.teacher?.id !== user.teacherId) {
-      throw new ForbiddenException(
-        'You can only create lessons in your own group',
-      );
+      throw new ForbiddenException('You can only create lessons in your own group');
     }
 
     const existingLesson = await this.lessonRepository.findOne({
@@ -102,9 +93,7 @@ export class LessonsService {
 
     // O'qituvchi faqat o'z guruhidagi darsni yangilay oladi
     if (lesson.group.teacher?.id !== user.teacherId) {
-      throw new ForbiddenException(
-        'You can only update lessons in your own group',
-      );
+      throw new ForbiddenException('You can only update lessons in your own group');
     }
 
     const updatedLesson = await this.lessonRepository.save({
@@ -130,9 +119,7 @@ export class LessonsService {
 
     // O'qituvchi faqat o'z guruhidagi darsni o'chirishi mumkin
     if (lesson.group.teacher?.id !== user.teacherId) {
-      throw new ForbiddenException(
-        'You can only delete lessons from your own group',
-      );
+      throw new ForbiddenException('You can only delete lessons from your own group');
     }
 
     await this.lessonRepository.delete(id);

@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-  Param,
-  Body,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards } from '@nestjs/common';
 import { TeachersService } from './teacher.service';
 import { CreateTeacherDto } from './dto/create-teacher.dto';
 import { UpdateTeacherDto } from './dto/update-teacher.dto';
@@ -20,40 +11,35 @@ export class TeachersController {
   constructor(private readonly teachersService: TeachersService) {}
 
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles("admin")
   @Post()
-  async createTeacher(
-    @Body() createTeacherDto: CreateTeacherDto,
-  ): Promise<Teacher> {
+  async createTeacher(@Body() createTeacherDto: CreateTeacherDto): Promise<Teacher> {
     return this.teachersService.createTeacher(createTeacherDto);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles("admin")
   @Get()
   async getAllTeachers(): Promise<Teacher[]> {
     return this.teachersService.getAllTeachers();
   }
 
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('admin', 'teacher')
+  @Roles("admin", "teacher")
   @Get(':id')
   async getTeacherById(@Param('id') id: number): Promise<Teacher> {
     return this.teachersService.getTeacherById(id);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles("admin")
   @Put(':id')
-  async updateTeacher(
-    @Param('id') id: number,
-    @Body() updateTeacherDto: UpdateTeacherDto,
-  ): Promise<Teacher> {
+  async updateTeacher(@Param('id') id: number, @Body() updateTeacherDto: UpdateTeacherDto): Promise<Teacher> {
     return this.teachersService.updateTeacher(id, updateTeacherDto);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles("admin")
   @Delete(':id')
   async deleteTeacher(@Param('id') id: number): Promise<void> {
     await this.teachersService.deleteTeacher(id);

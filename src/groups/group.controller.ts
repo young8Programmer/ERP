@@ -40,10 +40,7 @@ export class GroupsController {
     @Param('groupId') groupId: number,
     @Body() addStudentDto: AddStudentDto,
   ): Promise<Group> {
-    return this.groupsService.addStudentToGroup(
-      groupId,
-      addStudentDto.studentId,
-    );
+    return this.groupsService.addStudentToGroup(groupId, addStudentDto.studentId);
   }
 
   @UseGuards(AuthGuard)
@@ -52,20 +49,21 @@ export class GroupsController {
     return this.groupsService.getGroupById(id);
   }
 
+ 
   @UseGuards(AuthGuard)
-  @Get('my/teacher/groups')
-  async getMyGroups(@Req() req: any): Promise<Group[]> {
-    const userId = req.user.id;
-    return this.groupsService.getGroupsByTeacherId(userId);
-  }
+@Get('my/teacher/groups')
+async getMyGroups(@Req() req: any): Promise<Group[]> {
+  const userId = req.user.id;
+  return this.groupsService.getGroupsByTeacherId(userId)
+}
 
-  @UseGuards(AuthGuard, RolesStudentGuard)
-  @Roles('student')
-  @Get('my/student/groups')
-  async getStudentGroups(@Req() req): Promise<Group[]> {
-    const userId = req.user.id;
-    return this.groupsService.getGroupsByStudentId(userId);
-  }
+@UseGuards(AuthGuard, RolesStudentGuard)
+@Roles("student")
+@Get('my/student/groups')
+async getStudentGroups(@Req() req): Promise<Group[]> {
+  const userId = req.user.id;
+  return this.groupsService.getGroupsByStudentId(userId);
+}
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
@@ -110,17 +108,13 @@ export class GroupsController {
 
   @UseGuards(AuthGuard)
   @Get('/course/:courseId')
-  async getGroupsByCourseId(
-    @Param('courseId') courseId: number,
-  ): Promise<Group[]> {
+  async getGroupsByCourseId(@Param('courseId') courseId: number): Promise<Group[]> {
     return this.groupsService.getGroupsByCourseId(courseId);
   }
 
   @UseGuards(AuthGuard)
   @Get(':groupId/students/list')
-  async getStudentsByGroupId(
-    @Param('groupId') groupId: number,
-  ): Promise<Student[]> {
-    return this.groupsService.getStudentsByGroupId(groupId);
+  async getStudentsByGroupId(@Param('groupId') groupId: number): Promise<Student[]> {
+   return this.groupsService.getStudentsByGroupId(groupId);
   }
 }

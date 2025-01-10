@@ -12,20 +12,8 @@ import { Student } from 'src/students/entities/user.entity';
 import { Teacher } from 'src/teacher/entities/teacher.entity';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([
-      Submission,
-      Assignment,
-      User,
-      Group,
-      Lesson,
-      Course,
-      Student,
-      Teacher,
-    ]),
-  ],
+  imports: [TypeOrmModule.forFeature([Submission, Assignment, User, Group, Lesson, Course, Student, Teacher])],
   controllers: [SubmissionController],
   providers: [SubmissionService],
 })
 export class SubmissionsModule {}
-

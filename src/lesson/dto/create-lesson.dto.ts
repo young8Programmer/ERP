@@ -1,11 +1,4 @@
-import {
-  IsString,
-  IsInt,
-  IsNotEmpty,
-  IsDate,
-  IsOptional,
-  IsDateString,
-} from 'class-validator';
+import { IsString, IsInt, IsNotEmpty, IsDate, IsOptional, IsDateString } from 'class-validator';
 
 export class CreateLessonDto {
   @IsString()
@@ -14,7 +7,7 @@ export class CreateLessonDto {
 
   @IsNotEmpty()
   @IsDate()
-  @IsOptional()
+  @IsOptional() 
   dueDate: Date;
 
   @IsInt()

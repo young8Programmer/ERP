@@ -36,6 +36,7 @@ export class StudentsController {
     return this.studentsService.getAllStudents();
   }
 
+  
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
   @Get('search')
