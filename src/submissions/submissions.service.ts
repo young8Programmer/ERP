@@ -19,11 +19,14 @@ export class SubmissionService {
   if (!user?.studentId) {
     throw new ForbiddenException('Faqat talabalargina topshiriqlarni yuborishi mumkin.');
   }
-  const existingSubmission = await this.submissionRepository.findOne({ where: { content } });
 
+
+  const existingSubmission = await this.submissionRepository.findOne({ where: { content }});
   if (existingSubmission) {
-    throw new ConflictException('Siz bu topshiriqni allaqachon yuborgansiz.');
+    throw new ConflictException('Siz bu topshiriqqa javob yuborgansiz');
   }
+
+  
 
   const submission = this.submissionRepository.create({
     content,
@@ -66,8 +69,8 @@ export class SubmissionService {
       .where('submission.createdAt >= CURRENT_DATE')
       .select(['student.id AS studentId', 'SUM(submission.grade) AS totalGrade'])
       .groupBy('student.id')
-      .getRawMany();
-  }
+      .getRawMany(); 
+    }
 
   async getTotalScores(userId: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });

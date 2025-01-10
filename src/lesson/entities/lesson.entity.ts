@@ -2,11 +2,9 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
 } from 'typeorm';
 import { Group } from '../../groups/entities/group.entity';
 import { Assignment } from '../../assignments/entities/assignment.entity';
@@ -29,9 +27,5 @@ export class Lesson {
   group: Group;
 
   @OneToMany(() => Assignment, (assignment) => assignment.lesson)
-  assignments: Assignment[];
-
-  @ManyToOne(() => Assignment, (assignment) => assignment.lesson)
-  @JoinColumn({ name: 'assignment_id' })
-  assignment: Assignment;
+  assignments: Assignment[]; // Har bir dars bir nechta topshiriqqa ega bo'lishi mumkin
 }

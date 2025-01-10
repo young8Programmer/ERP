@@ -1,8 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, Unique } from 'typeorm';
 import { Assignment } from 'src/assignments/entities/assignment.entity';
 import { Student } from '../../students/entities/user.entity'; // To'g'ri entitetni import qilish
 
 @Entity()
+@Unique(['assignment', 'student'])
 export class Submission {
   @PrimaryGeneratedColumn()
   id: number;
@@ -20,7 +21,7 @@ export class Submission {
   @JoinColumn({ name: 'assignmentId' })
   assignment: Assignment;
 
-  @ManyToOne(() => Student, (student) => student.submissions) // To'g'ri bog'liqlikni o'rnatish
+  @ManyToOne(() => Student, (student) => student.submissions)
   @JoinColumn({ name: 'studentId' })
   student: Student;
 
