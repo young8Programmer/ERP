@@ -26,6 +26,9 @@ export class SubmissionService {
     throw new ConflictException('Siz bu topshiriqqa javob yuborgansiz');
   }
 
+  console.log(existingSubmission.student);
+  
+
   if (existingSubmission.student.id == user.studentId) {
     throw new ForbiddenException("Siz topshiriqni bajarib bo'lgansiz")
   }
