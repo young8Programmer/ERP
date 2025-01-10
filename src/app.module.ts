@@ -27,9 +27,19 @@ import { SubmissionsModule } from './submissions/submissions.module';
       host: 'localhost',
       port: 5432,
       username: 'postgres',
-      password: '1234',
-      database: 'erpp',
-      entities: [User, Course, Group, Profile, Student, Teacher, Lesson, Assignment, Submission],
+      password: 'azizbek002',
+      database: 'erp3',
+      entities: [
+        User,
+        Course,
+        Group,
+        Profile,
+        Student,
+        Teacher,
+        Lesson,
+        Assignment,
+        Submission,
+      ],
       synchronize: true,
     }),
     CoursesModule,
@@ -41,13 +51,7 @@ import { SubmissionsModule } from './submissions/submissions.module';
     UsersModule,
     LessonsModule,
     AssignmentsModule,
-    SubmissionsModule
+    SubmissionsModule,
   ],
 })
-
-
 export class AppModule {}
-
-
-
-

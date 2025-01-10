@@ -12,7 +12,18 @@ import { Lesson } from 'src/lesson/entities/lesson.entity';
 import { Assignment } from 'src/assignments/entities/assignment.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Group, Teacher, Course, Student, User, Submission, Lesson, Assignment])],
+  imports: [
+    TypeOrmModule.forFeature([
+      Group,
+      Teacher,
+      Course,
+      Student,
+      User,
+      Submission,
+      Lesson,
+      Assignment,
+    ]),
+  ],
   controllers: [GroupsController],
   providers: [GroupsService],
 })

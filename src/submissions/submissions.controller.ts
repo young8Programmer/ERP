@@ -22,41 +22,37 @@ import { RolesTeacherGuard } from 'src/auth/rolesTeacherGuard';
 export class SubmissionController {
   constructor(private readonly submissionsService: SubmissionService) {}
 
-
   @UseGuards(AuthGuard, RolesStudentGuard)
-  @Roles("student")
+  @Roles('student')
   @Post(':assignmentId/submit')
   async submitAnswer(
     @Req() req,
     @Param('assignmentId') assignmentId: number,
     @Body() createSubmissionDto: CreateSubmissionDto,
   ) {
-    if (!req.user || !req.user.id) {
-      throw new ForbiddenException('User not authenticated');
-    }
-
     const userId = req.user.id;
+    const groupId = req.user.groupId; // Token orqali olinadi
     return this.submissionsService.submitAnswer(
       userId,
+      groupId,
+      assignmentId,
       createSubmissionDto.content,
     );
   }
 
   @UseGuards(AuthGuard, RolesTeacherGuard)
-  @Roles("teacher")
+  @Roles('teacher')
   @Patch(':submissionId/grade')
   async gradeSubmission(
     @Req() req,
     @Param('submissionId') submissionId: number,
     @Body() gradeSubmissionDto: GradeSubmissionDto,
   ) {
-    if (!req.user || !req.user.id) {
-      throw new ForbiddenException('User not authenticated');
-    }
-
     const userId = req.user.id;
+    const groupId = req.user.groupId; // Token orqali olinadi
     return this.submissionsService.gradeSubmission(
       userId,
+      groupId,
       submissionId,
       gradeSubmissionDto.grade,
     );
@@ -72,7 +68,7 @@ export class SubmissionController {
   @UseGuards(AuthGuard)
   @Get('total-scores')
   async getTotalScores(@Req() req) {
-    const userId = req.user.id
+    const userId = req.user.id;
     return this.submissionsService.getTotalScores(userId);
   }
 }
