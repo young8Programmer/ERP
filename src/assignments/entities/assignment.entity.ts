@@ -2,9 +2,10 @@ import {
   Column,
   Entity,
   ManyToOne,
-  OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  JoinColumn,
 } from 'typeorm';
 import { Lesson } from 'src/lesson/entities/lesson.entity';
 import { Submission } from 'src/submissions/entities/submission.entity'; // Submission entitetini import qilish
@@ -28,8 +29,12 @@ export class Assignment {
   })
   lesson: Lesson;
 
-  @OneToMany(() => Submission, (submission) => submission.assignment)
-  submissions: Submission[];
+  @OneToOne(() => Submission, (submission) => submission.assignment, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn()
+  submission: Submission; // Endi bitta topshiriq faqat bitta submission bilan bog'lanadi
 
-  status: string
+  status: string;
 }

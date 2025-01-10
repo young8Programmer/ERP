@@ -1,9 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, Unique } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Assignment } from 'src/assignments/entities/assignment.entity';
 import { Student } from '../../students/entities/user.entity'; // To'g'ri entitetni import qilish
 
-@Entity()
-@Unique(['assignment', 'student'])
+@Entity('submissions')
 export class Submission {
   @PrimaryGeneratedColumn()
   id: number;
@@ -17,11 +23,12 @@ export class Submission {
   @Column({ type: 'int', default: 0 })
   grade: number;
 
-  @ManyToOne(() => Assignment, (assignment) => assignment.submissions)
-  @JoinColumn({ name: 'assignmentId' })
-  assignment: Assignment;
+  @OneToOne(() => Assignment, (assignment) => assignment.submission)
+  assignment: Assignment; // Endi bitta submission faqat bitta topshiriq bilan bog'lanadi
 
-  @ManyToOne(() => Student, (student) => student.submissions)
+  @ManyToOne(() => Student, (student) => student.submissions, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'studentId' })
   student: Student;
 
