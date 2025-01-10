@@ -23,7 +23,7 @@ export class SubmissionService {
 
   const existingSubmission = await this.submissionRepository.findOne({ where: { content }, relations: ["student"]});
   if (existingSubmission) {
-    throw new ConflictException('Siz bu topshiriqqa javob yuborgansiz');
+    throw new ConflictException('Siz bu topshiriqqa javob yuborgansiz', existingSubmission.student.address);
   }
   const submission = this.submissionRepository.create({
     content,
@@ -33,7 +33,7 @@ export class SubmissionService {
 
   await this.submissionRepository.save(submission);
 
-  return { message: 'Topshiriq muvaffaqiyatli saqlandi.', submissionId: existingSubmission };
+  return { message: 'Topshiriq muvaffaqiyatli saqlandi.', submissionId: submission.id };
 }
 
   async gradeSubmission(userId: number, submissionId: number, grade: number) {
