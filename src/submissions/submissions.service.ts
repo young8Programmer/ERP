@@ -25,14 +25,6 @@ export class SubmissionService {
   if (existingSubmission) {
     throw new ConflictException('Siz bu topshiriqqa javob yuborgansiz');
   }
-
-  console.log(existingSubmission.student);
-  
-
-  if (existingSubmission.student.id == user.studentId) {
-    throw new ForbiddenException("Siz topshiriqni bajarib bo'lgansiz")
-  }
-
   const submission = this.submissionRepository.create({
     content,
     grade: 0,
@@ -41,7 +33,7 @@ export class SubmissionService {
 
   await this.submissionRepository.save(submission);
 
-  return { message: 'Topshiriq muvaffaqiyatli saqlandi.', submissionId: submission.id };
+  return { message: 'Topshiriq muvaffaqiyatli saqlandi.', submissionId: existingSubmission };
 }
 
   async gradeSubmission(userId: number, submissionId: number, grade: number) {
