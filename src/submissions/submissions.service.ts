@@ -156,6 +156,7 @@ export class SubmissionService {
       ])
       .groupBy('student.id')
       .addGroupBy('submission.submittedAt')
+      .having('SUM(submission.grade) > 0') // Jami baho 0 dan katta bo'lishi kerak
       .orderBy('submission.submittedAt', 'ASC')
       .getRawMany();
 }
