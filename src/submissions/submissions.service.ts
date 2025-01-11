@@ -158,8 +158,8 @@ export class SubmissionService {
         'SUM(submission.grade) AS totalGrade',
       ])
       .groupBy('student.id')
-      .addGroupBy('user.firstName')   // firstName ga group by qilish
-      .addGroupBy('user.lastName')    // lastName ga group by qilish
+      .addGroupBy('student.firstName')   // firstName ga group by qilish
+      .addGroupBy('student.lastName')    // lastName ga group by qilish
       .addGroupBy('submission.submittedAt')
       .having('SUM(submission.grade) > 0')
       .orderBy('submission.submittedAt', 'ASC')
@@ -191,8 +191,8 @@ export class SubmissionService {
           'SUM(submission.grade) AS totalGrade',
         ])
         .groupBy('student.id')
-        .addGroupBy('user.firstName')   // firstName ga group by qilish
-        .addGroupBy('user.lastName')    // lastName ga group by qilish
+        .addGroupBy('student.firstName')   // firstName ga group by qilish
+        .addGroupBy('student.lastName')    // lastName ga group by qilish
         .orderBy('totalGrade', 'DESC')
         .getRawMany();
   }
