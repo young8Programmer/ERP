@@ -20,7 +20,7 @@ export class SubmissionService {
     throw new ForbiddenException('Faqat talabalargina topshiriqlarni yuborishi mumkin.');
   }
 
-  const existingSubmission: any = await this.submissionRepository.findOne({ where: { content }, relations: ["student"]});
+  const existingSubmission: any = await this.submissionRepository.findOne({ where: { content, student: {id: user.studentId} }, relations: ["student"]}); 
   if (existingSubmission && existingSubmission.student.id == user.studentId) {
     throw new ForbiddenException("Siz bu topshiriqni bajargansiz")
   }
