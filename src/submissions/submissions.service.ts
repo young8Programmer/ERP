@@ -76,8 +76,7 @@ async getAllSubmissions(userId: number) {
       'assignment', 
       'assignment.lesson', 
       'assignment.lesson.group', 
-      'assignment.lesson.group.teacher', 
-      'assignment.lesson.group.students'
+      'assignment.lesson.group.teacher'
     ],
   });
 
