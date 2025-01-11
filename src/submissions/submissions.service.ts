@@ -159,19 +159,30 @@ export class SubmissionService {
       .getRawMany();
   }
 
-
-  async getTotalScores(userId: number) {
+  async getTotalScores(userId: number, groupId: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user?.teacherId) {
-      throw new ForbiddenException("Faqat o'qituvchilargina umumiy baholarni ko'rishi mumkin");
+      throw new ForbiddenException("Faqat o'qituvchilargina jami baholarni ko'rishi mumkin");
     }
+
+    const group = await this.groupRepository.findOne({ where: { id: groupId }, relations: ['students'] });
+    if (!group) {
+      throw new NotFoundException("Bunday guruh topilmadi.");
+    }
+
+    const studentIds = group.students.map(student => student.id);
 
     return this.submissionRepository
       .createQueryBuilder('submission')
       .leftJoinAndSelect('submission.student', 'student')
-      .select(['student.id AS studentId', 'SUM(submission.grade) AS totalGrade'])
+      .where('student.id IN (:...studentIds)', { studentIds }) // Guruhdagi talabalar
+      .select([
+        'student.id AS studentId',
+        'SUM(submission.grade) AS totalGrade', // Jami baho
+      ])
       .groupBy('student.id')
-      .orderBy('totalGrade', 'DESC')
+      .orderBy('totalGrade', 'DESC') // Baholarga qarab tartiblash
       .getRawMany();
-  }
+}
+
 }
