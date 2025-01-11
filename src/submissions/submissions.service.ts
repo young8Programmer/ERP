@@ -130,27 +130,35 @@ export class SubmissionService {
     return { message: 'Topshiriq muvaffaqiyatli baholandi.', grade: submission.grade };
   }
 
-  async getDailyGrades(userId: number) {
+  async getDailyGrades(userId: number, groupId: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user?.teacherId) {
       throw new ForbiddenException("Faqat o'qituvchilargina kundalik baholarni ko'rishi mumkin.");
     }
-  
+
+    const group = await this.groupRepository.findOne({ where: { id: groupId }, relations: ['students'] });
+    if (!group) {
+      throw new NotFoundException("Bunday guruh topilmadi.");
+    }
+
+    const studentIds = group.students.map(student => student.id);
+
     return this.submissionRepository
       .createQueryBuilder('submission')
       .leftJoinAndSelect('submission.student', 'student')
-      .where('submission.submittedAt >= CURRENT_DATE') // Faqat bugungi kundagi baholar
+      .where('submission.submittedAt >= CURRENT_DATE')
+      .andWhere('student.id IN (:...studentIds)', { studentIds })
       .select([
-        'student.id AS studentId', // Talaba identifikatori
-        'submission.submittedAt AS submittedAt', // Sana
-        'SUM(submission.grade) AS totalGrade', // Baholarning yig‘indisi
+        'student.id AS studentId',
+        'submission.submittedAt AS submittedAt',
+        'SUM(submission.grade) AS totalGrade',
       ])
-      .groupBy('student.id') // Talabalar kesimida guruhlash
-      .addGroupBy('submission.submittedAt') // Sana bo‘yicha guruhlash
-      .orderBy('submission.submittedAt', 'ASC') // Natijalarni sanalar bo‘yicha tartiblash
+      .groupBy('student.id')
+      .addGroupBy('submission.submittedAt')
+      .orderBy('submission.submittedAt', 'ASC')
       .getRawMany();
   }
-  
+
 
   async getTotalScores(userId: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });

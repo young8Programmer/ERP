@@ -81,11 +81,14 @@ export class SubmissionController {
   }
 
   @UseGuards(AuthGuard)
-  @Get('daily-grades')
-  async getDailyGrades(@Req() req) {
-    const userId = req.user.id;
-    return this.submissionsService.getDailyGrades(userId);
-  }
+  @Get('daily-grades/:groupId')
+  async getDailyGrades(
+  @Req() req,
+  @Param('groupId') groupId: number
+) {
+  const userId = req.user.id;
+  return this.submissionsService.getDailyGrades(userId, groupId);
+}
 
   @UseGuards(AuthGuard)
   @Get('total-scores')
