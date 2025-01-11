@@ -23,7 +23,7 @@ export class SubmissionService {
     private readonly lessonRepository: Repository<Lesson>,
   ) {}
 
-  async submitAnswer(userId: number, content: string, assignmentId: number) {
+  async submitAnswer(userId: number, content: string, assignmentId: any) {
   const user: any = await this.userRepository.findOne({ where: { id: userId } });
   const assignment = await this.assignmentRepository.findOne({where: {id: assignmentId}, relations: ["lesson"]})
 
@@ -56,7 +56,8 @@ export class SubmissionService {
     content,
     grade: 0,
     status: false,
-    student: user.studentId
+    student: user.studentId,
+    assignment: assignmentId
   });
 
   await this.submissionRepository.save(submission);
