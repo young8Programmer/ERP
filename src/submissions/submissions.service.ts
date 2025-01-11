@@ -3,6 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Submission } from './entities/submission.entity';
 import { User } from '../auth/entities/user.entity';
+import { Assignment } from 'src/assignments/entities/assignment.entity';
+import { Group } from 'src/groups/entities/group.entity';
+import { Lesson } from 'src/lesson/entities/lesson.entity';
+import { Student } from 'src/students/entities/user.entity';
 
 @Injectable()
 export class SubmissionService {
@@ -11,13 +15,36 @@ export class SubmissionService {
     private readonly submissionRepository: Repository<Submission>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Assignment)
+    private readonly assignmentRepository: Repository<Assignment>,
+    @InjectRepository(Group)
+    private readonly groupRepository: Repository<Group>,
+    @InjectRepository(Lesson)
+    private readonly lessonRepository: Repository<Lesson>,
   ) {}
 
-  async submitAnswer(userId: number, content: string) {
+  async submitAnswer(userId: number, content: string, assignmentId: number) {
   const user: any = await this.userRepository.findOne({ where: { id: userId } });
-  
-  if (!user?.studentId) {
-    throw new ForbiddenException('Faqat talabalargina topshiriqlarni yuborishi mumkin.');
+  const assignment = await this.assignmentRepository.findOne({where: {id: assignmentId}, relations: ["lesson"]})
+
+  if (!assignment) {
+    throw new ForbiddenException("Bunday topshiriq mavjud emas")
+  }
+
+  const lesson = await this.lessonRepository.findOne({where: {id: assignment.lesson.id}, relations: ["group"]})
+
+  if (!lesson) {
+    throw new ForbiddenException("Bunday topshiriqni darsligi mavjud emas")
+  }
+
+  const group = await this.groupRepository.findOne({where: {id: lesson.group.id}, relations: ["students"]})
+
+  if (!group) {
+    throw new ForbiddenException("Bunday topshiriqni darsligini guruhi mavjud emas")
+  }
+
+  if (!group.students.map((student) => student.id).includes(user.studentId)) {
+    throw new ForbiddenException("siz bu topshiriq guruh talabasi emassiz")
   }
 
   const existingSubmission: any = await this.submissionRepository.findOne({ where: { student: {id: user.studentId} }, relations: ["student"]}); 

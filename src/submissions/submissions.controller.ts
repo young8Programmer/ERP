@@ -39,6 +39,7 @@ export class SubmissionController {
     return this.submissionsService.submitAnswer(
       userId,
       createSubmissionDto.content,
+      assignmentId
     );
   }
 
