@@ -21,10 +21,8 @@ export class SubmissionService {
   }
 
   const existingSubmission: any = await this.submissionRepository.findOne({ where: { content }, relations: ["student"]});
-  if (existingSubmission) {
-    return {
-      existingSubmission
-    }
+  if (existingSubmission && existingSubmission.student.id == user.studentId) {
+    throw new ForbiddenException("Siz bu topshiriqni bajargansiz")
   }
   const submission = this.submissionRepository.create({
     content,
