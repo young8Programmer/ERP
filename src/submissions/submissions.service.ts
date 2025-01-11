@@ -131,75 +131,67 @@ export class SubmissionService {
   }
 
   async getDailyGrades(userId: number, groupId: number) {
-    // O'qituvchi rolini tekshirish
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user?.teacherId) {
       throw new ForbiddenException("Faqat o'qituvchilargina kundalik baholarni ko'rishi mumkin.");
     }
   
-    // Guruhni topish
     const group = await this.groupRepository.findOne({ where: { id: groupId }, relations: ['students'] });
     if (!group) {
       throw new NotFoundException("Bunday guruh topilmadi.");
     }
   
-    // Talabalar ro'yxatini olish
     const studentIds = group.students.map(student => student.id);
   
-    // Baholarni olish va guruhlash
     return this.submissionRepository
       .createQueryBuilder('submission')
       .leftJoinAndSelect('submission.student', 'student')
-      .where('submission.submittedAt >= CURRENT_DATE')  // Bugungi kunga teng yoki undan keyingi baholar
-      .andWhere('student.id IN (:...studentIds)', { studentIds })  // Talabalar bo'yicha filtr
-      .andWhere('submission.grade IS NOT NULL')  // Bahosi bo'lgan submissions
+      .where('submission.submittedAt >= CURRENT_DATE')
+      .andWhere('student.id IN (:...studentIds)', { studentIds })
+      .andWhere('submission.grade IS NOT NULL')
       .select([
-        'student.id AS studentId',  // Talaba IDsi
-        'student.firstName AS firstName', // Talabaning ismi
-        'student.lastName AS lastName',   // Talabaning familiyasi
-        'submission.submittedAt AS submittedAt',  // Submission vaqti
-        'SUM(submission.grade) AS totalGrade',  // Jami baho
+        'student.id AS studentId',
+        'student.firstName AS firstName',
+        'student.lastName AS lastName',
+        'MAX(submission.submittedAt) AS submittedAt',  // MAX agregat funktsiyasi qo'shildi
+        'SUM(submission.grade) AS totalGrade',
       ])
-      .groupBy('student.id')  // Talaba bo'yicha guruhlash
-      .addGroupBy('student.firstName')  // Ism bo'yicha guruhlash
-      .addGroupBy('student.lastName')   // Familiya bo'yicha guruhlash
-      .having('SUM(submission.grade) > 0')  // Jami baho musbat bo'lishi kerak
-      .orderBy('submission.submittedAt', 'ASC')  // Submission vaqtiga qarab saralash
-      .getRawMany();  // So'rovni bajarish va natijalarni olish
+      .groupBy('student.id')
+      .addGroupBy('student.firstName')
+      .addGroupBy('student.lastName')
+      .having('SUM(submission.grade) > 0')
+      .orderBy('submittedAt', 'ASC')  // MAX(submission.submittedAt) bo'yicha tartiblash
+      .getRawMany();
   }
   
   async getTotalScores(userId: number, groupId: number) {
-    // O'qituvchi rolini tekshirish
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user?.teacherId) {
       throw new ForbiddenException("Faqat o'qituvchilargina jami baholarni ko'rishi mumkin");
     }
   
-    // Guruhni topish
     const group = await this.groupRepository.findOne({ where: { id: groupId }, relations: ['students'] });
     if (!group) {
       throw new NotFoundException("Bunday guruh topilmadi.");
     }
   
-    // Talabalar ro'yxatini olish
     const studentIds = group.students.map(student => student.id);
   
-    // Baholarni olish va jami baholarni hisoblash
     return this.submissionRepository
       .createQueryBuilder('submission')
       .leftJoinAndSelect('submission.student', 'student')
-      .where('student.id IN (:...studentIds)', { studentIds })  // Talabalar bo'yicha filtr
+      .where('student.id IN (:...studentIds)', { studentIds })
       .select([
-        'student.id AS studentId',  // Talaba IDsi
-        'student.firstName AS firstName', // Talabaning ismi
-        'student.lastName AS lastName',   // Talabaning familiyasi
-        'SUM(submission.grade) AS totalGrade',  // Jami baho
+        'student.id AS studentId',
+        'student.firstName AS firstName',
+        'student.lastName AS lastName',
+        'SUM(submission.grade) AS totalGrade',
       ])
-      .groupBy('student.id')  // Talaba bo'yicha guruhlash
-      .addGroupBy('student.firstName')  // Ism bo'yicha guruhlash
-      .addGroupBy('student.lastName')   // Familiya bo'yicha guruhlash
-      .orderBy('totalGrade', 'DESC')  // Jami baho bo'yicha kamayish tartibida saralash
-      .getRawMany();  // So'rovni bajarish va natijalarni olish
+      .groupBy('student.id')
+      .addGroupBy('student.firstName')
+      .addGroupBy('student.lastName')
+      .orderBy('totalGrade', 'DESC')
+      .getRawMany();
   }
   
 }  
