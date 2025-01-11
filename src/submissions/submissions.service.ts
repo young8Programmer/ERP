@@ -70,25 +70,21 @@ async getAllSubmissions(userId: number) {
     throw new ForbiddenException("Siz ro'yxatdan o'tmagansiz");
   }
 
-  const submissions = await this.submissionRepository.createQueryBuilder('submission')
-  .leftJoinAndSelect('submission.student', 'student')
-  .leftJoinAndSelect('submission.assignment', 'assignment')
-  .leftJoinAndSelect('assignment.lesson', 'lesson')
-  .leftJoinAndSelect('lesson.group', 'group')
-  .leftJoinAndSelect('group.teacher', 'teacher')
-  .select([
-    'submission.id',
-    'submission.content',
-    'submission.status',
-    'submission.grade',
-    'submission.submittedAt',
-    'student.id', 'student.firstName', 'student.lastName', 'student.phone', 'student.address', 'student.role',
-    'assignment.id', 'assignment.assignment',
-    'lesson.id', 'lesson.title',
-    'group.id', 'group.name',
-    'teacher.id', 'teacher.firstName', 'teacher.lastName'
-  ])
-  .getMany();
+  // Submission va Student ma'lumotlarini olish
+const submissions = await this.submissionRepository.find({
+  relations: ['student', 'assignment'], // Assignment va Studentni olish
+});
+
+// Assignment, Lesson, Group, va Teacher ma'lumotlarini alohida olish
+for (const submission of submissions) {
+  if (submission.assignment) {
+    const assignment = await this.assignmentRepository.findOne({
+      where: { id: submission.assignment.id },
+      relations: ['lesson', 'lesson.group', 'lesson.group.teacher'],
+    });
+    submission.assignment = assignment;
+  }
+}
 
 return submissions;
 
