@@ -83,7 +83,7 @@ async getAllSubmissions(userId: number) {
     'submission.grade',
     'submission.submittedAt',
     'student.id', 'student.firstName', 'student.lastName', 'student.phone', 'student.address', 'student.role',
-    'assignment.id', 'assignment.name',
+    'assignment.id', 'assignment.assignment',
     'lesson.id', 'lesson.name',
     'group.id', 'group.name',
     'teacher.id', 'teacher.firstName', 'teacher.lastName'
