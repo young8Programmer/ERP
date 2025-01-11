@@ -37,7 +37,7 @@ export class SubmissionService {
     throw new ForbiddenException("Bunday topshiriqni darsligi mavjud emas")
   }
 
-  const group = await this.groupRepository.findOne({where: {id: lesson.group.id}, relations: ["group"]})
+  const group = await this.groupRepository.findOne({where: {id: lesson.group.id}, relations: ["students"]})
 
   if (!group) {
     throw new ForbiddenException("Bunday topshiriqni darsligini guruhi mavjud emas")
