@@ -63,7 +63,6 @@ export class SubmissionService {
 
   return { message: 'Topshiriq muvaffaqiyatli saqlandi.', submissionId: submission.id };
 }
-
 async getAllSubmissions(userId: number) {
   const user = await this.userRepository.findOne({ where: { id: userId } });
 
@@ -71,13 +70,20 @@ async getAllSubmissions(userId: number) {
     throw new ForbiddenException("Siz ro'yxatdan o'tmagansiz");
   }
 
-  // Find all submissions with related entities (student, assignment, etc.)
   const submissions = await this.submissionRepository.find({
-    relations: ['student', 'assignment', 'assignment.lesson', 'assignment.lesson.group', 'assignment.lesson.group.teacher', 'assignment.lesson.group.students'],
+    relations: [
+      'student', 
+      'assignment', 
+      'assignment.lesson', 
+      'assignment.lesson.group', 
+      'assignment.lesson.group.teacher', 
+      'assignment.lesson.group.students'
+    ],
   });
 
   return submissions;
 }
+
 
   async gradeSubmission(userId: number, submissionId: number, grade: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
