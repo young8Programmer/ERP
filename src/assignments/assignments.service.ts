@@ -143,7 +143,8 @@ export class AssignmentsService {
   
     // Ushbu darsga tegishli topshiriqlarni olish
     const assignments = await this.assignmentRepository.find({
-      where: { lesson: { id: lessonId } },
+      where: { lesson: { id: lessonId }}, 
+      relations: ["submissions"]
     });
   
     if (!assignments || assignments.length === 0) {
