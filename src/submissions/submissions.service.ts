@@ -139,14 +139,15 @@ export class SubmissionService {
     return this.submissionRepository
       .createQueryBuilder('submission')
       .leftJoinAndSelect('submission.student', 'student')
+      .where('submission.submittedAt >= CURRENT_DATE') // Faqat bugungi kundagi baholar
       .select([
         'student.id AS studentId', // Talaba identifikatori
-        'DATE(submission.submittedAt) AS submittedDate', // Faqat sana qismi
+        'submission.submittedAt AS submittedAt', // Sana
         'SUM(submission.grade) AS totalGrade', // Baholarning yig‘indisi
       ])
       .groupBy('student.id') // Talabalar kesimida guruhlash
-      .addGroupBy('DATE(submission.submittedAt)') // Sana bo‘yicha guruhlash
-      .orderBy('DATE(submission.submittedAt)', 'ASC') // Sanalar bo‘yicha tartiblash
+      .addGroupBy('submission.submittedAt') // Sana bo‘yicha guruhlash
+      .orderBy('submission.submittedAt', 'ASC') // Natijalarni sanalar bo‘yicha tartiblash
       .getRawMany();
   }
   
