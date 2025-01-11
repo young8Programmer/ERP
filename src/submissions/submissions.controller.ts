@@ -22,7 +22,6 @@ import { RolesTeacherGuard } from 'src/auth/rolesTeacherGuard';
 export class SubmissionController {
   constructor(private readonly submissionsService: SubmissionService) {}
 
-
   @UseGuards(AuthGuard, RolesStudentGuard)
   @Roles("student")
   @Post(':assignmentId/submit')
@@ -42,6 +41,24 @@ export class SubmissionController {
       assignmentId
     );
   }
+
+  
+  @UseGuards(AuthGuard)
+  @Roles("student")
+  @Get("all")
+  async getallSubmissions(
+    @Req() req
+  ) {
+    if (!req.user || !req.user.id) {
+      throw new ForbiddenException('User not authenticated');
+    }
+
+    const userId = req.user.id;
+    return this.submissionsService.getAllSubmissions(
+      userId
+    );
+  }
+
 
   @UseGuards(AuthGuard, RolesTeacherGuard)
   @Roles("teacher")
