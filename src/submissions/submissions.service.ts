@@ -133,17 +133,24 @@ export class SubmissionService {
   async getDailyGrades(userId: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user?.teacherId) {
-      throw new ForbiddenException('Faqat o\'qituvchilargina kundalik baholarni ko\'rishi mumkin.');
+      throw new ForbiddenException("Faqat o'qituvchilargina kundalik baholarni ko'rishi mumkin.");
     }
-
+  
     return this.submissionRepository
       .createQueryBuilder('submission')
       .leftJoinAndSelect('submission.student', 'student')
-      .where('submission.submittedAt >= CURRENT_DATE')
-      .select(['student.id AS studentId', 'SUM(submission.grade) AS totalGrade'])
-      .groupBy('student.id')
-      .getRawMany(); 
-    }
+      .where('submission.submittedAt >= CURRENT_DATE') // Faqat bugungi kundagi baholar
+      .select([
+        'student.id AS studentId', // Talaba identifikatori
+        'submission.submittedAt AS submittedAt', // Sana
+        'SUM(submission.grade) AS totalGrade', // Baholarning yig‘indisi
+      ])
+      .groupBy('student.id') // Talabalar kesimida guruhlash
+      .addGroupBy('submission.submittedAt') // Sana bo‘yicha guruhlash
+      .orderBy('submission.submittedAt', 'ASC') // Natijalarni sanalar bo‘yicha tartiblash
+      .getRawMany();
+  }
+  
 
   async getTotalScores(userId: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
