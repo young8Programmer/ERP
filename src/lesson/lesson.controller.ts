@@ -11,6 +11,13 @@ export class LessonsController {
   constructor(private readonly lessonsService: LessonsService) {}
 
   @UseGuards(AuthGuard)
+  @Get("all")
+  async getAll(@Request() req: any) {
+    const userId = req.user.id;
+    return this.lessonsService.getAll(userId);
+  }
+
+  @UseGuards(AuthGuard)
   @Get('group/:groupId')
   async findLessonsByGroup(
     @Param('groupId') groupId: number,

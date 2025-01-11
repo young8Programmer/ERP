@@ -16,6 +16,12 @@ export class LessonsService {
     private readonly userRepository: Repository<User>,
   ) {}
 
+  async getAll(userId: number) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('Foydalanuvchi topilmadi');
+
+    return this.lessonRepository.find({relations: ["group", "assignments"]});
+  }
   
   // Guruhga tegishli darslarni olish
   async findLessonsByGroup(groupId: number, userId: number) {
