@@ -69,30 +69,27 @@ export class SubmissionService {
 
   await this.submissionRepository.save(submission);
 
-  return { message: 'Topshiriq muvaffaqiyatli saqlandi.', submissionId: submission.id };
-}
-async getAllSubmissions(userId: number) {
-  const user = await this.userRepository.findOne({ where: { id: userId } });
-
-  if (!user) {
-    throw new ForbiddenException("Siz ro'yxatdan o'tmagansiz");
+    return { message: 'Topshiriq muvaffaqiyatli saqlandi.', submissionId: submission.id };
   }
-  const submissions = await this.submissionRepository.find({
-    relations: [
-      'student',
-      'assignment',
-      'assignment.lesson',
-      'assignment.lesson.group',
-      'assignment.lesson.group.teacher',
-    ],
-  });
-  
+    
+    async getAllSubmissions(userId: number) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
 
-return submissions;
-
-
-  return submissions;
-}
+    if (!user) {
+      throw new ForbiddenException("Siz ro'yxatdan o'tmagansiz");
+    }
+    const submissions = await this.submissionRepository.find({
+      relations: [
+        'student',
+        'assignment',
+        'assignment.lesson',
+        'assignment.lesson.group',
+        'assignment.lesson.group.teacher',
+      ],
+    });
+      
+    return submissions;
+  }
 
 
   async gradeSubmission(userId: number, submissionId: number, grade: number) {
@@ -142,7 +139,7 @@ return submissions;
     return this.submissionRepository
       .createQueryBuilder('submission')
       .leftJoinAndSelect('submission.student', 'student')
-      .where('submission.createdAt >= CURRENT_DATE')
+      .where('submission.submittedAt >= CURRENT_DATE')
       .select(['student.id AS studentId', 'SUM(submission.grade) AS totalGrade'])
       .groupBy('student.id')
       .getRawMany(); 
