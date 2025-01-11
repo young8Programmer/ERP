@@ -47,11 +47,18 @@ export class SubmissionService {
     throw new ForbiddenException("siz bu topshiriq guruh talabasi emassiz")
   }
 
-  const existingSubmission: any = await this.submissionRepository.findOne({ where: { student: {id: user.studentId} }, relations: ["student"]}); 
+  const existingSubmission = await this.submissionRepository.findOne({
+    where: { 
+      student: { id: user.studentId }, 
+      assignment: { id: assignmentId }
+    },
+    relations: ["student", "assignment"],
+  });
+  
   if (existingSubmission) {
-    throw new ForbiddenException("Siz bu topshiriqni bajargansiz")
+    throw new ForbiddenException("Siz bu topshiriqni allaqachon bajargansiz");
   }
-
+  
   const submission = this.submissionRepository.create({
     content,
     grade: 0,
