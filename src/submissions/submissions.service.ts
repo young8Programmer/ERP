@@ -147,7 +147,8 @@ export class SubmissionService {
       .createQueryBuilder('submission')
       .leftJoinAndSelect('submission.student', 'student')
       .where('submission.submittedAt >= CURRENT_DATE')
-      .andWhere('student.id IN (:...studentIds)', { studentIds })
+      .andWhere('student.id IN (:...studentIds)', { studentIds }) // Guruhdagi talabalar
+      .andWhere('submission.grade IS NOT NULL') // Null bo'lmagan baholarni faqat hisoblash
       .select([
         'student.id AS studentId',
         'submission.submittedAt AS submittedAt',
@@ -157,7 +158,7 @@ export class SubmissionService {
       .addGroupBy('submission.submittedAt')
       .orderBy('submission.submittedAt', 'ASC')
       .getRawMany();
-  }
+}
 
   async getTotalScores(userId: number, groupId: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
