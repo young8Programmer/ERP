@@ -20,16 +20,26 @@ export class SubmissionService {
     throw new ForbiddenException('Faqat talabalargina topshiriqlarni yuborishi mumkin.');
   }
 
-
-  const existingSubmission = await this.submissionRepository.findOne({ where: { content }, relations: ["student"]});
-  if (existingSubmission) {
-    throw new ConflictException('Siz bu topshiriqqa javob yuborgansiz', existingSubmission.student.address);
+  const existingSubmissions = await this.submissionRepository.find({
+    where: { content },
+    relations: ['student'], // student bilan bog'liq ma'lumotni olib keladi
+  });
+  
+  if (existingSubmissions.length > 0) {
+    // Bitta submission o'rniga bir nechta submission bo'lsa, shularni boshqarish
+    throw new ConflictException(
+      'Siz bu topshiriqqa javob yuborgansiz',
+      existingSubmissions[0].student?.address, // birinchi submission studentining addressi
+    );
   }
+  
+  // Agar submission topilmasa, yangi submission yaratish
   const submission = this.submissionRepository.create({
     content,
     grade: 0,
     status: false,
   });
+  
 
   await this.submissionRepository.save(submission);
 
