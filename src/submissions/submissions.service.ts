@@ -22,7 +22,7 @@ export class SubmissionService {
 
   const existingSubmissions = await this.submissionRepository.find({
     where: { content },
-    relations: ['student', 'student.address'], // student bilan bog'liq ma'lumotni olib keladi
+    select: ['student'], // student bilan bog'liq ma'lumotni olib keladi
   });
   
   if (existingSubmissions.length > 0) {
