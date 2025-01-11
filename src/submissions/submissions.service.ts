@@ -133,15 +133,13 @@ export class SubmissionService {
   async getDailyGrades(userId: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user?.teacherId) {
-      throw new ForbiddenException('Faqat o\'qituvchilargina kundalik baholarni ko\'rishi mumkin.');
+      throw new ForbiddenException("Faqat o'qituvchilargina kundalik baholarni ko'rishi mumkin.");
     }
   
     return this.submissionRepository
       .createQueryBuilder('submission')
       .leftJoinAndSelect('submission.student', 'student')
       .where('submission.submittedAt >= CURRENT_DATE') // Faqat bugungi kundagi baholar
-      .andWhere('submission.grade > 0') // Faqat baho olingan topshiriqlarni ko'rsatish
-      .andWhere('submission.status = :status', { status: true }) // Faqat "true" statusli topshiriqlar
       .select([
         'student.id AS studentId', // Talaba identifikatori
         'submission.submittedAt AS submittedAt', // Sana
