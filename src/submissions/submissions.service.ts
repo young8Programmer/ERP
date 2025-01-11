@@ -145,46 +145,58 @@ export class SubmissionService {
 
     return this.submissionRepository
       .createQueryBuilder('submission')
-      .leftJoinAndSelect('submission.student', 'student')
+      .leftJoinAndSelect('submission.student', 'student') // Talabalar bilan join qilish
+      .leftJoinAndSelect('student.user', 'user') // Talabaning user ma'lumotlarini olish
       .where('submission.submittedAt >= CURRENT_DATE')
-      .andWhere('student.id IN (:...studentIds)', { studentIds }) // Guruhdagi talabalar
-      .andWhere('submission.grade IS NOT NULL') // Null bo'lmagan baholarni faqat hisoblash
+      .andWhere('student.id IN (:...studentIds)', { studentIds })
+      .andWhere('submission.grade IS NOT NULL') 
       .select([
         'student.id AS studentId',
+        'user.firstName AS firstName', // firstName ni qo'shish
+        'user.lastName AS lastName',   // lastName ni qo'shish
         'submission.submittedAt AS submittedAt',
         'SUM(submission.grade) AS totalGrade',
       ])
       .groupBy('student.id')
+      .addGroupBy('user.firstName')   // firstName ga group by qilish
+      .addGroupBy('user.lastName')    // lastName ga group by qilish
       .addGroupBy('submission.submittedAt')
-      .having('SUM(submission.grade) > 0') // Jami baho 0 dan katta bo'lishi kerak
+      .having('SUM(submission.grade) > 0')
       .orderBy('submission.submittedAt', 'ASC')
       .getRawMany();
-}
-
-  async getTotalScores(userId: number, groupId: number) {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user?.teacherId) {
-      throw new ForbiddenException("Faqat o'qituvchilargina jami baholarni ko'rishi mumkin");
     }
 
-    const group = await this.groupRepository.findOne({ where: { id: groupId }, relations: ['students'] });
-    if (!group) {
-      throw new NotFoundException("Bunday guruh topilmadi.");
-    }
-
-    const studentIds = group.students.map(student => student.id);
-
-    return this.submissionRepository
-      .createQueryBuilder('submission')
-      .leftJoinAndSelect('submission.student', 'student')
-      .where('student.id IN (:...studentIds)', { studentIds }) // Guruhdagi talabalar
-      .select([
-        'student.id AS studentId',
-        'SUM(submission.grade) AS totalGrade', // Jami baho
-      ])
-      .groupBy('student.id')
-      .orderBy('totalGrade', 'DESC') // Baholarga qarab tartiblash
-      .getRawMany();
-}
+    async getTotalScores(userId: number, groupId: number) {
+      const user = await this.userRepository.findOne({ where: { id: userId } });
+      if (!user?.teacherId) {
+        throw new ForbiddenException("Faqat o'qituvchilargina jami baholarni ko'rishi mumkin");
+      }
+  
+      const group = await this.groupRepository.findOne({ where: { id: groupId }, relations: ['students'] });
+      if (!group) {
+        throw new NotFoundException("Bunday guruh topilmadi.");
+      }
+  
+      const studentIds = group.students.map(student => student.id);
+  
+      return this.submissionRepository
+        .createQueryBuilder('submission')
+        .leftJoinAndSelect('submission.student', 'student') // Talabalar bilan join qilish
+        .leftJoinAndSelect('student.user', 'user') // Talabaning user ma'lumotlarini olish
+        .where('student.id IN (:...studentIds)', { studentIds })
+        .select([
+          'student.id AS studentId',
+          'user.firstName AS firstName', // firstName ni qo'shish
+          'user.lastName AS lastName',   // lastName ni qo'shish
+          'SUM(submission.grade) AS totalGrade',
+        ])
+        .groupBy('student.id')
+        .addGroupBy('user.firstName')   // firstName ga group by qilish
+        .addGroupBy('user.lastName')    // lastName ga group by qilish
+        .orderBy('totalGrade', 'DESC')
+        .getRawMany();
+  }
+  
+    
 
 }
