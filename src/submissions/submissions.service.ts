@@ -37,7 +37,7 @@ export class SubmissionService {
     throw new ForbiddenException("Bunday topshiriqni darsligi mavjud emas")
   }
 
-  const group = await this.groupRepository.findOne({where: {id: lesson.group.id}, relations: ["students"]})
+  const group = await this.groupRepository.findOne({where: {id: lesson.group.id}, relations: ["group"]})
 
   if (!group) {
     throw new ForbiddenException("Bunday topshiriqni darsligini guruhi mavjud emas")
@@ -66,13 +66,33 @@ export class SubmissionService {
 
   async gradeSubmission(userId: number, submissionId: number, grade: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user?.teacherId) {
-      throw new ForbiddenException('Faqat o\'qituvchilargina topshiriqlarni baholashi mumkin.');
-    }
 
-    const submission = await this.submissionRepository.findOne({ where: { id: submissionId } });
+    const submission = await this.submissionRepository.findOne({ where: { id: submissionId }, relations: ["assignment"]});
     if (!submission) {
       throw new NotFoundException('Topshiriq javobi topilmadi.');
+    }
+
+    if (submission.grade) {
+      throw new NotFoundException("Bu topshiriqqa baxo qo'ygansiz");
+    }
+
+    const assignment = await this.assignmentRepository.findOne({ where: { id: submission.assignment.id }, relations: ["lesson"]});
+
+    if (!assignment) {
+      throw new NotFoundException("bu javobni topshirig'i mavjud emas");
+    }
+
+    const lesson = await this.lessonRepository.findOne({ where: { id: assignment.lesson.id }, relations: ["group"]});
+
+    if (!lesson) {
+      throw new NotFoundException("bu javobni topshirig'ini darsligi mavjud emas");
+    }
+
+    
+    const group = await this.groupRepository.findOne({ where: { id: lesson.group.id }, relations: ["teacher"]});
+
+    if (group.teacher.id !== user.teacherId) {
+      throw new NotFoundException("siz bu guruhni topshirig'iga baxo qo'ya olmaysiz");
     }
 
     submission.grade = grade;
