@@ -14,7 +14,7 @@ export class SubmissionService {
   ) {}
 
   async submitAnswer(userId: number, content: string) {
-  const user = await this.userRepository.findOne({ where: { id: userId } });
+  const user: any = await this.userRepository.findOne({ where: { id: userId } });
   
   if (!user?.studentId) {
     throw new ForbiddenException('Faqat talabalargina topshiriqlarni yuborishi mumkin.');
@@ -30,6 +30,7 @@ export class SubmissionService {
     content,
     grade: 0,
     status: false,
+    student: user.studentId
   });
 
   await this.submissionRepository.save(submission);
