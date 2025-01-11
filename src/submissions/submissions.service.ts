@@ -135,68 +135,62 @@ export class SubmissionService {
     if (!user?.teacherId) {
       throw new ForbiddenException("Faqat o'qituvchilargina kundalik baholarni ko'rishi mumkin.");
     }
-
+  
     const group = await this.groupRepository.findOne({ where: { id: groupId }, relations: ['students'] });
     if (!group) {
       throw new NotFoundException("Bunday guruh topilmadi.");
     }
-
+  
     const studentIds = group.students.map(student => student.id);
-
+  
     return this.submissionRepository
       .createQueryBuilder('submission')
-      .leftJoinAndSelect('submission.student', 'student') // Talabalar bilan join qilish
-      .leftJoinAndSelect('student.user', 'user') // Talabaning user ma'lumotlarini olish
+      .leftJoinAndSelect('submission.student', 'student')
       .where('submission.submittedAt >= CURRENT_DATE')
       .andWhere('student.id IN (:...studentIds)', { studentIds })
       .andWhere('submission.grade IS NOT NULL') 
       .select([
         'student.id AS studentId',
-        'user.firstName AS firstName', // firstName ni qo'shish
-        'user.lastName AS lastName',   // lastName ni qo'shish
+        'student.firstName AS firstName',
+        'student.lastName AS lastName', 
         'submission.submittedAt AS submittedAt',
         'SUM(submission.grade) AS totalGrade',
       ])
       .groupBy('student.id')
-      .addGroupBy('student.firstName')   // firstName ga group by qilish
-      .addGroupBy('student.lastName')    // lastName ga group by qilish
-      .addGroupBy('submission.submittedAt')
+      .addGroupBy('student.firstName') 
+      .addGroupBy('student.lastName')  
       .having('SUM(submission.grade) > 0')
       .orderBy('submission.submittedAt', 'ASC')
       .getRawMany();
-    }
-
-    async getTotalScores(userId: number, groupId: number) {
-      const user = await this.userRepository.findOne({ where: { id: userId } });
-      if (!user?.teacherId) {
-        throw new ForbiddenException("Faqat o'qituvchilargina jami baholarni ko'rishi mumkin");
-      }
-  
-      const group = await this.groupRepository.findOne({ where: { id: groupId }, relations: ['students'] });
-      if (!group) {
-        throw new NotFoundException("Bunday guruh topilmadi.");
-      }
-  
-      const studentIds = group.students.map(student => student.id);
-  
-      return this.submissionRepository
-        .createQueryBuilder('submission')
-        .leftJoinAndSelect('submission.student', 'student') // Talabalar bilan join qilish
-        .leftJoinAndSelect('student.user', 'user') // Talabaning user ma'lumotlarini olish
-        .where('student.id IN (:...studentIds)', { studentIds })
-        .select([
-          'student.id AS studentId',
-          'user.firstName AS firstName', // firstName ni qo'shish
-          'user.lastName AS lastName',   // lastName ni qo'shish
-          'SUM(submission.grade) AS totalGrade',
-        ])
-        .groupBy('student.id')
-        .addGroupBy('student.firstName')   // firstName ga group by qilish
-        .addGroupBy('student.lastName')    // lastName ga group by qilish
-        .orderBy('totalGrade', 'DESC')
-        .getRawMany();
   }
-  
-    
 
+  async getTotalScores(userId: number, groupId: number) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user?.teacherId) {
+      throw new ForbiddenException("Faqat o'qituvchilargina jami baholarni ko'rishi mumkin");
+    }
+  
+    const group = await this.groupRepository.findOne({ where: { id: groupId }, relations: ['students'] });
+    if (!group) {
+      throw new NotFoundException("Bunday guruh topilmadi.");
+    }
+  
+    const studentIds = group.students.map(student => student.id);
+  
+    return this.submissionRepository
+      .createQueryBuilder('submission')
+      .leftJoinAndSelect('submission.student', 'student')
+      .where('student.id IN (:...studentIds)', { studentIds })
+      .select([
+        'student.id AS studentId',
+        'student.firstName AS firstName',
+        'student.lastName AS lastName',  
+        'SUM(submission.grade) AS totalGrade',
+      ])
+      .groupBy('student.id')
+      .addGroupBy('student.firstName') 
+      .addGroupBy('student.lastName') 
+      .orderBy('totalGrade', 'DESC')
+      .getRawMany();
+    }  
 }
