@@ -70,17 +70,28 @@ async getAllSubmissions(userId: number) {
     throw new ForbiddenException("Siz ro'yxatdan o'tmagansiz");
   }
 
-  const submissions = await this.submissionRepository.find({
-    relations: [
-      'student', 
-      'assignment', 
-      'assignment.lesson', 
-      'assignment.lesson.group', 
-      'assignment.lesson.group.teacher'
-    ],
-  });
+  const submissions = await this.submissionRepository.createQueryBuilder('submission')
+  .leftJoinAndSelect('submission.student', 'student')
+  .leftJoinAndSelect('submission.assignment', 'assignment')
+  .leftJoinAndSelect('assignment.lesson', 'lesson')
+  .leftJoinAndSelect('lesson.group', 'group')
+  .leftJoinAndSelect('group.teacher', 'teacher')
+  .select([
+    'submission.id',
+    'submission.content',
+    'submission.status',
+    'submission.grade',
+    'submission.submittedAt',
+    'student.id', 'student.firstName', 'student.lastName', 'student.phone', 'student.address', 'student.role',
+    'assignment.id', 'assignment.name',
+    'lesson.id', 'lesson.name',
+    'group.id', 'group.name',
+    'teacher.id', 'teacher.firstName', 'teacher.lastName'
+  ])
+  .getMany();
 
-  return submissions;
+return submissions;
+
 }
 
 
