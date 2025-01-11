@@ -22,7 +22,9 @@ export class SubmissionService {
 
   const existingSubmission: any = await this.submissionRepository.findOne({ where: { content }});
   if (existingSubmission) {
-    throw new ConflictException('Siz bu topshiriqqa javob yuborgansiz', existingSubmission);
+    return {
+      existingSubmission
+    }
   }
   const submission = this.submissionRepository.create({
     content,
