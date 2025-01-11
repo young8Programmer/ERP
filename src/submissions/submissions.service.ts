@@ -135,56 +135,62 @@ export class SubmissionService {
     if (!user?.teacherId) {
       throw new ForbiddenException("Faqat o'qituvchilargina kundalik baholarni ko'rishi mumkin.");
     }
-
+  
     const group = await this.groupRepository.findOne({ where: { id: groupId }, relations: ['students'] });
     if (!group) {
       throw new NotFoundException("Bunday guruh topilmadi.");
     }
-
+  
     const studentIds = group.students.map(student => student.id);
-
+  
     return this.submissionRepository
       .createQueryBuilder('submission')
       .leftJoinAndSelect('submission.student', 'student')
       .where('submission.submittedAt >= CURRENT_DATE')
       .andWhere('student.id IN (:...studentIds)', { studentIds })
-      .andWhere('submission.grade IS NOT NULL') 
+      .andWhere('submission.grade IS NOT NULL')
       .select([
         'student.id AS studentId',
+        'student.firstName AS firstName', // studentning firstName
+        'student.lastName AS lastName',   // studentning lastName
         'submission.submittedAt AS submittedAt',
         'SUM(submission.grade) AS totalGrade',
       ])
       .groupBy('student.id')
-      .addGroupBy('submission.submittedAt')
+      .addGroupBy('student.firstName')  // student.firstName bilan group by qilish
+      .addGroupBy('student.lastName')   // student.lastName bilan group by qilish
       .having('SUM(submission.grade) > 0')
       .orderBy('submission.submittedAt', 'ASC')
       .getRawMany();
-}
+  }
 
   async getTotalScores(userId: number, groupId: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user?.teacherId) {
       throw new ForbiddenException("Faqat o'qituvchilargina jami baholarni ko'rishi mumkin");
     }
-
+  
     const group = await this.groupRepository.findOne({ where: { id: groupId }, relations: ['students'] });
     if (!group) {
       throw new NotFoundException("Bunday guruh topilmadi.");
     }
-
+  
     const studentIds = group.students.map(student => student.id);
-
+  
     return this.submissionRepository
       .createQueryBuilder('submission')
       .leftJoinAndSelect('submission.student', 'student')
-      .where('student.id IN (:...studentIds)', { studentIds }) // Guruhdagi talabalar
+      .where('student.id IN (:...studentIds)', { studentIds })
       .select([
         'student.id AS studentId',
-        'SUM(submission.grade) AS totalGrade', // Jami baho
+        'student.firstName AS firstName', // studentning firstName
+        'student.lastName AS lastName',   // studentning lastName
+        'SUM(submission.grade) AS totalGrade',
       ])
       .groupBy('student.id')
-      .orderBy('totalGrade', 'DESC') // Baholarga qarab tartiblash
+      .addGroupBy('student.firstName')  // student.firstName bilan group by qilish
+      .addGroupBy('student.lastName')   // student.lastName bilan group by qilish
+      .orderBy('totalGrade', 'DESC')
       .getRawMany();
-}
-
-}
+  }
+}  
