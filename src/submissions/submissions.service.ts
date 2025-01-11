@@ -72,7 +72,7 @@ export class SubmissionService {
       throw new NotFoundException('Topshiriq javobi topilmadi.');
     }
 
-    if (submission.grade) {
+    if (submission.status) {
       throw new NotFoundException("Bu topshiriqqa baxo qo'ygansiz");
     }
 
