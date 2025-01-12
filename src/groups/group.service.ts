@@ -109,7 +109,8 @@ export class GroupsService {
       }
   
       return await this.groupRepository.find({
-        where: { students: { id: studentId } },
+        where: { students: { id: studentId }},
+        relations: ["teacher"]
       });
     } catch (error) {
       throw new BadRequestException(`Failed to fetch groups by student ID: ${error.message}`);

@@ -193,5 +193,5 @@ export class SubmissionService {
       .orderBy('totalGrade', 'DESC')
       .getRawMany();
   }
-  
-}  
+
+} 
