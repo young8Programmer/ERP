@@ -22,7 +22,7 @@ export class Lesson {
   lessonNumber: string;
 
   @CreateDateColumn({ type: 'timestamp' })
-  startDate: Date;
+  lessonDate: Date;
 
   @Column({ type: 'timestamp', nullable: true })
   endDate: Date;
