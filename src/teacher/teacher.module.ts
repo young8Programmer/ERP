@@ -4,7 +4,7 @@ import { TeachersController } from './teacher.controller';
 import { TeachersService } from './teacher.service';
 import { Teacher } from './entities/teacher.entity';
 import { Group } from 'src/groups/entities/group.entity';
-import { Student } from 'src/students/entities/user.entity';
+import { Student } from 'src/students/entities/student.entity';
 import { User } from 'src/auth/entities/user.entity';
 
 @Module({

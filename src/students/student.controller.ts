@@ -12,7 +12,7 @@ import {
 import { StudentsService } from './student.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
-import { Student } from './entities/user.entity';
+import { Student } from './entities/student.entity';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { Roles, RolesGuard } from 'src/auth/roles.guard';
 

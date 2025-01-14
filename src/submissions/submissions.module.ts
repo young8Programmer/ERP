@@ -8,7 +8,7 @@ import { User } from 'src/auth/entities/user.entity';
 import { Group } from 'src/groups/entities/group.entity';
 import { Lesson } from 'src/lesson/entities/lesson.entity';
 import { Course } from 'src/courses/entities/course.entity';
-import { Student } from 'src/students/entities/user.entity';
+import { Student } from 'src/students/entities/student.entity';
 import { Teacher } from 'src/teacher/entities/teacher.entity';
 
 @Module({

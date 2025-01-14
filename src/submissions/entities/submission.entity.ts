@@ -1,6 +1,6 @@
   import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, Unique } from 'typeorm';
   import { Assignment } from 'src/assignments/entities/assignment.entity';
-  import { Student } from '../../students/entities/user.entity'; // To'g'ri entitetni import qilish
+  import { Student } from '../../students/entities/student.entity'; // To'g'ri entitetni import qilish
 
   @Entity()
   @Unique(['assignment', 'student'])

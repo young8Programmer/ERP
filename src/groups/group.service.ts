@@ -5,7 +5,7 @@ import { Group } from './entities/group.entity';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { Course } from '../courses/entities/course.entity';
-import { Student } from '../students/entities/user.entity';
+import { Student } from '../students/entities/student.entity';
 import { Teacher } from '../teacher/entities/teacher.entity';
 import { User } from 'src/auth/entities/user.entity';
 
@@ -90,7 +90,7 @@ export class GroupsService {
       let teacherId = user.teacherId
   
       return await this.groupRepository.find({
-        where: { teacher: { id: teacherId} },
+        where: { teacher: { id: teacherId} }
       });
     } catch (error) {
       throw new BadRequestException(`Failed to fetch groups by teacher ID: ${error.message}`);

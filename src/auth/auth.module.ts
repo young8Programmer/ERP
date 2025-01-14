@@ -7,7 +7,7 @@ import { JwtModule } from '@nestjs/jwt';
 import * as dotenv from 'dotenv';
 import { StudentsModule } from 'src/students/student.module';
 import { TeachersModule } from 'src/teacher/teacher.module';
-import { Student } from 'src/students/entities/user.entity';
+import { Student } from 'src/students/entities/student.entity';
 import { Teacher } from 'src/teacher/entities/teacher.entity';
 import { Profile } from 'src/profile/entities/profile.entity';
 import { GroupsModule } from 'src/groups/group.module';

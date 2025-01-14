@@ -8,7 +8,7 @@ import {
   OneToMany, // Import qildik
 } from 'typeorm';
 import { Course } from '../../courses/entities/course.entity';
-import { Student } from '../../students/entities/user.entity';
+import { Student } from '../../students/entities/student.entity';
 import { Teacher } from '../../teacher/entities/teacher.entity';
 import { Lesson } from '../../lesson/entities/lesson.entity'; // import qilish
 

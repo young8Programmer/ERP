@@ -6,7 +6,7 @@ import { User } from '../auth/entities/user.entity';
 import { Assignment } from 'src/assignments/entities/assignment.entity';
 import { Group } from 'src/groups/entities/group.entity';
 import { Lesson } from 'src/lesson/entities/lesson.entity';
-import { Student } from 'src/students/entities/user.entity';
+import { Student } from 'src/students/entities/student.entity';
 
 @Injectable()
 export class SubmissionService {

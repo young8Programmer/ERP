@@ -9,7 +9,7 @@ import { ProfilesModule } from './profile/profile.module';
 import { Profile } from './profile/entities/profile.entity';
 import { TeachersModule } from './teacher/teacher.module';
 import { Group } from './groups/entities/group.entity';
-import { Student } from './students/entities/user.entity';
+import { Student } from './students/entities/student.entity';
 import { Teacher } from './teacher/entities/teacher.entity';
 import { GroupsModule } from './groups/group.module';
 import { UsersModule } from './users/users.module';
@@ -19,6 +19,8 @@ import { Submission } from './submissions/entities/submission.entity';
 import { LessonsModule } from './lesson/lesson.module';
 import { AssignmentsModule } from './assignments/assignments.module';
 import { SubmissionsModule } from './submissions/submissions.module';
+import { AttendanceModule } from './attendance/attendance.module';
+import { Attendance } from './attendance/entities/attendance.entity';
 
 @Module({
   imports: [
@@ -39,6 +41,7 @@ import { SubmissionsModule } from './submissions/submissions.module';
         Lesson,
         Assignment,
         Submission,
+        Attendance
       ],
       synchronize: true,
     }),
@@ -51,7 +54,8 @@ import { SubmissionsModule } from './submissions/submissions.module';
     UsersModule,
     LessonsModule,
     AssignmentsModule,
-    SubmissionsModule
+    SubmissionsModule,
+    AttendanceModule,
   ],
 })
 

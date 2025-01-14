@@ -20,7 +20,7 @@ import { AuthGuard } from 'src/auth/auth.guard';
 import { Roles, RolesGuard } from 'src/auth/roles.guard';
 import { RolesStudentGuard } from 'src/auth/rolesStudentGuard';
 import { AddStudentDto } from 'src/students/dto/AddStudentDto';
-import { Student } from 'src/students/entities/user.entity';
+import { Student } from 'src/students/entities/student.entity';
 
 @Controller('groups')
 export class GroupsController {
