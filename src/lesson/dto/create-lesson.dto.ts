@@ -1,8 +1,7 @@
 import { Type } from 'class-transformer';
 import { IsString, IsNotEmpty, IsOptional, IsInt, IsDateString, IsArray, ValidateNested } from 'class-validator';
-import { CreateAttendanceDto } from 'src/attendance/dto/create-attendance.dto';
-import { Attendance } from 'src/attendance/entities/attendance.entity';
-
+import { CreateAttendanceDto } from 'src/attendance/dto/create-attendance.dto';  // to'g'ri import
+import { Attendance } from 'src/attendance/entities/attendance.entity'; // Agar boshqa entity bo'lsa, undan foydalanish o'rinli emas
 
 export class CreateLessonDto {
   @IsString()
@@ -23,6 +22,6 @@ export class CreateLessonDto {
 
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => Attendance)
+  @Type(() => CreateAttendanceDto)
   attendance: CreateAttendanceDto[];
 }
