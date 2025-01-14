@@ -16,7 +16,7 @@ export class Lesson {
   id: number;
 
   @Column()
-  lessonName: string;
+  title: string;
 
   @Column()
   lessonNumber: string;
