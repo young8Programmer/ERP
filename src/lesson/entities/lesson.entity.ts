@@ -18,7 +18,7 @@ export class Lesson {
   @Column()
   title: string;
 
-  @Column()
+  @Column({nullable: true})
   lessonNumber: string;
 
   @CreateDateColumn({ type: 'timestamp' })
