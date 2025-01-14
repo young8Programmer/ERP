@@ -1,11 +1,10 @@
-import { IsString, IsNotEmpty, IsOptional, IsInt, IsDateString, IsArray, ValidateNested } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsInt, IsDateString, IsArray, ValidateNested, isBoolean, IsBoolean } from 'class-validator';
 
 export class CreateAttendanceDto {
   @IsInt()
-  @IsNotEmpty()
   studentId: number;
 
-  @IsNotEmpty()
+  @IsBoolean()
   status: boolean;
 }
 
