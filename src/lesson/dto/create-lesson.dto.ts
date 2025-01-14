@@ -6,7 +6,7 @@ import { Attendance } from 'src/attendance/entities/attendance.entity'; // Agar 
 export class CreateLessonDto {
   @IsString()
   @IsNotEmpty()
-  title: string;
+  lessonName: string;
 
   @IsString()
   @IsNotEmpty()

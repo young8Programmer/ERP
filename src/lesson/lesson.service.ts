@@ -64,7 +64,7 @@ export class LessonsService {
     }
   
     const lesson = this.lessonRepository.create({
-      title: lessonData.title,
+      lessonName: lessonData.lessonName,
       lessonNumber: lessonData.lessonNumber,
       lessonDate: new Date(),
       endDate: lessonData.endDate ? new Date(lessonData.endDate) : null,
