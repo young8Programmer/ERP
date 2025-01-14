@@ -30,7 +30,7 @@ import { Attendance } from './attendance/entities/attendance.entity';
       port: 5432,
       username: 'postgres',
       password: '1234',
-      database: 'erpp',
+      database: 'erppp',
       entities: [
         User,
         Course,
