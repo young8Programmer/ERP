@@ -4,6 +4,7 @@ import { CreateLessonDto } from './dto/create-lesson.dto';
 import { UpdateLessonDto } from './dto/update-lesson.dto';
 import { AuthGuard } from '../auth/auth.guard';
 import { RolesTeacherGuard } from '../auth/rolesTeacherGuard';
+import { Roles } from 'src/auth/roles.guard';
 
 
 @Controller('lessons')
@@ -28,6 +29,7 @@ export class LessonsController {
   }
 
   @UseGuards(AuthGuard, RolesTeacherGuard)
+  @Roles("teacher")
   @Post()
   async create(
     @Body() lessonData: CreateLessonDto,
@@ -38,6 +40,7 @@ export class LessonsController {
   }
 
   @UseGuards(AuthGuard, RolesTeacherGuard)
+  @Roles("teacher")
   @Put(':id')
   async update(
     @Param('id') id: string,
@@ -50,6 +53,7 @@ export class LessonsController {
   }
 
   @UseGuards(AuthGuard, RolesTeacherGuard)
+  @Roles("teacher")
   @Delete(':id')
   async remove(@Param('id') id: string, @Request() req: any) {
     const userId = req.user.id;

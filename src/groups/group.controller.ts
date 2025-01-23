@@ -21,6 +21,7 @@ import { Roles, RolesGuard } from 'src/auth/roles.guard';
 import { RolesStudentGuard } from 'src/auth/rolesStudentGuard';
 import { AddStudentDto } from 'src/students/dto/AddStudentDto';
 import { Student } from 'src/students/entities/student.entity';
+import { RolesTeacherGuard } from 'src/auth/rolesTeacherGuard';
 
 @Controller('groups')
 export class GroupsController {
@@ -65,8 +66,8 @@ async getStudentGroups(@Req() req): Promise<Group[]> {
   return this.groupsService.getGroupsByStudentId(userId);
 }
 
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles('admin')
+  @UseGuards(AuthGuard, RolesTeacherGuard)
+  @Roles("teacher")
   @Get(':groupId/students')
   async getStudentsInGroup(@Param('groupId') groupId: number): Promise<any[]> {
     return this.groupsService.getStudentsInGroup(groupId);
