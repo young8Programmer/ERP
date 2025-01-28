@@ -1,7 +1,7 @@
 import { Profile } from 'src/profile/entities/profile.entity';
 import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm';
 
-@Entity("Admins")
+@Entity()
 export class Admin {
   @PrimaryGeneratedColumn()
   id: number;
