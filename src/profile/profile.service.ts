@@ -88,14 +88,19 @@ export class ProfilesService {
 
   async getMyProfile(userId: number): Promise<Profile> {
     const profile = await this.profileRepository.findOne({
-      where: { student: { id: userId }, admin: { id: userId }, teacher: { id: userId } },
+      where: [
+        { student: { id: userId } },
+        { admin: { id: userId } },
+        { teacher: { id: userId } },
+      ],
       relations: ['student', 'admin', 'teacher'],
     });
-
+  
     if (!profile) {
       throw new NotFoundException(`Profile not found`);
     }
-
+  
     return profile;
   }
+  
 }
