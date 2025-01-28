@@ -17,7 +17,7 @@ export class TeachersService {
   ) {}
 
   async createTeacher(createTeacherDto: CreateTeacherDto): Promise<Teacher> {
-    const { phone, username, password } = createTeacherDto;
+    const { phone, username, password, firstName, lastName, address } = createTeacherDto;
   
     // Telefon raqami mavjudligini tekshirish
     const existingTeacher = await this.teacherRepository.findOne({
@@ -40,21 +40,20 @@ export class TeachersService {
   
     // Profile yaratish va saqlash
     const profile = this.profileRepository.create({
-      firstName: createTeacherDto.firstName,
-      lastName: createTeacherDto.lastName,
-      username: createTeacherDto.username,
-      password: hashedPassword, // Hashlangan parolni saqlaymiz
-      phone: createTeacherDto.phone,
-      address: createTeacherDto.address
+      firstName,
+      lastName,
+      username,
+      password: hashedPassword, // Hashlangan parol
+      phone,
+      address,
     });
     await this.profileRepository.save(profile);
-    
-    existingTeacher.profile = profile
   
-    // O'qituvchi yaratish va saqlash
+    // O'qituvchi yaratish va profile bilan bog'lash
     const teacher = this.teacherRepository.create({
       ...createTeacherDto,
-      password: hashedPassword, // Hashlangan parolni saqlaymiz
+      password: hashedPassword, // Hashlangan parol
+      profile, // Bog'lanayotgan profil
     });
   
     return await this.teacherRepository.save(teacher);
