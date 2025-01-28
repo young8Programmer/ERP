@@ -13,7 +13,7 @@ export class Teacher {
   @Column({ type: 'varchar', length: 50 })
   lastName: string;
 
-  @Column({ type: 'varchar', length: 15, unique: true })
+  @Column({ type: 'varchar', length: 15})
   phone: string;
 
   @Column({ type: 'varchar', length: 255 })
@@ -25,7 +25,7 @@ export class Teacher {
   @Column({ default: 'teacher' })
   role: string;
 
-  @Column({ type: 'varchar', length: 100, unique: true })
+  @Column({ type: 'varchar', length: 100})
   username: string; // Added username field
 
   @Column({ type: 'varchar', length: 255 })

@@ -15,7 +15,7 @@ export class Student {
   @Column({ type: 'varchar', length: 50 })
   lastName: string;
 
-  @Column({ type: 'varchar', length: 15, unique: true })
+  @Column({ type: 'varchar', length: 15})
   phone: string;
 
   @Column({ type: 'varchar', length: 255 })
@@ -24,7 +24,7 @@ export class Student {
   @Column({ default: 'student' })
   role: string;
 
-  @Column({ type: 'varchar', length: 50, unique: true })
+  @Column({ type: 'varchar', length: 50})
   username: string;
 
   @Column({ type: 'varchar', length: 255 })
