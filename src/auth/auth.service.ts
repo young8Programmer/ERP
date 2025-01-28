@@ -26,6 +26,7 @@ export class AuthService {
   async login(loginDto: { username: string; password: string }) {
     let user: any;
   
+    // Foydalanuvchini topish
     user = await this.adminRepository.findOne({ where: { username: loginDto.username } });
     if (!user) {
       user = await this.teacherRepository.findOne({ where: { username: loginDto.username } });
@@ -37,14 +38,17 @@ export class AuthService {
       user = await this.superAdminRepository.findOne({ where: { username: loginDto.username } });
     }
   
+    // Foydalanuvchi topilmasa
     if (!user) {
       throw new NotFoundException('User not found');
     }
   
+    // JWT tokenlar yaratish
     const payload = { id: user.id, username: user.username, role: user.role };
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '30d' });
   
+    // Foydalanuvchiga refresh tokenni saqlash
     user.refreshToken = refreshToken;
     if (user instanceof Admin) {
       await this.adminRepository.save(user);
@@ -52,10 +56,13 @@ export class AuthService {
       await this.teacherRepository.save(user);
     } else if (user instanceof Student) {
       await this.studentRepository.save(user);
+    } else if (user instanceof superAdmin) {
+      await this.superAdminRepository.save(user); // SuperAdmin uchun ham saqlash
     }
   
     return { accessToken, refreshToken, user };
   }
+  
   
   // Refresh token method
   async refreshAccessToken(refreshToken: string) {
