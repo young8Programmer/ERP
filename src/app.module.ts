@@ -30,7 +30,7 @@ import { Admin } from './admin/entities/admin.entity';
       port: 5432,
       username: 'postgres',
       password: '1234',
-      database: 'erpp',
+      database: 'erpBackend',
       entities: [
         Course,
         Group,
