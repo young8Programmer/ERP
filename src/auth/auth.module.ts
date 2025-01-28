@@ -26,12 +26,14 @@ import { Submission } from 'src/submissions/entities/submission.entity';
 import { AssignmentsModule } from 'src/assignments/assignments.module';
 import { LessonsModule } from 'src/lesson/lesson.module';
 import { SubmissionsModule } from 'src/submissions/submissions.module';
+import { superAdmin } from 'src/super-admin/entities/super-admin.entity';
+import { SuperAdminModule } from 'src/super-admin/super-admin.module';
 
 dotenv.config();
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Student, Teacher, Profile, Group, Course, Admin, Attendance, Assignment, Lesson, Submission]),
+    TypeOrmModule.forFeature([Student, Teacher, Profile, Group, Course, Admin, Attendance, Assignment, Lesson, Submission, superAdmin]),
     JwtModule.register({
       global: true,
       secret: "juda_secret_key",
@@ -46,7 +48,8 @@ dotenv.config();
     AdminModule,
     AssignmentsModule,
     LessonsModule,
-    SubmissionsModule
+    SubmissionsModule,
+    SuperAdminModule
   ],
   controllers: [AuthController],
   providers: [AuthService, TeachersService, StudentsService],

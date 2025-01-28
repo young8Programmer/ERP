@@ -22,6 +22,7 @@ import { Attendance } from './attendance/entities/attendance.entity';
 import { AdminModule } from './admin/admin.module';
 import { Admin } from './admin/entities/admin.entity';
 import { SuperAdminModule } from './super-admin/super-admin.module';
+import { superAdmin } from './super-admin/entities/super-admin.entity';
 
 @Module({
   imports: [
@@ -42,7 +43,8 @@ import { SuperAdminModule } from './super-admin/super-admin.module';
         Assignment,
         Submission,
         Attendance,
-        Admin
+        Admin,
+        superAdmin
       ],
       synchronize: true,
     }),
