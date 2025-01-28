@@ -13,7 +13,7 @@ import {
 import { SubmissionService } from './submissions.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { GradeSubmissionDto } from './dto/GradeSubmissionDto';
-import { AuthGuard, Roles } from 'src/auth/auth.guard';
+import { AuthGuard, Roles, RolesGuard } from 'src/auth/auth.guard';
 
 
 @Controller('submissions')
@@ -21,7 +21,7 @@ export class SubmissionController {
   constructor(private readonly submissionsService: SubmissionService) {}
 
   @Roles('student')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Post(':assignmentId/submit')
   async submitAnswer(
     @Req() req,
@@ -41,7 +41,7 @@ export class SubmissionController {
   }
 
   @Roles('student')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Get('all')
   async getAllSubmissions(@Req() req) {
     if (!req.user || !req.user.id) {
@@ -53,7 +53,7 @@ export class SubmissionController {
   }
 
   @Roles('teacher')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Patch(':submissionId/grade')
   async gradeSubmission(
     @Req() req,

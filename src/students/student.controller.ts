@@ -13,14 +13,14 @@ import { StudentsService } from './student.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { Student } from './entities/student.entity';
-import { AuthGuard, Roles } from 'src/auth/auth.guard';
+import { AuthGuard, Roles, RolesGuard } from 'src/auth/auth.guard';
 
 @Controller('students')
 export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
 
   @Roles('admin')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Post()
   async createStudent(
     @Body() createStudentDto: CreateStudentDto,
@@ -30,7 +30,7 @@ export class StudentsController {
 
   
   @Roles('admin')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Get()
   async getAllStudents(): Promise<Student[]> {
     return this.studentsService.getAllStudents();
@@ -39,7 +39,7 @@ export class StudentsController {
   
   
   @Roles('admin', "teacher")
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Get('search')
   async searchStudents(@Query('name') name: string): Promise<Student[]> {
     return this.studentsService.searchStudents(name);
@@ -54,7 +54,7 @@ export class StudentsController {
 
   
   @Roles('admin')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Put(':id')
   async updateStudent(
     @Param('id') id: number,
@@ -65,7 +65,7 @@ export class StudentsController {
 
   
   @Roles('admin')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Delete(':id')
   async deleteStudent(@Param('id') id: number): Promise<void> {
     await this.studentsService.deleteStudent(id);

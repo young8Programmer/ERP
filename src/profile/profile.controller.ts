@@ -13,14 +13,14 @@ import { ProfilesService } from './profile.service';
 import { CreateProfileDto } from './dto/create.profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { Profile } from './entities/profile.entity';
-import { AuthGuard, Roles } from 'src/auth/auth.guard';
+import { AuthGuard, Roles, RolesGuard } from 'src/auth/auth.guard';
 
 @Controller('profile')
 export class ProfilesController {
   constructor(private readonly profilesService: ProfilesService) {}
 
   @Roles('admin', 'student')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Post()
   async createProfile(
     @Body() createProfileDto: CreateProfileDto,
@@ -58,7 +58,7 @@ export class ProfilesController {
 
   
   @Roles('admin')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Delete(':id')
   async deleteProfile(@Param('id') id: number): Promise<void> {
     await this.profilesService.deleteProfile(id);

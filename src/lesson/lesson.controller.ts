@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Param, Put, Delete, Request, UseGuards } f
 import { LessonsService } from './lesson.service';
 import { CreateLessonDto } from './dto/create-lesson.dto';
 import { UpdateLessonDto } from './dto/update-lesson.dto';
-import { AuthGuard, Roles } from '../auth/auth.guard';
+import { AuthGuard, Roles, RolesGuard } from '../auth/auth.guard';
 
 @Controller('lessons')
 export class LessonsController {
@@ -26,7 +26,7 @@ export class LessonsController {
   }
 
   @Roles("teacher")
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Post()
   async create(
     @Body() lessonData: CreateLessonDto,
@@ -37,7 +37,7 @@ export class LessonsController {
   }
 
   @Roles("teacher")
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Put(':id')
   async update(
     @Param('id') id: string,
@@ -51,7 +51,7 @@ export class LessonsController {
 
   
   @Roles("teacher")
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Delete(':id')
   async remove(@Param('id') id: string, @Request() req: any) {
     const userId = req.user.id;

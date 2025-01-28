@@ -16,7 +16,7 @@ import { GroupsService } from './group.service';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { Group } from './entities/group.entity';
-import { AuthGuard, Roles } from 'src/auth/auth.guard';
+import { AuthGuard, Roles, RolesGuard } from 'src/auth/auth.guard';
 import { AddStudentDto } from 'src/students/dto/AddStudentDto';
 import { Student } from 'src/students/entities/student.entity';
 
@@ -25,14 +25,14 @@ export class GroupsController {
   constructor(private readonly groupsService: GroupsService) {}
 
   @Roles('admin')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Post()
   async createGroup(@Body() createGroupDto: CreateGroupDto): Promise<Group> {
     return this.groupsService.createGroup(createGroupDto);
   }
   
   @Roles('admin')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Post(':groupId/add-student')
   async addStudentToGroup(
     @Param('groupId') groupId: number,
@@ -63,7 +63,7 @@ export class GroupsController {
 
   
   @Roles('teacher')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Get(':groupId/students')
   async getStudentsInGroup(@Param('groupId') groupId: number): Promise<any[]> {
     return this.groupsService.getGroupsByStudentId(groupId);
@@ -71,7 +71,7 @@ export class GroupsController {
 
   
   @Roles('admin')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Get()
   async getAllGroupsForAdmin(): Promise<Group[]> {
     return this.groupsService.getAllGroupsForAdmin();
@@ -79,7 +79,7 @@ export class GroupsController {
 
   
   @Roles('admin')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Put(':id')
   async updateGroup(
     @Param('id') id: number,
@@ -89,7 +89,7 @@ export class GroupsController {
   }
   
   @Roles('admin')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Delete(':id')
   async deleteGroup(@Param('id') id: number): Promise<void> {
     return this.groupsService.deleteGroup(id);
@@ -97,7 +97,7 @@ export class GroupsController {
 
   
   @Roles('admin')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Delete(':groupId/students/:studentId')
   async removeStudentFromGroup(
     @Param('groupId') groupId: number,

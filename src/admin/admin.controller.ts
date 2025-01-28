@@ -2,14 +2,14 @@ import { Controller, Get, Post, Put, Delete, Param, Body, ParseIntPipe, UseGuard
 import { AdminService } from './admin.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
-import { AuthGuard, Roles } from 'src/auth/auth.guard';
+import { AuthGuard, Roles, RolesGuard } from 'src/auth/auth.guard';
 
 @Controller('admin')
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
   @Roles("superAdmin")
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Get()
   getAll() {
     return this.adminService.getAll();
@@ -22,7 +22,7 @@ export class AdminController {
 
   
   @Roles("superAdmin")
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Put(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -33,7 +33,7 @@ export class AdminController {
 
   
   @Roles("superAdmin")
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Delete(':id')
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.adminService.delete(id);

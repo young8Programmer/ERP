@@ -2,14 +2,14 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Req, ForbiddenExcept
 import { AttendanceService } from './attendance.service';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
 import { UpdateAttendanceDto } from './dto/update-attendance.dto';
-import { AuthGuard, Roles } from 'src/auth/auth.guard';
+import { AuthGuard, Roles, RolesGuard } from 'src/auth/auth.guard';
 
 @Controller('attendance')
 export class AttendanceController {
   constructor(private readonly attendanceService: AttendanceService) {}
 
   @Roles("teacher")
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Post()
   create(@Req() req, @Body() createAttendanceDto: CreateAttendanceDto) {
     const studentId = req.user.id;
@@ -17,7 +17,7 @@ export class AttendanceController {
   }
 
   @Roles("teacher")
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Post('mark-teacher')
   markTeacherAttendance(@Req() req, @Body() createAttendanceDto: CreateAttendanceDto) {
     const teacherId = req.user.id;
@@ -26,7 +26,7 @@ export class AttendanceController {
 
   
   @Roles("teacher")
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Get()
   findAll() {
     return this.attendanceService.findAll();
@@ -34,7 +34,7 @@ export class AttendanceController {
 
   
   @Roles("teacher")
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.attendanceService.findOne(+id);
@@ -42,7 +42,7 @@ export class AttendanceController {
 
   
   @Roles("teacher")
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateAttendanceDto: UpdateAttendanceDto) {
     return this.attendanceService.update(+id, updateAttendanceDto);
@@ -50,7 +50,7 @@ export class AttendanceController {
 
   
   @Roles("teacher")
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.attendanceService.remove(+id);
