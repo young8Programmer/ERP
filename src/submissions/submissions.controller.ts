@@ -40,8 +40,7 @@ export class SubmissionController {
     );
   }
 
-  @Roles('student')
-  @UseGuards(AuthGuard, RolesGuard)
+  @UseGuards(AuthGuard)
   @Get('all')
   async getAllSubmissions(@Req() req) {
     if (!req.user || !req.user.id) {
