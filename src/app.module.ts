@@ -21,6 +21,7 @@ import { AttendanceModule } from './attendance/attendance.module';
 import { Attendance } from './attendance/entities/attendance.entity';
 import { AdminModule } from './admin/admin.module';
 import { Admin } from './admin/entities/admin.entity';
+import { SuperAdminModule } from './super-admin/super-admin.module';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { Admin } from './admin/entities/admin.entity';
     SubmissionsModule,
     AttendanceModule,
     AdminModule,
+    SuperAdminModule,
   ],
   controllers: [],
   providers: [],

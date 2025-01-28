@@ -11,6 +11,7 @@ import { Admin } from '../admin/entities/admin.entity';
 import { Teacher } from '../teacher/entities/teacher.entity';
 import { Student } from '../students/entities/student.entity';
 import { Repository } from 'typeorm';
+import { superAdmin } from 'src/super-admin/entities/super-admin.entity';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +19,7 @@ export class AuthService {
     @InjectRepository(Admin) private readonly adminRepository: Repository<Admin>,
     @InjectRepository(Teacher) private readonly teacherRepository: Repository<Teacher>,
     @InjectRepository(Student) private readonly studentRepository: Repository<Student>,
+    @InjectRepository(superAdmin) private readonly superAdminRepository: Repository<superAdmin>,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -30,6 +32,9 @@ export class AuthService {
     }
     if (!user) {
       user = await this.studentRepository.findOne({ where: { username: loginDto.username } });
+    }
+    if (!user) {
+      user = await this.superAdminRepository.findOne({ where: { username: loginDto.username } });
     }
   
     if (!user) {
