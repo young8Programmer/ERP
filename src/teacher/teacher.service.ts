@@ -48,6 +48,8 @@ export class TeachersService {
       address: createTeacherDto.address
     });
     await this.profileRepository.save(profile);
+    
+    existingTeacher.profile = profile
   
     // O'qituvchi yaratish va saqlash
     const teacher = this.teacherRepository.create({
