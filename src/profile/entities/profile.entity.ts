@@ -26,7 +26,7 @@ export class Profile {
   @Column({ type: 'varchar', length: 255 , nullable: true })
   address: string;
 
-  @Column({ type: 'varchar', length: 15, unique: true , nullable: true })
+  @Column({ type: 'varchar', length: 15, nullable: true })
   phone: string;
 
   @OneToOne(() => Teacher, (teacher) => teacher.profile)
