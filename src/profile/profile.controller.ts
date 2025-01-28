@@ -37,8 +37,8 @@ export class ProfilesController {
   @UseGuards(AuthGuard)
   @Get('me')
   async getMyProfile(@Req() req: any): Promise<Profile> {
-    const userId = req.user.id;
-    return this.profilesService.getMyProfile(userId);
+    const username = req.user.username;
+    return this.profilesService.getMyProfile(username);
   }
 
   @UseGuards(AuthGuard)

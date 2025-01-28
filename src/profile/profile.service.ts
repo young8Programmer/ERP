@@ -86,12 +86,12 @@ export class ProfilesService {
     await this.profileRepository.remove(profile);
   }
 
-  async getMyProfile(userId: number): Promise<Profile> {
+  async getMyProfile(username: string): Promise<Profile> {
     const profile = await this.profileRepository.findOne({
       where: [
-        { student: { id: userId } },
-        { admin: { id: userId } },
-        { teacher: { id: userId } },
+        { student: { username } },
+        { admin: { username } },
+        { teacher: { username } },
       ],
       relations: ['student', 'admin', 'teacher'],
     });
@@ -102,5 +102,6 @@ export class ProfilesService {
   
     return profile;
   }
+  
   
 }
