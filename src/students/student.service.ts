@@ -57,53 +57,52 @@ export class StudentsService {
 
   async createStudent(createStudentDto: CreateStudentDto): Promise<Student> {
     const { phone, username, password, groupId } = createStudentDto;
-
-    // Check if the student already exists
-    const existingStudent = await this.studentRepository.findOne({
-      where: { phone },
-    });
+  
+    // Telefon raqami mavjudligini tekshirish
+    const existingStudent = await this.studentRepository.findOne({ where: { phone } });
     if (existingStudent) {
       throw new NotFoundException(`Ushbu telefon raqami bilan talaba avval qo‘shilgan: ${phone}`);
     }
-
-    // Check if username already exists
-    const existingUsername = await this.studentRepository.findOne({
-      where: { username },
-    });
+  
+    // Foydalanuvchi nomi mavjudligini tekshirish
+    const existingUsername = await this.studentRepository.findOne({ where: { username } });
     if (existingUsername) {
       throw new NotFoundException(`Ushbu foydalanuvchi nomi mavjud: ${username}`);
     }
+  
+    // Parolni hash qilish
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    const profile = this.profileRepository.create({
-      firstName: createStudentDto.firstName,
-      lastName: createStudentDto.lastName,
-      username: createStudentDto.username,
-      password: hashedPassword,
-      phone: createStudentDto.phone,
-      address: createStudentDto.address
-    });
-
-    // Save profile
-    await this.profileRepository.save(profile);
-
-    const group = await this.groupRepository.findOne({
-      where: { id: groupId },
-      relations: ['course'],
-    });
+  
+    // Guruhni topish
+    const group = await this.groupRepository.findOne({ where: { id: groupId }, relations: ['course'] });
     if (!group) {
       throw new NotFoundException(`ID ${groupId} bo‘yicha guruh topilmadi`);
     }
-
+  
+    // Profile yaratish
+    const profile = this.profileRepository.create({
+      firstName: createStudentDto.firstName,
+      lastName: createStudentDto.lastName,
+      username,
+      password: hashedPassword,
+      phone,
+      address: createStudentDto.address,
+    });
+  
+    // Profileni saqlash
+    const savedProfile = await this.profileRepository.save(profile);
+  
+    // Talabani yaratish va Profile bilan bog'lash
     const student = this.studentRepository.create({
       ...createStudentDto,
-      groups: [group],
-      password: hashedPassword, // Save hashed password in student
+      password: hashedPassword, // Hashlangan parolni saqlaymiz
+      profile: savedProfile, // Profileni bog'laymiz
+      groups: [group], // Guruhni bog'laymiz
     });
-
+  
     return await this.studentRepository.save(student);
-}
-
+  }
+  
   async updateStudent(
     id: number,
     updateStudentDto: UpdateStudentDto,
