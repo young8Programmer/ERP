@@ -81,6 +81,7 @@ export class StudentsService {
       username: createStudentDto.username,
       password: hashedPassword,
       phone: createStudentDto.phone,
+      address: createStudentDto.address
     });
 
     // Save profile

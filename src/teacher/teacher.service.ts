@@ -45,6 +45,7 @@ export class TeachersService {
       username: createTeacherDto.username,
       password: hashedPassword, // Hashlangan parolni saqlaymiz
       phone: createTeacherDto.phone,
+      address: createTeacherDto.address
     });
     await this.profileRepository.save(profile);
   
