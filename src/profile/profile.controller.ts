@@ -10,33 +10,31 @@ import {
   Req,
 } from '@nestjs/common';
 import { ProfilesService } from './profile.service';
-import { CreateProfileDto } from './dto/create-profile.dto';
+import { CreateProfileDto } from './dto/create.profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { Profile } from './entities/profile.entity';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { Roles, RolesGuard } from 'src/auth/roles.guard';
-import { RolesStudentGuard } from 'src/auth/rolesStudentGuard';
+import { AuthGuard, Roles } from 'src/auth/auth.guard';
 
-@Controller('profiles')
+@Controller('profile')
 export class ProfilesController {
   constructor(private readonly profilesService: ProfilesService) {}
 
-  @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin', 'student')
+  @UseGuards(AuthGuard)
   @Post()
   async createProfile(
     @Body() createProfileDto: CreateProfileDto,
   ): Promise<Profile> {
     return this.profilesService.createProfile(createProfileDto);
   }
-  
+
   @UseGuards(AuthGuard)
   @Get()
   async getAllProfiles(): Promise<Profile[]> {
     return this.profilesService.getAllProfiles();
   }
 
-  @UseGuards(AuthGuard, RolesStudentGuard, RolesGuard)
+  @UseGuards(AuthGuard)
   @Get('me')
   async getMyProfile(@Req() req: any): Promise<Profile> {
     const userId = req.user.id;
@@ -58,8 +56,9 @@ export class ProfilesController {
     return this.profilesService.updateProfile(id, updateProfileDto);
   }
 
-  @UseGuards(AuthGuard, RolesGuard, RolesStudentGuard)
-  @Roles('admin', 'student')
+  
+  @Roles('admin')
+  @UseGuards(AuthGuard)
   @Delete(':id')
   async deleteProfile(@Param('id') id: number): Promise<void> {
     await this.profilesService.deleteProfile(id);

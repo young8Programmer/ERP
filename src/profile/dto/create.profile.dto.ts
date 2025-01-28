@@ -1,15 +1,13 @@
 import { IsString, IsNotEmpty, IsOptional, IsPhoneNumber, IsInt, IsPositive } from 'class-validator';
 
-export class UpdateProfileDto {
-  @IsOptional()
+export class CreateProfileDto {
   @IsString()
   @IsNotEmpty()
-  firstName?: string;
+  firstName: string;
 
-  @IsOptional()
   @IsString()
   @IsNotEmpty()
-  lastName?: string;
+  lastName: string;
 
   @IsOptional()
   @IsString()
@@ -23,14 +21,13 @@ export class UpdateProfileDto {
   @IsString()
   password?: string;
 
-  @IsOptional()
   @IsString()
   @IsNotEmpty()
-  address?: string;
+  address: string;
 
-  @IsOptional()
   @IsPhoneNumber()
-  phone?: string;
+  @IsNotEmpty()
+  phone: string;
 
   @IsOptional()
   @IsInt()

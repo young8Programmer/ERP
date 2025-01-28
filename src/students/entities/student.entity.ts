@@ -1,8 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, OneToMany, OneToOne, JoinColumn } from 'typeorm';
 import { Group } from '../../groups/entities/group.entity';
-import { User } from 'src/auth/entities/user.entity';
 import { Submission } from 'src/submissions/entities/submission.entity';
 import { Attendance } from 'src/attendance/entities/attendance.entity';
+import { Profile } from 'src/profile/entities/profile.entity';
 
 @Entity('students')
 export class Student {
@@ -24,15 +24,22 @@ export class Student {
   @Column({ default: 'student' })
   role: string;
 
-  @ManyToMany(() => Group, (group) => group.students, { cascade: true })
-  groups: Group[];
+  @Column({ type: 'varchar', length: 50, unique: true })
+  username: string;
 
-  @OneToMany(() => User, (user) => user.student)
-  users: User[];
+  @Column({ type: 'varchar', length: 255 })
+  password: string;
+
+  @ManyToMany(() => Group, (group) => group.students, { onDelete: "CASCADE"})
+  groups: Group[];
 
   @OneToMany(() => Submission, (submission) => submission.student)
   submissions: Submission[];
 
   @OneToMany(() => Attendance, (attendance) => attendance.student)
   attendances: Attendance[];
+
+  @OneToOne(() => Profile, (profile) => profile.student, { onDelete: "CASCADE" })
+  @JoinColumn()
+  profile: Profile; // Added Profile relation
 }

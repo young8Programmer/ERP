@@ -4,12 +4,16 @@ import { Repository } from 'typeorm';
 import { Teacher } from './entities/teacher.entity';
 import { CreateTeacherDto } from './dto/create-teacher.dto';
 import { UpdateTeacherDto } from './dto/update-teacher.dto';
+import * as bcrypt from 'bcrypt';
+import { Profile } from 'src/profile/entities/profile.entity';
 
 @Injectable()
 export class TeachersService {
   constructor(
     @InjectRepository(Teacher)
     private readonly teacherRepository: Repository<Teacher>,
+    @InjectRepository(Profile)
+    private readonly profileRepository: Repository<Profile>,
   ) {}
 
   async createTeacher(createTeacherDto: CreateTeacherDto): Promise<Teacher> {
@@ -17,9 +21,30 @@ export class TeachersService {
     if (existingTeacher) {
       throw new NotFoundException(`O'qituvchi telefon raqami ${createTeacherDto.phone} allaqachon mavjud`);
     }
-    const teacher = this.teacherRepository.create(createTeacherDto);
-    return await this.teacherRepository.save(teacher);
+
+    // Hash the password before saving
+    const hashedPassword = await bcrypt.hash(createTeacherDto.password, 10);
+
+    // Create teacher
+    const teacher = this.teacherRepository.create({
+      ...createTeacherDto,
+      password: hashedPassword,
+    });
+
+    
+    const profile = this.profileRepository.create({
+      firstName: createTeacherDto.firstName,
+      lastName: createTeacherDto.lastName,
+      username: createTeacherDto.username,
+      password: createTeacherDto.password,
+      phone: createTeacherDto.phone
+    });
+
+    await this.profileRepository.save(profile);
+
+    return teacher;
   }
+
 
   async getAllTeachers(): Promise<Teacher[]> {
     const teachers = await this.teacherRepository.find({ relations: ['groups'] });

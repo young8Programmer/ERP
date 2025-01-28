@@ -4,42 +4,45 @@ import { CreateTeacherDto } from './dto/create-teacher.dto';
 import { UpdateTeacherDto } from './dto/update-teacher.dto';
 import { Teacher } from './entities/teacher.entity';
 import { AuthGuard } from 'src/auth/auth.guard';
-import { Roles, RolesGuard } from 'src/auth/roles.guard';
+import { Roles} from '../auth/auth.guard';
 
 @Controller('teachers')
 export class TeachersController {
   constructor(private readonly teachersService: TeachersService) {}
 
-  @UseGuards(AuthGuard, RolesGuard)
   @Roles("admin")
+  @UseGuards(AuthGuard)
   @Post()
   async createTeacher(@Body() createTeacherDto: CreateTeacherDto): Promise<Teacher> {
     return this.teachersService.createTeacher(createTeacherDto);
   }
 
-  @UseGuards(AuthGuard, RolesGuard)
   @Roles("admin")
+  @UseGuards(AuthGuard)
   @Get()
   async getAllTeachers(): Promise<Teacher[]> {
     return this.teachersService.getAllTeachers();
   }
 
-  @UseGuards(AuthGuard, RolesGuard)
+  
   @Roles("admin", "teacher")
+  @UseGuards(AuthGuard)
   @Get(':id')
   async getTeacherById(@Param('id') id: number): Promise<Teacher> {
     return this.teachersService.getTeacherById(id);
   }
 
-  @UseGuards(AuthGuard, RolesGuard)
+  
   @Roles("admin")
+  @UseGuards(AuthGuard)
   @Put(':id')
   async updateTeacher(@Param('id') id: number, @Body() updateTeacherDto: UpdateTeacherDto): Promise<Teacher> {
     return this.teachersService.updateTeacher(id, updateTeacherDto);
   }
 
-  @UseGuards(AuthGuard, RolesGuard)
+  
   @Roles("admin")
+  @UseGuards(AuthGuard)
   @Delete(':id')
   async deleteTeacher(@Param('id') id: number): Promise<void> {
     await this.teachersService.deleteTeacher(id);

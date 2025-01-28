@@ -1,40 +1,52 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import * as dotenv from 'dotenv';
-import { StudentsModule } from 'src/students/student.module';
-import { TeachersModule } from 'src/teacher/teacher.module';
-import { Student } from 'src/students/entities/student.entity';
-import { Teacher } from 'src/teacher/entities/teacher.entity';
-import { Profile } from 'src/profile/entities/profile.entity';
-import { GroupsModule } from 'src/groups/group.module';
-import { Group } from 'src/groups/entities/group.entity';
-import { Course } from 'src/courses/entities/course.entity';
-import { UsersModule } from 'src/users/users.module';
-import { ProfilesModule } from 'src/profile/profile.module';
-import { CoursesModule } from 'src/courses/courses.module';
-import { TeachersService } from 'src/teacher/teacher.service';
-import { StudentsService } from 'src/students/student.service';
+import { StudentsModule } from '../students/student.module';
+import { TeachersModule } from '../teacher/teacher.module';
+import { Student } from '../students/entities/student.entity';
+import { Teacher } from '../teacher/entities/teacher.entity';
+import { Profile } from '../profile/entities/profile.entity';
+import { GroupsModule } from '../groups/group.module';
+import { Group } from '../groups/entities/group.entity';
+import { Course } from '../courses/entities/course.entity';
+import { ProfilesModule } from '../profile/profile.module';
+import { CoursesModule } from '../courses/courses.module';
+import { TeachersService } from '../teacher/teacher.service';
+import { StudentsService } from '../students/student.service';
+import { AdminModule } from '../admin/admin.module';
+import { AttendanceModule } from '../attendance/attendance.module';
+import { Attendance } from '../attendance/entities/attendance.entity';
+import { Assignment } from 'src/assignments/entities/assignment.entity';
+import { Lesson } from 'src/lesson/entities/lesson.entity';
+import { Admin } from 'src/admin/entities/admin.entity';
+import { Submission } from 'src/submissions/entities/submission.entity';
+import { AssignmentsModule } from 'src/assignments/assignments.module';
+import { LessonsModule } from 'src/lesson/lesson.module';
+import { SubmissionsModule } from 'src/submissions/submissions.module';
 
 dotenv.config();
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Student, Teacher, Profile, Group, Course]),
+    TypeOrmModule.forFeature([Student, Teacher, Profile, Group, Course, Admin, Attendance, Assignment, Lesson, Submission]),
     JwtModule.register({
       global: true,
       secret: "juda_secret_key",
       signOptions: { expiresIn: '1d' },
     }),
-    StudentsModule,
-    TeachersModule,
     GroupsModule,
-    UsersModule,
     ProfilesModule,
-    CoursesModule
+    CoursesModule,
+    AdminModule,
+    AttendanceModule,
+    TeachersModule,
+    AdminModule,
+    AssignmentsModule,
+    LessonsModule,
+    SubmissionsModule
   ],
   controllers: [AuthController],
   providers: [AuthService, TeachersService, StudentsService],

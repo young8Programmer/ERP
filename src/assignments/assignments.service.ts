@@ -3,7 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Assignment } from './entities/assignment.entity';
 import { Repository } from 'typeorm';
 import { Lesson } from 'src/lesson/entities/lesson.entity';
-import { User } from 'src/auth/entities/user.entity';
+import { Teacher } from 'src/teacher/entities/teacher.entity';
+import { Student } from '../students/entities/student.entity';
 import { CreateAssignmentDto } from './dto/create-assignment.dto';
 
 @Injectable()
@@ -13,8 +14,10 @@ export class AssignmentsService {
     private readonly assignmentRepository: Repository<Assignment>,
     @InjectRepository(Lesson)
     private readonly lessonRepository: Repository<Lesson>,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    @InjectRepository(Teacher)
+    private readonly teacherRepository: Repository<Teacher>, 
+    @InjectRepository(Student)
+    private readonly studentRepository: Repository<Student>, // Student repository
   ) {}
 
   async createAssignment(teacherId: number, createAssignmentDto: CreateAssignmentDto) {
@@ -29,9 +32,9 @@ export class AssignmentsService {
       throw new NotFoundException(`Lesson with ID ${lesson_id} not found`);
     }
   
-    const user = await this.userRepository.findOne({ where: { id: teacherId } });
+    const teacher = await this.teacherRepository.findOne({ where: { id: teacherId } });
   
-    if (lesson.group.teacher.id !== user.teacherId) {
+    if (lesson.group.teacher.id !== teacher.id) {
       throw new ForbiddenException('Siz faqat o\'zingizga tegishli guruhdagi topshiriqni yaratishingiz mumkin');
     }
   
@@ -72,9 +75,9 @@ export class AssignmentsService {
       throw new NotFoundException(`Assignment with ID ${assignmentId} not found`);
     }
 
-    const user = await this.userRepository.findOne({ where: { id: teacherId } });
+    const teacher = await this.teacherRepository.findOne({ where: { id: teacherId } });
 
-    if (!user || assignment.lesson.group.teacher.id !== user.teacherId) {
+    if (!teacher || assignment.lesson.group.teacher.id !== teacher.id) {
       throw new ForbiddenException('Siz faqat o\'zingizga tegishli guruhdagi topshiriqni o\'zgartira olasiz');
     }
 
@@ -100,9 +103,9 @@ export class AssignmentsService {
       throw new NotFoundException(`Assignment with ID ${assignmentId} not found`);
     }
 
-    const user = await this.userRepository.findOne({ where: { id: teacherId } });
+    const teacher = await this.teacherRepository.findOne({ where: { id: teacherId } });
 
-    if (!user || assignment.lesson.group.teacher.id !== user.teacherId) {
+    if (!teacher || assignment.lesson.group.teacher.id !== teacher.id) {
       throw new ForbiddenException('Siz faqat o\'zingizga tegishli guruhdagi topshiriqni o\'chira olasiz');
     }
 
@@ -113,37 +116,33 @@ export class AssignmentsService {
 
 
   async findAssignmentsForUser(lessonId: number, userId: number, role: 'teacher' | 'student') {
-    // Lessonni olish
     const lesson = await this.lessonRepository.findOne({
       where: { id: lessonId },
-      relations: ['group', 'group.teacher', 'group.students'], // Guruh, o'qituvchi va o'quvchilarni yuklash
+      relations: ['group', 'group.teacher', 'group.students'], 
     });
   
     if (!lesson) {
       throw new NotFoundException(`Lesson with ID ${lessonId} not found`);
     }
   
-    // Agar role teacher bo'lsa, o'qituvchi uchun tekshiruv
     if (role === 'teacher') {
-      const user = await this.userRepository.findOne({ where: { id: userId } });
+      const teacher = await this.teacherRepository.findOne({ where: { id: userId } });
       
-      if (!user || lesson.group.teacher.id !== user.teacherId) {
+      if (!teacher || lesson.group.teacher.id !== teacher.id) {
         throw new ForbiddenException('Siz faqat o\'zingizga tegishli guruhdagi topshiriqlarni ko\'ra olasiz');
       }
     }
   
-    // Agar role student bo'lsa, student uchun guruhga tegishli ekanligini tekshirish
     if (role === 'student') {
-      const user = await this.userRepository.findOne({ where: { id: userId } });
+      const student = await this.studentRepository.findOne({ where: { id: userId } });
   
-      if (!user || !lesson.group.students.some((student) => student.id === user.studentId)) {
+      if (!student || !lesson.group.students.some((s) => s.id === student.id)) {
         throw new ForbiddenException('Siz ushbu guruhga tegishli darslarni ko\'ra olmaysiz');
       }
     }
   
-    // Ushbu darsga tegishli topshiriqlarni olish
     const assignments = await this.assignmentRepository.find({
-      where: { lesson: { id: lessonId }}, 
+      where: { lesson: { id: lessonId } }, 
       relations: ["submissions"]
     });
   

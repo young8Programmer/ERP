@@ -2,10 +2,7 @@ import { Controller, Get, Post, Body, Param, Put, Delete, Request, UseGuards } f
 import { LessonsService } from './lesson.service';
 import { CreateLessonDto } from './dto/create-lesson.dto';
 import { UpdateLessonDto } from './dto/update-lesson.dto';
-import { AuthGuard } from '../auth/auth.guard';
-import { RolesTeacherGuard } from '../auth/rolesTeacherGuard';
-import { Roles } from 'src/auth/roles.guard';
-
+import { AuthGuard, Roles } from '../auth/auth.guard';
 
 @Controller('lessons')
 export class LessonsController {
@@ -28,8 +25,8 @@ export class LessonsController {
     return this.lessonsService.findLessonsByGroup(groupId, userId);
   }
 
-  @UseGuards(AuthGuard, RolesTeacherGuard)
   @Roles("teacher")
+  @UseGuards(AuthGuard)
   @Post()
   async create(
     @Body() lessonData: CreateLessonDto,
@@ -39,8 +36,8 @@ export class LessonsController {
     return this.lessonsService.create(userId, lessonData);
   }
 
-  @UseGuards(AuthGuard, RolesTeacherGuard)
   @Roles("teacher")
+  @UseGuards(AuthGuard)
   @Put(':id')
   async update(
     @Param('id') id: string,
@@ -48,16 +45,17 @@ export class LessonsController {
     @Request() req: any,
   ) {
     const userId = req.user.id;
-    const lessonId = Number(id);  // idni numberga aylantirish
-    return this.lessonsService.update(lessonId, updateLessonDto, userId);  // to'g'ri id uzatish
+    const lessonId = Number(id);
+    return this.lessonsService.update(lessonId, updateLessonDto, userId);
   }
 
-  @UseGuards(AuthGuard, RolesTeacherGuard)
+  
   @Roles("teacher")
+  @UseGuards(AuthGuard)
   @Delete(':id')
   async remove(@Param('id') id: string, @Request() req: any) {
     const userId = req.user.id;
-    const lessonId = Number(id);  // idni numberga aylantirish
-    return this.lessonsService.remove(lessonId, userId);  // to'g'ri id uzatish
+    const lessonId = Number(id);
+    return this.lessonsService.remove(lessonId, userId);
   }
 }

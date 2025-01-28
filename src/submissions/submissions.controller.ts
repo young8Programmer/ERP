@@ -13,17 +13,15 @@ import {
 import { SubmissionService } from './submissions.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { GradeSubmissionDto } from './dto/GradeSubmissionDto';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { RolesStudentGuard } from 'src/auth/rolesStudentGuard';
-import { Roles } from 'src/auth/roles.guard';
-import { RolesTeacherGuard } from 'src/auth/rolesTeacherGuard';
+import { AuthGuard, Roles } from 'src/auth/auth.guard';
+
 
 @Controller('submissions')
 export class SubmissionController {
   constructor(private readonly submissionsService: SubmissionService) {}
 
-  @UseGuards(AuthGuard, RolesStudentGuard)
-  @Roles("student")
+  @Roles('student')
+  @UseGuards(AuthGuard)
   @Post(':assignmentId/submit')
   async submitAnswer(
     @Req() req,
@@ -38,30 +36,24 @@ export class SubmissionController {
     return this.submissionsService.submitAnswer(
       userId,
       createSubmissionDto.content,
-      assignmentId
+      assignmentId,
     );
   }
 
-  
+  @Roles('student')
   @UseGuards(AuthGuard)
-  @Roles("student")
-  @Get("all")
-  async getallSubmissions(
-    @Req() req
-  ) {
+  @Get('all')
+  async getAllSubmissions(@Req() req) {
     if (!req.user || !req.user.id) {
       throw new ForbiddenException('User not authenticated');
     }
 
     const userId = req.user.id;
-    return this.submissionsService.getAllSubmissions(
-      userId
-    );
+    return this.submissionsService.getAllSubmissions(userId);
   }
 
-
-  @UseGuards(AuthGuard, RolesTeacherGuard)
-  @Roles("teacher")
+  @Roles('teacher')
+  @UseGuards(AuthGuard)
   @Patch(':submissionId/grade')
   async gradeSubmission(
     @Req() req,
@@ -83,8 +75,8 @@ export class SubmissionController {
   @UseGuards(AuthGuard)
   @Get('daily-grades/:groupId')
   async getDailyGrades(
-  @Req() req,
-  @Param('groupId') groupId: number
+    @Req() req,
+    @Param('groupId') groupId: number,
   ) {
     const userId = req.user.id;
     return this.submissionsService.getDailyGrades(userId, groupId);
@@ -94,10 +86,9 @@ export class SubmissionController {
   @Get('total-scores/:groupId')
   async getTotalScores(
     @Req() req,
-    @Param('groupId') groupId: number
+    @Param('groupId') groupId: number,
   ) {
     const userId = req.user.id;
     return this.submissionsService.getTotalScores(userId, groupId);
   }
-
 }

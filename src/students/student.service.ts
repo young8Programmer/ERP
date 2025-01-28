@@ -5,6 +5,8 @@ import { Student } from './entities/student.entity';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { Group } from '../groups/entities/group.entity';
+import * as bcrypt from 'bcrypt';
+import { Profile } from 'src/profile/entities/profile.entity';
 
 @Injectable()
 export class StudentsService {
@@ -13,6 +15,8 @@ export class StudentsService {
     private readonly studentRepository: Repository<Student>,
     @InjectRepository(Group)
     private readonly groupRepository: Repository<Group>,
+    @InjectRepository(Profile)
+    private readonly profileRepository: Repository<Profile>,
   ) {}
 
   async getAllStudents(): Promise<Student[]> {
@@ -52,16 +56,34 @@ export class StudentsService {
   }
 
   async createStudent(createStudentDto: CreateStudentDto): Promise<Student> {
-    const { phone, groupId } = createStudentDto;
+    const { phone, username, password, groupId } = createStudentDto;
 
+    // Check if the student already exists
     const existingStudent = await this.studentRepository.findOne({
       where: { phone },
     });
     if (existingStudent) {
-      throw new Error(
-        `Ushbu telefon raqami bilan talaba avval qo‘shilgan: ${phone}`,
-      );
+      throw new Error(`Ushbu telefon raqami bilan talaba avval qo‘shilgan: ${phone}`);
     }
+
+    // Check if username already exists
+    const existingUsername = await this.studentRepository.findOne({
+      where: { username },
+    });
+    if (existingUsername) {
+      throw new Error(`Ushbu foydalanuvchi nomi mavjud: ${username}`);
+    }
+
+    const profile = this.profileRepository.create({
+      firstName: createStudentDto.firstName,
+      lastName: createStudentDto.lastName,
+      username: createStudentDto.username,
+      password: createStudentDto.password,
+      phone: createStudentDto.phone
+    });
+
+    // Save profile
+    await this.profileRepository.save(profile);
 
     const group = await this.groupRepository.findOne({
       where: { id: groupId },
@@ -71,9 +93,13 @@ export class StudentsService {
       throw new NotFoundException(`ID ${groupId} bo‘yicha guruh topilmadi`);
     }
 
+    // Hash the password before saving
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const student = this.studentRepository.create({
       ...createStudentDto,
       groups: [group],
+      password: hashedPassword,  // Save hashed password
     });
     return await this.studentRepository.save(student);
   }
