@@ -63,7 +63,7 @@ export class StudentsService {
       where: { phone },
     });
     if (existingStudent) {
-      throw new Error(`Ushbu telefon raqami bilan talaba avval qo‘shilgan: ${phone}`);
+      throw new NotFoundException(`Ushbu telefon raqami bilan talaba avval qo‘shilgan: ${phone}`);
     }
 
     // Check if username already exists
@@ -71,15 +71,16 @@ export class StudentsService {
       where: { username },
     });
     if (existingUsername) {
-      throw new Error(`Ushbu foydalanuvchi nomi mavjud: ${username}`);
+      throw new NotFoundException(`Ushbu foydalanuvchi nomi mavjud: ${username}`);
     }
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const profile = this.profileRepository.create({
       firstName: createStudentDto.firstName,
       lastName: createStudentDto.lastName,
       username: createStudentDto.username,
-      password: createStudentDto.password,
-      phone: createStudentDto.phone
+      password: hashedPassword,
+      phone: createStudentDto.phone,
     });
 
     // Save profile
@@ -93,16 +94,14 @@ export class StudentsService {
       throw new NotFoundException(`ID ${groupId} bo‘yicha guruh topilmadi`);
     }
 
-    // Hash the password before saving
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     const student = this.studentRepository.create({
       ...createStudentDto,
       groups: [group],
-      password: hashedPassword,  // Save hashed password
+      password: hashedPassword, // Save hashed password in student
     });
+
     return await this.studentRepository.save(student);
-  }
+}
 
   async updateStudent(
     id: number,

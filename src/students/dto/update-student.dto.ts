@@ -11,6 +11,12 @@ export class UpdateStudentDto {
   @IsString()
   address?: string;
 
+  @IsString()
+  username?: string;
+
+  @IsString()
+  password?: string;
+
   courseId?: number;
   groupId?: number;
 }

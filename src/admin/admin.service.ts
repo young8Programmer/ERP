@@ -45,7 +45,11 @@ export class AdminService {
     // Profile yaratish va shifrlangan parolni qo'shish
     const profile = this.profileRepository.create({
       username: createAdminDto.username,
-      password: hashedPassword,  // Shifrlangan parolni qo'shamiz
+      password: hashedPassword,
+      firstName: createAdminDto.firstName,
+      lastName: createAdminDto.lastName,
+      phone: createAdminDto.phone,
+      address: createAdminDto.address  // Shifrlangan parolni qo'shamiz
     });
 
     // Profile-ni saqlash

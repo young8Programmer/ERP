@@ -15,6 +15,18 @@ export class Admin {
   @Column({ default: 'admin' })
   role: string;
 
+  @Column({ type: 'varchar', length: 50 })
+  firstName: string;
+
+  @Column({ type: 'varchar', length: 50 })
+  lastName: string;
+
+  @Column({ type: 'varchar', length: 15, unique: true })
+  phone: string;
+
+  @Column({ type: 'varchar', length: 255 })
+  address: string;
+
   @OneToOne(() => Profile, (profile) => profile.admin, {onDelete: "CASCADE"})
   @JoinColumn()
   profile: Profile;

@@ -17,35 +17,46 @@ export class TeachersService {
   ) {}
 
   async createTeacher(createTeacherDto: CreateTeacherDto): Promise<Teacher> {
-    const existingTeacher = await this.teacherRepository.findOne({ where: { phone: createTeacherDto.phone } });
-    if (existingTeacher) {
-      throw new NotFoundException(`O'qituvchi telefon raqami ${createTeacherDto.phone} allaqachon mavjud`);
-    }
-
-    // Hash the password before saving
-    const hashedPassword = await bcrypt.hash(createTeacherDto.password, 10);
-
-    // Create teacher
-    const teacher = this.teacherRepository.create({
-      ...createTeacherDto,
-      password: hashedPassword,
+    const { phone, username, password } = createTeacherDto;
+  
+    // Telefon raqami mavjudligini tekshirish
+    const existingTeacher = await this.teacherRepository.findOne({
+      where: { phone },
     });
-
-    
+    if (existingTeacher) {
+      throw new NotFoundException(`O'qituvchi telefon raqami ${phone} allaqachon mavjud`);
+    }
+  
+    // Foydalanuvchi nomi mavjudligini tekshirish
+    const existingUsername = await this.teacherRepository.findOne({
+      where: { username },
+    });
+    if (existingUsername) {
+      throw new NotFoundException(`Ushbu foydalanuvchi nomi allaqachon mavjud: ${username}`);
+    }
+  
+    // Parolni hash qilish
+    const hashedPassword = await bcrypt.hash(password, 10);
+  
+    // Profile yaratish va saqlash
     const profile = this.profileRepository.create({
       firstName: createTeacherDto.firstName,
       lastName: createTeacherDto.lastName,
       username: createTeacherDto.username,
-      password: createTeacherDto.password,
-      phone: createTeacherDto.phone
+      password: hashedPassword, // Hashlangan parolni saqlaymiz
+      phone: createTeacherDto.phone,
     });
-
     await this.profileRepository.save(profile);
-
-    return teacher;
+  
+    // O'qituvchi yaratish va saqlash
+    const teacher = this.teacherRepository.create({
+      ...createTeacherDto,
+      password: hashedPassword, // Hashlangan parolni saqlaymiz
+    });
+  
+    return await this.teacherRepository.save(teacher);
   }
-
-
+  
   async getAllTeachers(): Promise<Teacher[]> {
     const teachers = await this.teacherRepository.find({ relations: ['groups'] });
     if (teachers.length === 0) {

@@ -5,11 +5,13 @@ import { Profile } from 'src/profile/entities/profile.entity';
 import { ProfilesModule } from 'src/profile/profile.module';
 import { StudentsService } from './student.service';
 import { Group } from 'src/groups/entities/group.entity';
+import { StudentsController } from './student.controller';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Student, Profile, Group])
   ],
+  controllers: [StudentsController],
   providers: [StudentsService],
   exports: [StudentsService],
 })

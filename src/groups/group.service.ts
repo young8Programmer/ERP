@@ -24,33 +24,56 @@ export class GroupsService {
   async createGroup(createGroupDto: CreateGroupDto): Promise<Group> {
     try {
       const { name, courseId, teacherId, students } = createGroupDto;
-
-      const course = await this.courseRepository.findOne({ where: { id: courseId } });
+  
+      // Course tekshiriladi va topiladi
+      const course = await this.courseRepository.findOne({
+        where: { id: courseId },
+        relations: ['groups'], // Groups bilan birga yuklash
+      });
       if (!course) throw new BadRequestException('Course not found');
-
+  
+      // Teacher tekshiriladi va topiladi
       const teacher = teacherId
         ? await this.teacherRepository.findOne({ where: { id: teacherId } })
         : null;
-
+  
       if (teacherId && !teacher) throw new BadRequestException('Teacher not found');
-
+  
+      // Students tekshiriladi va topiladi
       const studentEntities = students
         ? await this.studentRepository.findByIds(students)
         : [];
-
+  
+      // Group dublikat bo'lishini tekshirish
+      const existingGroup = await this.groupRepository.findOne({
+        where: { name, course: { id: courseId } },
+      });
+  
+      if (existingGroup) {
+        throw new BadRequestException('Group with the same name already exists for this course');
+      }
+  
+      // Group yaratish
       const group = this.groupRepository.create({
         name,
         course,
         teacher,
         students: studentEntities,
       });
-
-      return this.groupRepository.save(group);
+  
+      // Groupni saqlash
+      const savedGroup = await this.groupRepository.save(group);
+  
+      // Coursega yangi groupni qo'shish
+      course.groups = [...course.groups, savedGroup];
+      await this.courseRepository.save(course);
+  
+      return savedGroup;
     } catch (error) {
       throw new BadRequestException(`Failed to create group: ${error.message}`);
     }
   }
-
+  
   async addStudentToGroup(groupId: number, studentId: number): Promise<Group> {
     try {
       const group = await this.getGroupById(groupId);
