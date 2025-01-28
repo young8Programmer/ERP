@@ -15,4 +15,4 @@ import { SuperAdminService } from './super-admin.service';
   controllers: [SuperAdminController],
   providers: [SuperAdminService],
 })
-export class LessonsModule {}
+export class SuperAdminModule {}
