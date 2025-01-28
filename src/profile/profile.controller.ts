@@ -15,7 +15,7 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { Profile } from './entities/profile.entity';
 import { AuthGuard, Roles, RolesGuard } from 'src/auth/auth.guard';
 
-@Controller('profile')
+@Controller('profiles')
 export class ProfilesController {
   constructor(private readonly profilesService: ProfilesService) {}
 
