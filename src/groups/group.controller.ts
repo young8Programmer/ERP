@@ -62,7 +62,7 @@ export class GroupsController {
   }
 
   
-  @Roles('teacher')
+  @Roles('teacher', "admin")
   @UseGuards(AuthGuard, RolesGuard)
   @Get(':groupId/students')
   async getStudentsInGroup(@Param('groupId') groupId: number): Promise<any[]> {
