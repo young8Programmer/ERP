@@ -15,8 +15,6 @@ export class AdminController {
     return this.adminService.getAll();
   }
 
-  @Roles("superAdmin")
-  @UseGuards(AuthGuard, RolesGuard)
   @Post()
   create(@Body() createAdminDto: CreateAdminDto) {
     return this.adminService.create(createAdminDto);
