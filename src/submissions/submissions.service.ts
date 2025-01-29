@@ -143,11 +143,7 @@ export class SubmissionService {
       .getRawMany();
   }
 
-  async getTotalScores(userId: number, groupId: number) {
-    const teacher = await this.teacherRepository.findOne({ where: { id: userId, role: 'teacher' } });
-    if (!teacher) {
-      throw new ForbiddenException("Faqat o'qituvchilar umumiy ballarni ko'ra oladi");
-    }
+  async getTotalScores(groupId: number) {
 
     const group = await this.groupRepository.findOne({ where: { id: groupId }, relations: ['students'] });
     if (!group) {

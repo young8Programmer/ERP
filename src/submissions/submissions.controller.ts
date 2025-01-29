@@ -84,10 +84,8 @@ export class SubmissionController {
   @UseGuards(AuthGuard)
   @Get('total-scores/:groupId')
   async getTotalScores(
-    @Req() req,
     @Param('groupId') groupId: number,
   ) {
-    const userId = req.user.id;
-    return this.submissionsService.getTotalScores(userId, groupId);
+    return this.submissionsService.getTotalScores(groupId);
   }
 }
