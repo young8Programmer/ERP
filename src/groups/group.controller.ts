@@ -51,16 +51,16 @@ export class GroupsController {
   @UseGuards(AuthGuard, RolesGuard)
   @Get('my/teacher/groups')
   async getMyGroups(@Req() req: any): Promise<Group[]> {
-    const userId = req.user.id;
-    return this.groupsService.getGroupsByTeacherId(userId);
+    const userUsername = req.user.username;
+    return this.groupsService.getGroupsByTeacherId(userUsername);
   }
 
   @Roles("student")
   @UseGuards(AuthGuard, RolesGuard)
   @Get('my/student/groups')
   async getStudentGroups(@Req() req): Promise<Group[]> {
-    const userId = req.user.id;
-    return this.groupsService.getGroupsByStudentId(userId);
+    const userUsername = req.user.username;
+    return this.groupsService.getGroupsByStudentId(userUsername);
   }
 
   
@@ -68,7 +68,7 @@ export class GroupsController {
   @UseGuards(AuthGuard, RolesGuard)
   @Get(':groupId/students')
   async getStudentsInGroup(@Param('groupId') groupId: number): Promise<any[]> {
-    return this.groupsService.getGroupsByStudentId(groupId);
+    return this.groupsService.getStudentGroups(groupId);
   }
 
   
