@@ -24,15 +24,16 @@ import { Admin } from './admin/entities/admin.entity';
 import { SuperAdminModule } from './super-admin/super-admin.module';
 import { superAdmin } from './super-admin/entities/super-admin.entity';
 
+
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
+      host: 'dpg-cucu52lumphs73dd132g-a.oregon-postgres.render.com', // External host
       port: 5432,
-      username: 'postgres',
-      password: '1234',
-      database: 'erpbackend',
+      username: 'erp_backend_q6ec_user',
+      password: '5lo72umGn6JiabGZL1W3UOGVFEKYBXg1',
+      database: 'erp_backend_q6ec',
       entities: [
         Course,
         Group,
@@ -46,7 +47,10 @@ import { superAdmin } from './super-admin/entities/super-admin.entity';
         Admin,
         superAdmin
       ],
-      synchronize: true,
+      synchronize: true, // Production uchun false qilib qo'ying
+      ssl: {
+        rejectUnauthorized: false, // Render uchun SSL kerak
+      },
     }),
     CoursesModule,
     StudentsModule,
@@ -64,10 +68,7 @@ import { superAdmin } from './super-admin/entities/super-admin.entity';
   controllers: [],
   providers: [],
 })
-
-
 export class AppModule {}
-
 
 
 

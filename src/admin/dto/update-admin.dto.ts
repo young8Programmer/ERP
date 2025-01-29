@@ -7,9 +7,9 @@ export class UpdateAdminDto {
 
   @IsOptional()
   @IsString()
-password?: string;
+  password?: string;
 
-@IsOptional()
+  @IsOptional()
   @Length(3, 50)
   firstName?: string;
 
