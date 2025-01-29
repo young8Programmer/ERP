@@ -6,6 +6,7 @@ import { Student } from 'src/students/entities/student.entity';
 import { Assignment } from 'src/assignments/entities/assignment.entity';
 import { Group } from 'src/groups/entities/group.entity';
 import { Lesson } from 'src/lesson/entities/lesson.entity';
+import { Teacher } from 'src/teacher/entities/teacher.entity';
 
 @Injectable()
 export class SubmissionService {
@@ -20,6 +21,8 @@ export class SubmissionService {
     private readonly groupRepository: Repository<Group>,
     @InjectRepository(Lesson)
     private readonly lessonRepository: Repository<Lesson>,
+    @InjectRepository(Teacher)
+    private readonly teacherRepository: Repository<Teacher>
   ) {}
 
   async submitAnswer(userId: number, content: string, assignmentId: any) {
@@ -141,7 +144,7 @@ export class SubmissionService {
   }
 
   async getTotalScores(userId: number, groupId: number) {
-    const teacher = await this.studentRepository.findOne({ where: { id: userId, role: 'teacher' } });
+    const teacher = await this.teacherRepository.findOne({ where: { id: userId, role: 'teacher' } });
     if (!teacher) {
       throw new ForbiddenException("Faqat o'qituvchilar umumiy ballarni ko'ra oladi");
     }
