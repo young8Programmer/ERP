@@ -47,14 +47,16 @@ export class GroupsController {
     return this.groupsService.getGroupById(id);
   }
 
-  @UseGuards(AuthGuard)
+  @Roles("teacher")
+  @UseGuards(AuthGuard, RolesGuard)
   @Get('my/teacher/groups')
   async getMyGroups(@Req() req: any): Promise<Group[]> {
     const userId = req.user.id;
     return this.groupsService.getGroupsByTeacherId(userId);
   }
 
-  @UseGuards(AuthGuard)
+  @Roles("student")
+  @UseGuards(AuthGuard, RolesGuard)
   @Get('my/student/groups')
   async getStudentGroups(@Req() req): Promise<Group[]> {
     const userId = req.user.id;
