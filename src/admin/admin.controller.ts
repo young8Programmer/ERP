@@ -21,8 +21,6 @@ export class AdminController {
   }
 
   
-  @Roles("superAdmin")
-  @UseGuards(AuthGuard, RolesGuard)
   @Put(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
