@@ -29,7 +29,7 @@ import { superAdmin } from './super-admin/entities/super-admin.entity';
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
-      url: "postgresql://postgres:GufBxEipUYYmAZrIRRZzuzGnHlIUcLis@postgres.railway.internal:5432/railway",
+      url: "postgresql://postgres:GufBxEipUYYmAZrIRRZzuzGnHlIUcLis@autorack.proxy.rlwy.net:27915/railway",
       entities: [
         Course,
         Group,
