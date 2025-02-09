@@ -106,10 +106,8 @@ export class AuthService {
     }
   }
 
-  // Logout method
   async logout(userId: number) {
     let user;
-    // Role asosida foydalanuvchini topish
     user = await this.adminRepository.findOne({ where: { id: userId } });
     if (!user) {
       user = await this.teacherRepository.findOne({ where: { id: userId } });
