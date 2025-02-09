@@ -29,11 +29,7 @@ import { superAdmin } from './super-admin/entities/super-admin.entity';
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'dpg-cucu52lumphs73dd132g-a.oregon-postgres.render.com', // External host
-      port: 5432,
-      username: 'erp_backend_q6ec_user',
-      password: '5lo72umGn6JiabGZL1W3UOGVFEKYBXg1',
-      database: 'erp_backend_q6ec',
+      url: "postgresql://postgres:GufBxEipUYYmAZrIRRZzuzGnHlIUcLis@postgres.railway.internal:5432/railway",
       entities: [
         Course,
         Group,
