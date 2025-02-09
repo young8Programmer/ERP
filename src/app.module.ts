@@ -30,7 +30,8 @@ import { superAdmin } from './super-admin/entities/super-admin.entity';
     TypeOrmModule.forRoot({
       type: 'postgres',
   host: 'autorack.proxy.rlwy.net', // Railway external host
-  port: 27915, // Railway external port
+  port: 
+  5432, // Railway external port
   username: 'postgres',
   password: 'GufBxEipUYYmAZrIRRZzuzGnHlIUcLis',
   database: 'railway',
