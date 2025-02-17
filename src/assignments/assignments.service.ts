@@ -35,7 +35,7 @@ export class AssignmentsService {
     const teacher = await this.teacherRepository.findOne({ where: { id: teacherId } });
   
     if (lesson.group.teacher.id !== teacher.id) {
-      throw new ForbiddenException('Siz faqat o\'zingizga tegishli guruhdagi topshiriqni yaratishingiz mumkin');
+      throw new ForbiddenException('Siz faqat o‘zingizga tegishli guruhdagi topshiriqni yaratishingiz mumkin');
     }
   
     const existingAssignment = await this.assignmentRepository.findOne({
@@ -46,24 +46,20 @@ export class AssignmentsService {
       throw new ForbiddenException('Bu topshiriq ushbu dars uchun allaqachon mavjud');
     }
   
-    let dueDateString = null;
-    if (dueDate) {
-      const dueDateObj = new Date();
-      dueDateObj.setDate(dueDateObj.getDate() + dueDate); // Hozirgi sanaga 'dueDate' kunlar qo‘shiladi
-      dueDateString = dueDateObj.toISOString(); // ISO formatida sanani olish
-    }
+    let dueDateString: string | null = dueDate ? new Date(dueDate).toISOString() : null;
   
     const newAssignment = this.assignmentRepository.create({
       lesson,
       assignment,
       status: 'pending',
-      dueDate: dueDateString, // Yangi dueDate qiymatini saqlash
+      dueDate: dueDateString, // dueDate to‘g‘ridan-to‘g‘ri saqlanadi
     });
   
     await this.assignmentRepository.save(newAssignment);
   
     return { message: 'Assignment successfully created', assignmentId: newAssignment.id };
   }
+  
   
   async updateAssignment(teacherId: number, assignmentId: number, updateData: { assignment?: string; status?: string }) {
     const assignment = await this.assignmentRepository.findOne({

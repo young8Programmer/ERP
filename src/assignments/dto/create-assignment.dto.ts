@@ -1,5 +1,5 @@
 // create-assignment.dto.ts
-import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateAssignmentDto {
   @IsInt()
@@ -13,6 +13,6 @@ export class CreateAssignmentDto {
   assignment: string;
 
   @IsOptional()
-  @IsInt()
-  dueDate?: number; // kunlar soni
+  @IsDateString()
+  dueDate?: string; // kunlar soni
 }
