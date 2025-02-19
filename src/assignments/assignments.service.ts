@@ -37,15 +37,15 @@ export class AssignmentsService {
     if (lesson.group.teacher.id !== teacher.id) {
       throw new ForbiddenException('Siz faqat o‘zingizga tegishli guruhdagi topshiriqni yaratishingiz mumkin');
     }
-  
+
     const existingAssignment = await this.assignmentRepository.findOne({
-      where: { lesson: { id: lesson_id }, assignment },
+      where: { lesson: { id: lesson_id } },
     });
-  
+    
     if (existingAssignment) {
-      throw new ForbiddenException('Bu topshiriq ushbu dars uchun allaqachon mavjud');
+      throw new ForbiddenException('Bu dars uchun allaqachon vazifa yuklangan');
     }
-  
+    
     let dueDateString: string | null = dueDate ? new Date(dueDate).toISOString() : null;
   
     const newAssignment = this.assignmentRepository.create({
