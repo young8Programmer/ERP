@@ -153,6 +153,32 @@ export class SubmissionService {
       .getRawMany();
   }
 
+  async getLessonSubmissions(teacherId: number, lessonId: number) {
+    const lesson = await this.lessonRepository.findOne({
+      where: { id: lessonId },
+      relations: ['group', 'group.teacher'],
+    });
+  
+    if (!lesson) {
+      throw new NotFoundException(`Dars topilmadi`);
+    }
+  
+    if (lesson.group.teacher.id !== teacherId) {
+      throw new ForbiddenException('Siz faqat o‘zingizga tegishli guruhdagi topshiriqlarni ko‘rishingiz mumkin');
+    }
+  
+    const submissions = await this.submissionRepository.find({
+      where: { assignment: { lesson: { id: lessonId } } },
+      relations: ['student', 'assignment'],
+    });
+  
+    if (!submissions.length) {
+      throw new NotFoundException('Bu dars uchun hali hech qanday topshiriq yuborilmagan');
+    }
+  
+    return submissions;
+  }
+  
   async getTotalScores(groupId: number) {
 
     const group = await this.groupRepository.findOne({ where: { id: groupId }, relations: ['students'] });
