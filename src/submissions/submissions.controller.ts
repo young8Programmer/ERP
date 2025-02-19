@@ -72,12 +72,12 @@ export class SubmissionController {
   }
 
   @Roles('teacher')
-@UseGuards(AuthGuard, RolesGuard)
-@Patch('lesson/:lessonId')
-async getLessonSubmissions(
+  @UseGuards(AuthGuard, RolesGuard)
+  @Get('lesson/:lessonId')
+  async getLessonSubmissions(
   @Req() req,
-  @Param('lessonId') lessonId: number
-) {
+  @Param('lessonId') lessonId: number) {
+
   if (!req.user || !req.user.id) {
     throw new ForbiddenException('User not authenticated');
   }
