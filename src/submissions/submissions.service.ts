@@ -98,34 +98,44 @@ export class SubmissionService {
     });
   }
 
-  async getPassedStudents() {
+  // async getPassedStudents() {
+  //   return this.submissionRepository.find({
+  //     where: { grade: MoreThan(60), status: SubmissionStatus.ACCEPTED },
+  //     relations: ['student', 'assignment'],
+  //   });
+  // }
+
+  // async getRejectedSubmissions() {
+  //   return this.submissionRepository.find({
+  //     where: { status: SubmissionStatus.REJECTED },
+  //     relations: ['student', 'assignment'],
+  //   });
+  // }
+
+  // async getPendingSubmissions() {
+  //   return this.submissionRepository.find({
+  //     where: { status: SubmissionStatus.PENDING },
+  //     relations: ['student', 'assignment'],
+  //   });
+  // }
+
+  // async getAcceptedSubmissions() {
+  //   return this.submissionRepository.find({
+  //     where: { status: SubmissionStatus.ACCEPTED },
+  //     relations: ['student', 'assignment'],
+  //   });
+  // }
+
+  async getLessonSubmissionsByStatus(teacherId: number, lessonId: number, status: SubmissionStatus) {
+    const lesson = await this.lessonRepository.findOne({ where: { id: lessonId }, relations: ['group'] });
+    if (!lesson) throw new NotFoundException("Dars topilmadi");
+  
     return this.submissionRepository.find({
-      where: { grade: MoreThan(60), status: SubmissionStatus.ACCEPTED },
+      where: { assignment: { lesson: { id: lessonId } }, status },
       relations: ['student', 'assignment'],
     });
   }
-
-  async getRejectedSubmissions() {
-    return this.submissionRepository.find({
-      where: { status: SubmissionStatus.REJECTED },
-      relations: ['student', 'assignment'],
-    });
-  }
-
-  async getPendingSubmissions() {
-    return this.submissionRepository.find({
-      where: { status: SubmissionStatus.PENDING },
-      relations: ['student', 'assignment'],
-    });
-  }
-
-  async getAcceptedSubmissions() {
-    return this.submissionRepository.find({
-      where: { status: SubmissionStatus.ACCEPTED },
-      relations: ['student', 'assignment'],
-    });
-  }
-
+  
   
   async getDailyGrades(userId: number, groupId: number) {
     const teacher = await this.studentRepository.findOne({ where: { id: userId } });

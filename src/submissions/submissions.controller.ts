@@ -13,6 +13,7 @@ import { SubmissionService } from './submissions.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { GradeSubmissionDto } from './dto/GradeSubmissionDto';
 import { AuthGuard, Roles, RolesGuard } from 'src/auth/auth.guard';
+import { SubmissionStatus } from './entities/submission.entity';
 
 @Controller('submissions')
 export class SubmissionController {
@@ -69,34 +70,47 @@ export class SubmissionController {
     return this.submissionsService.getTotalScores(groupId);
   }
 
-  // ✅ Yangi endpointlar:
-  @Roles('teacher')
-  @UseGuards(AuthGuard, RolesGuard)
-  @Get('passed')
-  async getPassedStudents() {
-    return this.submissionsService.getPassedStudents();
-  }
+  // // ✅ Yangi endpointlar:
+  // @Roles('teacher')
+  // @UseGuards(AuthGuard, RolesGuard)
+  // @Get('passed')
+  // async getPassedStudents() {
+  //   return this.submissionsService.getPassedStudents();
+  // }
+
+  // @Roles('teacher')
+  // @UseGuards(AuthGuard, RolesGuard)
+  // @Get('rejected')
+  // async getRejectedSubmissions() {
+  //   return this.submissionsService.getRejectedSubmissions();
+  // }
+
+  // @Roles('teacher')
+  // @UseGuards(AuthGuard, RolesGuard)
+  // @Get('pending')
+  // async getPendingSubmissions() {
+  //   return this.submissionsService.getPendingSubmissions();
+  // }
+
+  // @Roles('teacher')
+  // @UseGuards(AuthGuard, RolesGuard)
+  // @Get('accepted')
+  // async getAcceptedSubmissions() {
+  //   return this.submissionsService.getAcceptedSubmissions();
+  // }
 
   @Roles('teacher')
-  @UseGuards(AuthGuard, RolesGuard)
-  @Get('rejected')
-  async getRejectedSubmissions() {
-    return this.submissionsService.getRejectedSubmissions();
-  }
+@UseGuards(AuthGuard, RolesGuard)
+@Get('lesson/:lessonId/status/:status')
+async getLessonSubmissionsByStatus(
+  @Req() req,
+  @Param('lessonId') lessonId: number,
+  @Param('status') status: SubmissionStatus,
+) {
+  if (!req.user || !req.user.id) throw new ForbiddenException('User not authenticated');
+  return this.submissionsService.getLessonSubmissionsByStatus(req.user.id, lessonId, status);
+}
 
-  @Roles('teacher')
-  @UseGuards(AuthGuard, RolesGuard)
-  @Get('pending')
-  async getPendingSubmissions() {
-    return this.submissionsService.getPendingSubmissions();
-  }
-
-  @Roles('teacher')
-  @UseGuards(AuthGuard, RolesGuard)
-  @Get('accepted')
-  async getAcceptedSubmissions() {
-    return this.submissionsService.getAcceptedSubmissions();
-  }
 
   @Roles('teacher')
   @UseGuards(AuthGuard, RolesGuard)
