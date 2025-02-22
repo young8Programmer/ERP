@@ -6,6 +6,7 @@ export enum SubmissionStatus {
   PENDING = 'pending',
   REJECTED = 'rejected',
   ACCEPTED = 'accepted',
+  UNSUBMITTED = "unsubmitted"
 }
 
 @Entity()

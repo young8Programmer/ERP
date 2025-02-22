@@ -100,9 +100,9 @@ export class SubmissionController {
   // }
 
   @Roles('teacher')
-@UseGuards(AuthGuard, RolesGuard)
-@Get('lesson/:lessonId/status/:status')
-async getLessonSubmissionsByStatus(
+  @UseGuards(AuthGuard, RolesGuard)
+  @Get('lesson/:lessonId/status/:status')
+  async getLessonSubmissionsByStatus(
   @Req() req,
   @Param('lessonId') lessonId: number,
   @Param('status') status: SubmissionStatus,

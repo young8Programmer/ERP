@@ -127,14 +127,30 @@ export class SubmissionService {
   // }
 
   async getLessonSubmissionsByStatus(teacherId: number, lessonId: number, status: SubmissionStatus) {
-    const lesson = await this.lessonRepository.findOne({ where: { id: lessonId }, relations: ['group'] });
+    const lesson = await this.lessonRepository.findOne({
+      where: { id: lessonId },
+      relations: ['group', 'assignments'],
+    });
     if (!lesson) throw new NotFoundException("Dars topilmadi");
   
-    return this.submissionRepository.find({
-      where: { assignment: { lesson: { id: lessonId } }, status },
+    const students = await this.studentRepository.find({
+      where: { groups: lesson.group },
+    });
+  
+    const submissions = await this.submissionRepository.find({
+      where: { assignment: { lesson: { id: lessonId } } },
       relations: ['student', 'assignment'],
     });
+  
+    if (status === SubmissionStatus.UNSUBMITTED) {
+      // Ushbu lesson uchun hech qanday submission qilmagan studentlarni topamiz
+      const submittedStudentIds = submissions.map(s => s.student.id);
+      return students.filter(student => !submittedStudentIds.includes(student.id));
+    }
+  
+    return submissions.filter(submission => submission.status === status);
   }
+  
   
   
   async getDailyGrades(userId: number, groupId: number) {
