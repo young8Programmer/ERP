@@ -1,15 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, Unique } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { Assignment } from 'src/assignments/entities/assignment.entity';
 import { Student } from '../../students/entities/student.entity';
 
 export enum SubmissionStatus {
-  PENDING = 'pending', // Kutayotgan
-  REJECTED = 'rejected', // Qaytarilgan
-  ACCEPTED = 'accepted', // Qabul qilingan
+  PENDING = 'pending',
+  REJECTED = 'rejected',
+  ACCEPTED = 'accepted',
 }
 
-@Entity()
-@Unique(['assignment', 'student'])
+@Entity("submission")
 export class Submission {
   @PrimaryGeneratedColumn()
   id: number;
@@ -24,17 +23,17 @@ export class Submission {
   @Column({ type: 'int', default: 0 })
   grade: number;
 
-  @Column({ type: 'text', nullable: true }) // Izoh uchun maydon
+  @Column({ type: 'text', nullable: true })
   comment: string;
 
-  @Column({ type: 'text', nullable: true }) // Fayl uchun URL
+  @Column({ type: 'text', nullable: true })
   fileUrl: string;
 
-  @ManyToOne(() => Assignment, (assignment) => assignment.submissions)
+  @ManyToOne(() => Assignment, (assignment) => assignment.submissions, { nullable: false })
   @JoinColumn({ name: 'assignmentId' })
   assignment: Assignment;
 
-  @ManyToOne(() => Student, (student) => student.submissions)
+  @ManyToOne(() => Student, (student) => student.submissions, { nullable: false })
   @JoinColumn({ name: 'studentId' })
   student: Student;
 
