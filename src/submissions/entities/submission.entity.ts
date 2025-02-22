@@ -8,7 +8,7 @@ export enum SubmissionStatus {
   ACCEPTED = 'accepted',
 }
 
-@Entity("submission")
+@Entity()
 export class Submission {
   @PrimaryGeneratedColumn()
   id: number;

@@ -14,7 +14,7 @@ export class Assignment {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ type: 'text', nullable: true }) 
   title: string;
 
   @Column({ nullable: true })
