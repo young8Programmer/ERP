@@ -58,13 +58,10 @@ export class SubmissionService {
     return { message: 'Topshiriq muvaffaqiyatli topshirildi.', submissionId: submission.id };
   }
 
-  async getAllSubmissions(userId: number) {
-    return this.submissionRepository
-      .createQueryBuilder('submission')
-      .leftJoinAndSelect('submission.student', 'student')
-      .leftJoinAndSelect('submission.assignment', 'assignment')
-      .where('student.id = :userId', { userId })
-      .getMany();
+  async getAllSubmissions() {
+    return this.submissionRepository.find({
+      relations: ['assignment'], // Faqat assignment bog'lanishini olish
+    });
   }
   
   async gradeSubmission(teacherId: number, submissionId: number, dto: GradeSubmissionDto) {

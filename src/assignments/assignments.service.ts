@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Assignment } from './entities/assignment.entity';
 import { Repository } from 'typeorm';
@@ -21,7 +21,7 @@ export class AssignmentsService {
   ) {}
 
   async createAssignment(teacherId: number, createAssignmentDto: CreateAssignmentDto) {
-    const { lesson_id, title, description, fileUrl, assignment, dueDate } = createAssignmentDto;
+    const { lesson_id, title, description, fileUrl, dueDate } = createAssignmentDto;
   
     const lesson = await this.lessonRepository.findOne({
       where: { id: lesson_id },
@@ -37,7 +37,14 @@ export class AssignmentsService {
     if (lesson.group.teacher.id !== teacher.id) {
       throw new ForbiddenException('Siz faqat o‘zingizga tegishli guruhdagi topshiriqni yaratishingiz mumkin');
     }
-
+  
+    // **Mavjud topshiriqni tekshirish**
+    const existingAssignment = await this.assignmentRepository.findOne({ where: { lesson } });
+  
+    if (existingAssignment) {
+      throw new ConflictException('Bu dars uchun allaqachon topshiriq mavjud');
+    }
+  
     const dueDateString: string | null = dueDate ? new Date(dueDate).toISOString() : null;
   
     const newAssignment = this.assignmentRepository.create({

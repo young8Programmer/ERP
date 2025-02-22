@@ -34,7 +34,7 @@ export class SubmissionController {
   @Get('all')
   async getAllSubmissions(@Req() req) {
     if (!req.user || !req.user.id) throw new ForbiddenException('User not authenticated');
-    return this.submissionsService.getAllSubmissions(req.user.id);
+    return this.submissionsService.getAllSubmissions();
   }
 
   @Roles('teacher')
