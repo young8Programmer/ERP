@@ -7,7 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Lesson } from 'src/lesson/entities/lesson.entity';
-import { Submission } from 'src/submissions/entities/submission.entity'; // Submission entitetini import qilish
+import { Submission } from 'src/submissions/entities/submission.entity';
 
 @Entity('assignments')
 export class Assignment {
@@ -15,9 +15,15 @@ export class Assignment {
   id: number;
 
   @Column()
-  assignment: string;
+  title: string;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ nullable: true })
+  description: string;
+
+  @Column({ nullable: true })
+  fileUrl: string;
+
+  @Column({ nullable: true })
   dueDate: Date;
 
   @UpdateDateColumn({ type: 'timestamp', nullable: true })
@@ -31,5 +37,6 @@ export class Assignment {
   @OneToMany(() => Submission, (submission) => submission.assignment)
   submissions: Submission[];
 
-  status: string
+  @Column({ default: 'pending' })
+  status: string;
 }

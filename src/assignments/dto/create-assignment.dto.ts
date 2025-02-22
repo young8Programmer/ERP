@@ -1,4 +1,3 @@
-// create-assignment.dto.ts
 import { IsDateString, IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateAssignmentDto {
@@ -10,9 +9,25 @@ export class CreateAssignmentDto {
 
   @IsString()
   @IsNotEmpty()
+  title: string; // Mavzu qo'shildi
+
+  @IsOptional()
+  @IsString()
+  description?: string; // Izoh qo'shildi
+
+  @IsOptional()
+  @IsString()
+  fileUrl?: string; // Fayl yuklash uchun URL qo'shildi
+
+  @IsString()
+  @IsNotEmpty()
   assignment: string;
 
   @IsOptional()
   @IsDateString()
-  dueDate?: string; // kunlar soni
+  dueDate?: string;
+
+  @IsOptional()
+  @IsString()
+  status?: string; // Default "pending" bo'lishi mumkin
 }

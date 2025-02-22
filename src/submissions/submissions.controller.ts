@@ -7,14 +7,12 @@ import {
   Body,
   Req,
   ForbiddenException,
-  NotFoundException,
   UseGuards,
 } from '@nestjs/common';
 import { SubmissionService } from './submissions.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { GradeSubmissionDto } from './dto/GradeSubmissionDto';
 import { AuthGuard, Roles, RolesGuard } from 'src/auth/auth.guard';
-
 
 @Controller('submissions')
 export class SubmissionController {
@@ -28,27 +26,15 @@ export class SubmissionController {
     @Param('assignmentId') assignmentId: number,
     @Body() createSubmissionDto: CreateSubmissionDto,
   ) {
-    if (!req.user || !req.user.id) {
-      throw new ForbiddenException('User not authenticated');
-    }
-
-    const userId = req.user.id;
-    return this.submissionsService.submitAnswer(
-      userId,
-      createSubmissionDto.content,
-      assignmentId,
-    );
+    if (!req.user || !req.user.id) throw new ForbiddenException('User not authenticated');
+    return this.submissionsService.submitAnswer(req.user.id, createSubmissionDto, assignmentId);
   }
 
   @UseGuards(AuthGuard)
   @Get('all')
   async getAllSubmissions(@Req() req) {
-    if (!req.user || !req.user.id) {
-      throw new ForbiddenException('User not authenticated');
-    }
-
-    const userId = req.user.id;
-    return this.submissionsService.getAllSubmissions(userId);
+    if (!req.user || !req.user.id) throw new ForbiddenException('User not authenticated');
+    return this.submissionsService.getAllSubmissions(req.user.id);
   }
 
   @Roles('teacher')
@@ -59,48 +45,63 @@ export class SubmissionController {
     @Param('submissionId') submissionId: number,
     @Body() gradeSubmissionDto: GradeSubmissionDto,
   ) {
-    if (!req.user || !req.user.id) {
-      throw new ForbiddenException('User not authenticated');
-    }
-
-    const userId = req.user.id;
-    return this.submissionsService.gradeSubmission(
-      userId,
-      submissionId,
-      gradeSubmissionDto.grade,
-    );
+    if (!req.user || !req.user.id) throw new ForbiddenException('User not authenticated');
+    return this.submissionsService.gradeSubmission(req.user.id, submissionId, gradeSubmissionDto);
   }
 
   @Roles('teacher')
   @UseGuards(AuthGuard, RolesGuard)
   @Get('lesson/:lessonId')
-  async getLessonSubmissions(
-  @Req() req,
-  @Param('lessonId') lessonId: number) {
-
-  if (!req.user || !req.user.id) {
-    throw new ForbiddenException('User not authenticated');
+  async getLessonSubmissions(@Req() req, @Param('lessonId') lessonId: number) {
+    if (!req.user || !req.user.id) throw new ForbiddenException('User not authenticated');
+    return this.submissionsService.getLessonSubmissions(req.user.id, lessonId);
   }
-
-  const userId = req.user.id;
-  return this.submissionsService.getLessonSubmissions(userId, lessonId);
-}
 
   @UseGuards(AuthGuard)
   @Get('daily-grades/:groupId')
-  async getDailyGrades(
-    @Req() req,
-    @Param('groupId') groupId: number,
-  ) {
-    const userId = req.user.id;
-    return this.submissionsService.getDailyGrades(userId, groupId);
+  async getDailyGrades(@Req() req, @Param('groupId') groupId: number) {
+    return this.submissionsService.getDailyGrades(req.user.id, groupId);
   }
 
   @UseGuards(AuthGuard)
   @Get('total-scores/:groupId')
-  async getTotalScores(
-    @Param('groupId') groupId: number,
-  ) {
+  async getTotalScores(@Param('groupId') groupId: number) {
     return this.submissionsService.getTotalScores(groupId);
+  }
+
+  // ✅ Yangi endpointlar:
+  @Roles('teacher')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Get('passed')
+  async getPassedStudents() {
+    return this.submissionsService.getPassedStudents();
+  }
+
+  @Roles('teacher')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Get('rejected')
+  async getRejectedSubmissions() {
+    return this.submissionsService.getRejectedSubmissions();
+  }
+
+  @Roles('teacher')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Get('pending')
+  async getPendingSubmissions() {
+    return this.submissionsService.getPendingSubmissions();
+  }
+
+  @Roles('teacher')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Get('accepted')
+  async getAcceptedSubmissions() {
+    return this.submissionsService.getAcceptedSubmissions();
+  }
+
+  @Roles('teacher')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Get(':assignmentId/unsubmitted')
+  async getUnsubmittedStudents(@Param('assignmentId') assignmentId: number) {
+    return this.submissionsService.getUnsubmittedStudents(assignmentId);
   }
 }

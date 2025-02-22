@@ -17,11 +17,11 @@ export class AssignmentsService {
     @InjectRepository(Teacher)
     private readonly teacherRepository: Repository<Teacher>, 
     @InjectRepository(Student)
-    private readonly studentRepository: Repository<Student>, // Student repository
+    private readonly studentRepository: Repository<Student>, 
   ) {}
 
   async createAssignment(teacherId: number, createAssignmentDto: CreateAssignmentDto) {
-    const { lesson_id, assignment, dueDate } = createAssignmentDto;
+    const { lesson_id, title, description, fileUrl, assignment, dueDate } = createAssignmentDto;
   
     const lesson = await this.lessonRepository.findOne({
       where: { id: lesson_id },
@@ -38,21 +38,15 @@ export class AssignmentsService {
       throw new ForbiddenException('Siz faqat o‘zingizga tegishli guruhdagi topshiriqni yaratishingiz mumkin');
     }
 
-    const existingAssignment = await this.assignmentRepository.findOne({
-      where: { lesson: { id: lesson_id } },
-    });
-    
-    if (existingAssignment) {
-      throw new ForbiddenException('Bu dars uchun allaqachon vazifa yuklangan');
-    }
-    
-    let dueDateString: string | null = dueDate ? new Date(dueDate).toISOString() : null;
+    const dueDateString: string | null = dueDate ? new Date(dueDate).toISOString() : null;
   
     const newAssignment = this.assignmentRepository.create({
       lesson,
-      assignment,
+      title,
+      description,
+      fileUrl,
       status: 'pending',
-      dueDate: dueDateString, // dueDate to‘g‘ridan-to‘g‘ri saqlanadi
+      dueDate: dueDateString,
     });
   
     await this.assignmentRepository.save(newAssignment);
@@ -60,8 +54,7 @@ export class AssignmentsService {
     return { message: 'Assignment successfully created', assignmentId: newAssignment.id };
   }
   
-  
-  async updateAssignment(teacherId: number, assignmentId: number, updateData: { assignment?: string; status?: string }) {
+  async updateAssignment(teacherId: number, assignmentId: number, updateData: Partial<CreateAssignmentDto>) {
     const assignment = await this.assignmentRepository.findOne({
       where: { id: assignmentId },
       relations: ['lesson', 'lesson.group', 'lesson.group.teacher'],
@@ -77,12 +70,7 @@ export class AssignmentsService {
       throw new ForbiddenException('Siz faqat o\'zingizga tegishli guruhdagi topshiriqni o\'zgartira olasiz');
     }
 
-    if (updateData.assignment) {
-      assignment.assignment = updateData.assignment;
-    }
-    if (updateData.status) {
-      assignment.status = updateData.status;
-    }
+    Object.assign(assignment, updateData);
 
     await this.assignmentRepository.save(assignment);
 
@@ -109,7 +97,6 @@ export class AssignmentsService {
 
     return { message: 'Assignment successfully removed' };
   }
-
 
   async findAssignmentsForUser(lessonId: number, userId: number, role: 'teacher' | 'student') {
     const lesson = await this.lessonRepository.findOne({
@@ -148,5 +135,4 @@ export class AssignmentsService {
   
     return assignments;
   }
-  
 }

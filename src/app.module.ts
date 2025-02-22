@@ -43,9 +43,9 @@ import { superAdmin } from './super-admin/entities/super-admin.entity';
         Admin,
         superAdmin
       ],
-      synchronize: true, // Production uchun false qilib qo'ying
+      synchronize: true,
       ssl: {
-        rejectUnauthorized: false, // Render uchun SSL kerak
+        rejectUnauthorized: false,
       },
     }),
     CoursesModule,
