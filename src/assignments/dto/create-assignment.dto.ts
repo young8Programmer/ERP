@@ -15,7 +15,7 @@ export class CreateAssignmentDto {
   @IsString()
   description: string; // Izoh qo'shildi
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   fileUrl?: string; // Fayl yuklash uchun URL qo'shildi
 
