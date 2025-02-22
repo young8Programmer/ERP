@@ -11,11 +11,11 @@ export class CreateAssignmentDto {
   @IsNotEmpty()
   title: string; // Mavzu qo'shildi
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  description?: string; // Izoh qo'shildi
+  description: string; // Izoh qo'shildi
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
   fileUrl?: string; // Fayl yuklash uchun URL qo'shildi
 
