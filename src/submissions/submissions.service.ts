@@ -59,12 +59,14 @@ export class SubmissionService {
   }
 
   async getAllSubmissions(userId: number) {
-    return this.submissionRepository.find({
-      where: { student: { id: userId } },
-      relations: ['student', 'assignment'],
-    });
+    return this.submissionRepository
+      .createQueryBuilder('submission')
+      .leftJoinAndSelect('submission.student', 'student')
+      .leftJoinAndSelect('submission.assignment', 'assignment')
+      .where('student.id = :userId', { userId })
+      .getMany();
   }
-
+  
   async gradeSubmission(teacherId: number, submissionId: number, dto: GradeSubmissionDto) {
     const submission = await this.submissionRepository.findOne({
       where: { id: submissionId },
