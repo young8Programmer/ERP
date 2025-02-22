@@ -19,10 +19,6 @@ export class CreateAssignmentDto {
   @IsString()
   fileUrl?: string; // Fayl yuklash uchun URL qo'shildi
 
-  @IsString()
-  @IsNotEmpty()
-  assignment: string;
-
   @IsOptional()
   @IsDateString()
   dueDate?: string;
