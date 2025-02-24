@@ -23,10 +23,22 @@ import { AdminModule } from './admin/admin.module';
 import { Admin } from './admin/entities/admin.entity';
 import { SuperAdminModule } from './super-admin/super-admin.module';
 import { superAdmin } from './super-admin/entities/super-admin.entity';
+import { MulterModule } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 
 
 @Module({
   imports: [
+    MulterModule.register({
+      storage: diskStorage({
+        destination: './uploads/submissions', // 📂 Fayllar tushadigan joy
+        filename: (req, file, callback) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          callback(null, `${file.fieldname}-${uniqueSuffix}${extname(file.originalname)}`);
+        },
+      }),
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: "postgresql://postgres:GufBxEipUYYmAZrIRRZzuzGnHlIUcLis@autorack.proxy.rlwy.net:27915/railway",
