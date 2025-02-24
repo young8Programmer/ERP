@@ -1,9 +1,14 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import * as express from 'express';
+import * as path from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // ✅ uploads/submissions papkasiga ruxsat berish
+  app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -18,6 +23,7 @@ async function bootstrap() {
     origin: "*",
     credentials: true,
   });
+
   await app.listen(3000, "0.0.0.0");
 }
 
