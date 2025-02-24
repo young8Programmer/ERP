@@ -59,6 +59,7 @@ export class SubmissionService {
     return { message: 'Topshiriq muvaffaqiyatli topshirildi.', submissionId: submission.id };
   }
   
+  
   async getAllSubmissions() {
     return this.submissionRepository.find({
       relations: ['assignment'], // Faqat assignment bog'lanishini olish

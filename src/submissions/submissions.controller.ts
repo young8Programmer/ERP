@@ -21,6 +21,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { Express } from 'express';
+import * as fs from "fs";
+import * as path from "path";
 
 
 
@@ -29,40 +31,51 @@ export class SubmissionController {
   constructor(private readonly submissionsService: SubmissionService) {}
 
   @Roles('student')
-@UseGuards(AuthGuard, RolesGuard)
-@Post(':assignmentId/submit')
-@UseInterceptors(
-  FileInterceptor('file', {
-    storage: diskStorage({
-      destination: './uploads/submissions',
-      filename: (req, file, callback) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-        callback(null, `${file.fieldname}-${uniqueSuffix}${extname(file.originalname)}`);
-      },
+  @UseGuards(AuthGuard, RolesGuard)
+  @Post(':assignmentId/submit')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: (req, file, cb) => {
+          const uploadPath = path.join(__dirname, '../../../uploads/submissions'); // ✅ To‘liq path
+          
+          // 📌 Papkani avtomatik yaratish
+          if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath, { recursive: true });
+          }
+
+          cb(null, uploadPath);
+        },
+        filename: (req, file, callback) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          callback(null, `${file.fieldname}-${uniqueSuffix}${extname(file.originalname)}`);
+        },
+      }),
     }),
-  }),
-)
-async submitAnswer(
-  @Req() req,
-  @Param('assignmentId') assignmentId: number,
-  @Body() createSubmissionDto: CreateSubmissionDto,
-  @UploadedFile() file: any // 🟢 Faylni to'g'ri olish
-) {
-  if (!req.user || !req.user.id) {
-    throw new ForbiddenException('User not authenticated');
-  }
+  )
+  async submitAnswer(
+    @Req() req,
+    @Param('assignmentId') assignmentId: number,
+    @Body() createSubmissionDto: CreateSubmissionDto,
+    @UploadedFile() file: any, // ✅ Fayl to‘g‘ri olinadi
+  ) {
+    if (!req.user || !req.user.id) {
+      throw new ForbiddenException('User not authenticated');
+    }
 
-  if (!file) {
-    throw new ForbiddenException('Fayl yuklanmadi'); // 🛑 Fayl yo'q bo‘lsa xato qaytarish
-  }
+    if (!file) {
+      throw new ForbiddenException('Fayl yuklanmadi'); // 🛑 Fayl yo‘q bo‘lsa xato qaytarish
+    }
 
-  return this.submissionsService.submitAnswer(
-    req.user.id,
-    file.path, // 🔹 Fayl yo‘li bazaga yoziladi
-    createSubmissionDto.comment,
-    assignmentId,
-  );
-}
+    console.log('Fayl yuklandi:', file.path); // 📌 Fayl yuklanganini log qilish
+
+    return this.submissionsService.submitAnswer(
+      req.user.id,
+      file.path, // 🔹 Fayl yo‘li bazaga yoziladi
+      createSubmissionDto.comment,
+      assignmentId,
+    );
+  }
 
   @UseGuards(AuthGuard)
   @Get('all')
