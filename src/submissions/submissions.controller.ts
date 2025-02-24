@@ -40,6 +40,12 @@ export class SubmissionController {
         callback(null, `${file.fieldname}-${uniqueSuffix}${extname(file.originalname)}`);
       },
     }),
+    fileFilter: (req, file, callback) => {
+      if (!file.mimetype) {
+        return callback(new ForbiddenException('Fayl turi aniqlanmadi'), false);
+      }
+      callback(null, true); // Har qanday faylga ruxsat beriladi
+    },
   }),
 )
 async submitAnswer(
