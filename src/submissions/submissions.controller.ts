@@ -40,26 +40,20 @@ export class SubmissionController {
         callback(null, `${file.fieldname}-${uniqueSuffix}${extname(file.originalname)}`);
       },
     }),
-    fileFilter: (req, file, callback) => {
-      if (!file.mimetype) {
-        return callback(new ForbiddenException('Fayl turi aniqlanmadi'), false);
-      }
-      callback(null, true); // Har qanday faylga ruxsat beriladi
-    },
   }),
 )
 async submitAnswer(
   @Req() req,
   @Param('assignmentId') assignmentId: number,
   @Body() createSubmissionDto: CreateSubmissionDto,
-  @UploadedFile() file: any,
+  @UploadedFile() file: any // 🟢 Faylni to'g'ri olish
 ) {
   if (!req.user || !req.user.id) {
     throw new ForbiddenException('User not authenticated');
   }
 
   if (!file) {
-    throw new ForbiddenException('Fayl yuklanmadi');
+    throw new ForbiddenException('Fayl yuklanmadi'); // 🛑 Fayl yo'q bo‘lsa xato qaytarish
   }
 
   return this.submissionsService.submitAnswer(
