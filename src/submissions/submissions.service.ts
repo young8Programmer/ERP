@@ -39,11 +39,11 @@ export class SubmissionService {
       throw new ForbiddenException("Deadline vaqti tugagan, topshiriq qabul qilinmaydi");
     }
   
-    const existingSubmission = await this.submissionRepository.findOne({
-      where: { student: { id: userId }, assignment: { id: assignmentId } },
-    });
+    // const existingSubmission = await this.submissionRepository.findOne({
+    //   where: { student: { id: userId }, assignment: { id: assignmentId } },
+    // });
   
-    if (existingSubmission) throw new ForbiddenException("Siz ushbu topshiriqni allaqachon topshirgansiz")
+    // if (existingSubmission) throw new ForbiddenException("Siz ushbu topshiriqni allaqachon topshirgansiz")
   
     const submission = this.submissionRepository.create({
       filePath, // 🟢 Fayl yo‘li saqlanadi
