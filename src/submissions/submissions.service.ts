@@ -9,6 +9,7 @@ import { Lesson } from 'src/lesson/entities/lesson.entity';
 import { Teacher } from 'src/teacher/entities/teacher.entity';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { GradeSubmissionDto } from './dto/GradeSubmissionDto';
+import * as fs from "fs";
 
 @Injectable()
 export class SubmissionService {
@@ -27,37 +28,37 @@ export class SubmissionService {
     private readonly teacherRepository: Repository<Teacher>,
   ) {}
 
-  async submitAnswer(userId: number, dto: CreateSubmissionDto, assignmentId: number) {
+  async submitAnswer(userId: number, filePath: string, comment: string, assignmentId: number) {
     const student = await this.studentRepository.findOne({ where: { id: userId } });
     if (!student) throw new ForbiddenException("Talaba topilmadi");
-
+  
     const assignment = await this.assignmentRepository.findOne({ where: { id: assignmentId } });
     if (!assignment) throw new ForbiddenException("Topshiriq topilmadi");
-
+  
     if (new Date() > assignment.dueDate) {
       throw new ForbiddenException("Deadline vaqti tugagan, topshiriq qabul qilinmaydi");
     }
-
+  
     const existingSubmission = await this.submissionRepository.findOne({
       where: { student: { id: userId }, assignment: { id: assignmentId } },
     });
-
-    if (existingSubmission) throw new ForbiddenException("Siz ushbu topshiriqni allaqachon topshirgansiz");
-
+  
+    if (existingSubmission) throw new ForbiddenException("Siz ushbu topshiriqni allaqachon topshirgansiz")
+  
     const submission = this.submissionRepository.create({
-      fileUrl: dto.fileUrl,
-      comment: dto.comment,
+      filePath, // 🟢 Fayl yo‘li saqlanadi
+      comment,
       grade: 0,
       status: SubmissionStatus.PENDING,
       student,
       assignment,
     });
-
+  
     await this.submissionRepository.save(submission);
-
+  
     return { message: 'Topshiriq muvaffaqiyatli topshirildi.', submissionId: submission.id };
   }
-
+  
   async getAllSubmissions() {
     return this.submissionRepository.find({
       relations: ['assignment'], // Faqat assignment bog'lanishini olish
@@ -97,34 +98,6 @@ export class SubmissionService {
       relations: ['student', 'assignment'],
     });
   }
-
-  // async getPassedStudents() {
-  //   return this.submissionRepository.find({
-  //     where: { grade: MoreThan(60), status: SubmissionStatus.ACCEPTED },
-  //     relations: ['student', 'assignment'],
-  //   });
-  // }
-
-  // async getRejectedSubmissions() {
-  //   return this.submissionRepository.find({
-  //     where: { status: SubmissionStatus.REJECTED },
-  //     relations: ['student', 'assignment'],
-  //   });
-  // }
-
-  // async getPendingSubmissions() {
-  //   return this.submissionRepository.find({
-  //     where: { status: SubmissionStatus.PENDING },
-  //     relations: ['student', 'assignment'],
-  //   });
-  // }
-
-  // async getAcceptedSubmissions() {
-  //   return this.submissionRepository.find({
-  //     where: { status: SubmissionStatus.ACCEPTED },
-  //     relations: ['student', 'assignment'],
-  //   });
-  // }
 
   async getLessonSubmissionsByStatus(teacherId: number, lessonId: number, status: SubmissionStatus) {
     const lesson = await this.lessonRepository.findOne({

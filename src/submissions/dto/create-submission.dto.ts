@@ -1,11 +1,14 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional } from 'class-validator';
+import { Type } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
+import { Express } from 'express';
 
 export class CreateSubmissionDto {
   @IsNotEmpty()
-  @IsString()
-  fileUrl: string; // Yuklangan fayl (rasm, hujjat)
+  @ApiProperty({ type: 'string', format: 'binary' }) // 🟢 Fayl yuklash uchun
+  file: any;
 
-  @IsNotEmpty()
-  @IsString()
-  comment: string; // O‘quvchining izohi
+  @IsOptional()
+  @ApiProperty({ type: 'string', required: false }) // 🔹 Izoh ixtiyoriy bo'lishi mumkin
+  comment?: string;
 }

@@ -27,8 +27,8 @@ export class Submission {
   @Column({ type: 'text', nullable: true })
   comment: string;
 
-  @Column({ type: 'text', nullable: true })
-  fileUrl: string;
+  @Column({ type: 'text', nullable: true }) // 🟢 Fayl yo‘lini saqlash
+  filePath: string;
 
   @ManyToOne(() => Assignment, (assignment) => assignment.submissions, { nullable: false })
   @JoinColumn({ name: 'assignmentId' })
