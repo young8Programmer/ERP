@@ -17,6 +17,7 @@ async function bootstrap() {
       transform: true,
       disableErrorMessages: false,
     }),
+    
   );
 
   app.enableCors({
