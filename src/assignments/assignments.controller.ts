@@ -8,26 +8,21 @@ import { Response } from 'express';
 @Controller('assignments')
 export class AssignmentsController {
   constructor(private readonly assignmentsService: AssignmentsService) {}
-  
+
   @Roles('teacher')
 @UseGuards(AuthGuard, RolesGuard)
 @Post()
 @UseInterceptors(FileInterceptor('file'))
 async create(
   @Req() req,
-  @UploadedFile() file: any, // Fayl obyektini olish
+  @UploadedFile() file: any, 
   @Body() createAssignmentDto: CreateAssignmentDto
 ) {
   const teacherId = req.user.id;
-  const lesson_id = parseInt(createAssignmentDto.lesson_id as any, 10);
-  const group_id = parseInt(createAssignmentDto.group_id as any, 10);
 
-  return this.assignmentsService.createAssignment(teacherId, {
-    ...createAssignmentDto,
-    lesson_id,
-    group_id,
-  }, file);
+  return this.assignmentsService.createAssignment(teacherId, createAssignmentDto, file);
 }
+
 
 @Get('file/:assignmentId')
 async getAssignmentFile(@Param('assignmentId', ParseIntPipe) assignmentId: number, @Res() res: Response) {
