@@ -6,7 +6,7 @@ export enum SubmissionStatus {
   PENDING = 'pending',
   REJECTED = 'rejected',
   ACCEPTED = 'accepted',
-  UNSUBMITTED = "unsubmitted"
+  UNSUBMITTED = 'unsubmitted',
 }
 
 @Entity()
@@ -24,11 +24,14 @@ export class Submission {
   @Column({ type: 'int', default: 0 })
   grade: number;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true }) // 🔹 Izoh (comment)
   comment: string;
 
-  @Column({ type: 'text', nullable: true }) // 🟢 Fayl yo‘lini saqlash
-  filePath: string;
+  @Column({ type: 'bytea', nullable: false })
+  fileData: Buffer;
+
+  @Column({ type: 'text', nullable: false })
+  fileName: string;
 
   @ManyToOne(() => Assignment, (assignment) => assignment.submissions, { nullable: false })
   @JoinColumn({ name: 'assignmentId' })

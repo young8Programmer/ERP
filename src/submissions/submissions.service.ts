@@ -29,39 +29,38 @@ export class SubmissionService {
     private readonly teacherRepository: Repository<Teacher>,
   ) {}
 
-  async submitAnswer(userId: number, filePath: string, comment: string, assignmentId: number) {
+  async submitAnswer(userId: number, file: any, comment: string, assignmentId: number) {
     const student = await this.studentRepository.findOne({ where: { id: userId } });
     if (!student) throw new ForbiddenException('Talaba topilmadi');
-
+  
     const assignment = await this.assignmentRepository.findOne({ where: { id: assignmentId } });
     if (!assignment) throw new ForbiddenException('Topshiriq topilmadi');
-
+  
     if (new Date() > assignment.dueDate) {
       throw new ForbiddenException('Deadline tugagan, topshiriq qabul qilinmaydi');
     }
-
-    
-  const submission = this.submissionRepository.create({
-    filePath,
-    comment,
-    grade: 0,
-    status: SubmissionStatus.PENDING,
-    student,
-    assignment,
-  });
-
+  
+    const submission = this.submissionRepository.create({
+      fileData: file.buffer,
+      fileName: file.originalname,
+      comment,
+      grade: 0,
+      status: SubmissionStatus.PENDING,
+      student,
+      assignment,
+    });
+  
     await this.submissionRepository.save(submission);
-    return { message: 'Topshiriq muvaffaqiyatli topshirildi', submission, filePath };
+    return { message: 'Topshiriq muvaffaqiyatli topshirildi', submission };
   }
 
-  getFile(filename: string): Buffer {
-    const filePath = path.join(process.cwd(), 'uploads', 'submissions', filename);
-    if (!fs.existsSync(filePath)) {
-      throw new NotFoundException('Fayl topilmadi');
-    }
-    return fs.readFileSync(filePath);
+  async getSubmissionFile(submissionId: number) {
+    return this.submissionRepository.findOne({
+      where: { id: submissionId },
+      select: ['fileData', 'fileName'],
+    });
   }
-
+  
   async getAllSubmissions() {
     return this.submissionRepository.find({
       relations: ['assignment'], // Faqat assignment bog'lanishini olish
