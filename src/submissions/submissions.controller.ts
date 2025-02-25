@@ -33,7 +33,7 @@ export class SubmissionController {
   
   @Roles('student')
   @UseGuards(AuthGuard, RolesGuard)
-  @Post(':assignmentId/upload')
+  @Post(':assignmentId/submit')
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
