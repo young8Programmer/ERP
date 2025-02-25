@@ -8,35 +8,39 @@ import { Response } from 'express';
 @Controller('assignments')
 export class AssignmentsController {
   constructor(private readonly assignmentsService: AssignmentsService) {}
-
+  
   @Roles('teacher')
 @UseGuards(AuthGuard, RolesGuard)
 @Post()
 @UseInterceptors(FileInterceptor('file'))
-async createAssignment(
+async create(
   @Req() req,
-  @Body() createAssignmentDto: CreateAssignmentDto,
-  @UploadedFile() file: any // Faylni olish
+  @UploadedFile() file: any, // Fayl obyektini olish
+  @Body() createAssignmentDto: CreateAssignmentDto
 ) {
   const teacherId = req.user.id;
-  return this.assignmentsService.createAssignment(teacherId, createAssignmentDto, file);
+  const lesson_id = parseInt(createAssignmentDto.lesson_id as any, 10);
+  const group_id = parseInt(createAssignmentDto.group_id as any, 10);
+
+  return this.assignmentsService.createAssignment(teacherId, {
+    ...createAssignmentDto,
+    lesson_id,
+    group_id,
+  }, file);
 }
 
 @Get('file/:assignmentId')
-  async getAssignmentFile(
-    @Param('assignmentId', ParseIntPipe) assignmentId: number,
-    @Res() res: Response,
-  ) {
-    const assignment = await this.assignmentsService.getAssignmentFile(assignmentId);
+async getAssignmentFile(@Param('assignmentId', ParseIntPipe) assignmentId: number, @Res() res: Response) {
+  const assignment = await this.assignmentsService.getAssignmentFile(assignmentId);
 
-    if (!assignment || !assignment.fileData) {
-      throw new NotFoundException('Fayl topilmadi');
-    }
-
-    res.setHeader('Content-Type', assignment.fileType);
-    res.setHeader('Content-Disposition', `attachment; filename="${assignment.fileName}"`);
-    res.send(assignment.fileData);
+  if (!assignment || !assignment.fileData) {
+    throw new NotFoundException('Fayl topilmadi');
   }
+
+  res.setHeader('Content-Type', assignment.fileType);
+  res.setHeader('Content-Disposition', `attachment; filename=${assignment.fileName}`);
+  res.send(assignment.fileData);
+}
 
   
   @Roles('teacher')

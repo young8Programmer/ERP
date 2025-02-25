@@ -1,4 +1,4 @@
-import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Assignment } from './entities/assignment.entity';
 import { Repository } from 'typeorm';
@@ -40,7 +40,7 @@ export class AssignmentsService {
   
     // **Faylni tekshirish**
     if (!file || !file.buffer) {
-      throw new ForbiddenException('Fayl yuklanmagan yoki noto‘g‘ri');
+      throw new BadRequestException('Fayl yuklanmagan yoki noto‘g‘ri');
     }
   
     const newAssignment = this.assignmentRepository.create({
@@ -58,7 +58,7 @@ export class AssignmentsService {
   
     return { message: 'Assignment successfully created', assignmentId: newAssignment.id };
   }
-
+  
   async getAssignmentFile(assignmentId: number) {
     const assignment = await this.assignmentRepository.findOne({
       where: { id: assignmentId },
