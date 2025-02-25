@@ -27,11 +27,14 @@ export class Submission {
   @Column({ type: 'text', nullable: true })
   comment: string;
 
-  @Column({ type: 'text', nullable: true })
-  filePath: string; // Faylning yo'li (buffer o‘rniga)
+  @Column({ type: 'bytea', nullable: true }) // BUFFER sifatida saqlanadi
+  fileData: Buffer;
 
   @Column({ type: 'text', nullable: true })
   fileName: string;
+
+  @Column({ type: 'text', nullable: true })
+  fileType: string; // MIME turi, masalan: image/png
 
   @ManyToOne(() => Assignment, (assignment) => assignment.submissions, { nullable: false })
   @JoinColumn({ name: 'assignmentId' })

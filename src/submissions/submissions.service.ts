@@ -31,13 +31,11 @@ export class SubmissionService {
 
   async submitAnswer(userId: number, file: any, comment: string, assignmentId: number) {
     console.log('Yuklangan fayl:', file);
-    
-    if (!file || !file.path) {
+  
+    if (!file || !file.buffer) {
       throw new ForbiddenException('Fayl noto‘g‘ri yuklangan yoki yo‘q');
     }
   
-    const filePath = `uploads/${file.filename}`; // ✅ Faqat nisbiy yo‘lni saqlaymiz
-    
     const student = await this.studentRepository.findOne({ where: { id: userId } });
     if (!student) throw new ForbiddenException('Talaba topilmadi');
   
@@ -49,8 +47,9 @@ export class SubmissionService {
     }
   
     const submission = this.submissionRepository.create({
-      filePath,  
+      fileData: file.buffer, // Faylning **buffer** ma’lumoti
       fileName: file.originalname,
+      fileType: file.mimetype, // MIME turini saqlaymiz
       comment,
       grade: 0,
       status: SubmissionStatus.PENDING,
@@ -61,13 +60,22 @@ export class SubmissionService {
     await this.submissionRepository.save(submission);
     return { message: 'Topshiriq muvaffaqiyatli topshirildi', submission };
   }
-  
-  
+
   async getSubmissionFile(submissionId: number) {
-    return this.submissionRepository.findOne({
+    const submission = await this.submissionRepository.findOne({
       where: { id: submissionId },
-      select: ['filePath', 'fileName'],
+      select: ['fileData', 'fileName', 'fileType'],
     });
+
+    if (!submission || !submission.fileData) {
+      throw new NotFoundException('Fayl topilmadi');
+    }
+
+    return {
+      fileData: submission.fileData,
+      fileName: submission.fileName,
+      fileType: submission.fileType,
+    };
   }
 
   async getAllSubmissions() {
