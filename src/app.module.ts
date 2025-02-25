@@ -24,9 +24,15 @@ import { Admin } from './admin/entities/admin.entity';
 import { SuperAdminModule } from './super-admin/super-admin.module';
 import { superAdmin } from './super-admin/entities/super-admin.entity';
 import { MulterModule } from '@nestjs/platform-express';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads', 'submissions'), // 📂 Faylni to‘g‘ri joydan xizmat qilish
+      serveRoot: '/submissions/file', // URL orqali foydalanish
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: "postgresql://postgres:GufBxEipUYYmAZrIRRZzuzGnHlIUcLis@autorack.proxy.rlwy.net:27915/railway",
