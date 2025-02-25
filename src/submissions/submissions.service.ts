@@ -41,7 +41,7 @@ export class SubmissionService {
     }
 
     const submission = this.submissionRepository.create({
-      filePath: file.path,
+      filePath: path.join('uploads', file.filename),
       fileName: file.originalname,
       comment,
       grade: 0,

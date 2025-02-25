@@ -52,6 +52,8 @@ export class SubmissionController {
       throw new ForbiddenException('Fayl yuklanmadi');
     }
 
+    console.log("Yuklangan fayl:", file);
+
     const submission = await this.submissionsService.submitAnswer(
       req.user.id,
       file,
