@@ -30,6 +30,9 @@ import * as path from "path";
 export class SubmissionController {
   constructor(private readonly submissionsService: SubmissionService) {}
 
+  
+  @Roles('student')
+  @UseGuards(AuthGuard, RolesGuard)
   @Post(':assignmentId/upload')
   @UseInterceptors(
     FileInterceptor('file', {
