@@ -30,8 +30,7 @@ export class Submission {
   @Column({ type: 'bytea', nullable: true })
   fileData: Buffer;
 
-
-  @Column({ type: 'text', nullable: false })
+  @Column({ type: 'text', nullable: true })
   fileName: string;
 
   @ManyToOne(() => Assignment, (assignment) => assignment.submissions, { nullable: false })
