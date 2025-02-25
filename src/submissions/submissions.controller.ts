@@ -30,15 +30,16 @@ import * as path from "path";
 export class SubmissionController {
   constructor(private readonly submissionsService: SubmissionService) {}
 
+  @Roles("student")
+  @UseGuards(AuthGuard, RolesGuard)
   @Post(':assignmentId/submit')
-@UseInterceptors(FileInterceptor('file')) // 📂 Fayl yuklanishi kerak
-async submitAnswer(
+  @UseInterceptors(FileInterceptor('file')) // 📂 Fayl yuklanishi kerak
+  async submitAnswer(
   @Req() req,
   @Param('assignmentId') assignmentId: number,
   @Body() createSubmissionDto: CreateSubmissionDto,
   @UploadedFile() file: any, // 🔥 `Express.Multer.File` ekanligini tekshiring
 ) {
-  console.log("📂 Yuklangan fayl:", file);
 
   if (!file) {
     throw new ForbiddenException('Fayl yuklanmadi');
@@ -46,7 +47,7 @@ async submitAnswer(
 
   return this.submissionsService.submitAnswer(
     req.user.id,
-    file.path, // ✅ Fayl yo‘li
+    file.path,
     createSubmissionDto.comment,
     assignmentId,
   );
