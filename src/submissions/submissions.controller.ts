@@ -73,6 +73,7 @@ async uploadFile(
   @Get('file/:filename')
   async getFile(@Param('filename') filename: string, @Res() res: Response) {
     const filePath = path.join(__dirname, '..', 'uploads', 'submissions', filename);
+    console.log('So‘ralayotgan fayl:', filePath);
     
     if (!fs.existsSync(filePath)) {
       throw new NotFoundException('Fayl topilmadi');
