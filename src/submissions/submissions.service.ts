@@ -40,14 +40,15 @@ export class SubmissionService {
       throw new ForbiddenException('Deadline tugagan, topshiriq qabul qilinmaydi');
     }
 
-    const submission = this.submissionRepository.create({
-      filePath,
-      comment,
-      grade: 0,
-      status: SubmissionStatus.PENDING,
-      student,
-      assignment,
-    });
+    
+  const submission = this.submissionRepository.create({
+    filePath,
+    comment,
+    grade: 0,
+    status: SubmissionStatus.PENDING,
+    student,
+    assignment,
+  });
 
     await this.submissionRepository.save(submission);
     return { message: 'Topshiriq muvaffaqiyatli topshirildi', submission, filePath };
@@ -60,6 +61,7 @@ export class SubmissionService {
     }
     return fs.readFileSync(filePath);
   }
+
   async getAllSubmissions() {
     return this.submissionRepository.find({
       relations: ['assignment'], // Faqat assignment bog'lanishini olish

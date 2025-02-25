@@ -32,19 +32,9 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 
 @Module({
   imports: [
-    MulterModule.register({
-      storage: diskStorage({
-        destination: path.join(__dirname, '..', '..', 'uploads', 'submissions'),
-        filename: (req, file, callback) => {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-          callback(null, `${file.fieldname}-${uniqueSuffix}${extname(file.originalname)}`);
-        },
-      }),
-    }),
-
     ServeStaticModule.forRoot({
-      rootPath: path.join(__dirname, '..', 'uploads', 'submissions'), // 📂 Faylni to‘g‘ri joydan xizmat qilish
-      serveRoot: '/submissions/file', // URL orqali foydalanish
+      rootPath: path.join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',

@@ -30,14 +30,19 @@ import * as path from "path";
 export class SubmissionController {
   constructor(private readonly submissionsService: SubmissionService) {}
 
-  
   @Roles('student')
   @UseGuards(AuthGuard, RolesGuard)
   @Post(':assignmentId/submit')
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: './uploads/submissions',
+        destination: (req, file, cb) => {
+          const uploadPath = path.join(process.cwd(), 'uploads', 'submissions');
+          if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath, { recursive: true });
+          }
+          cb(null, uploadPath);
+        },
         filename: (req, file, cb) => {
           const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
           cb(null, `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`);
@@ -45,28 +50,24 @@ export class SubmissionController {
       }),
     }),
   )
-  async uploadFile(
-    @Req() req,
-    @Param('assignmentId') assignmentId: number,
-    @UploadedFile() file: any,
-    @Body('comment') comment: string,
-  ) {
+  async uploadFile(@Req() req, @Param('assignmentId') assignmentId: number, @UploadedFile() file: any, @Body('comment') comment: string) {
     if (!file) {
       throw new ForbiddenException('Fayl yuklanmadi');
     }
-
+    
+    console.log('Fayl yuklandi:', file); // ✅ Fayl yuklanganini tekshirish uchun
+    
     return this.submissionsService.submitAnswer(req.user.id, file.filename, comment, assignmentId);
   }
 
   @Get('file/:filename')
   async getFile(@Param('filename') filename: string) {
-    const filePath = path.join(__dirname, '..', '..', 'uploads', 'submissions', filename);
+    const filePath = path.join(process.cwd(), 'uploads', 'submissions', filename);
     if (!fs.existsSync(filePath)) {
       throw new NotFoundException('Fayl topilmadi');
     }
     return { filePath };
   }
-
 
   @UseGuards(AuthGuard)
   @Get('all')
