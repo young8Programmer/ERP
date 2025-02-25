@@ -37,6 +37,9 @@ if (!fs.existsSync(uploadDir)) {
 }
   }
 
+  
+  @Roles('student')
+  @UseGuards(AuthGuard, RolesGuard)
   @Post(':assignmentId/submit')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
