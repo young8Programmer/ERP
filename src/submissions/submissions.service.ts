@@ -46,6 +46,15 @@ export class SubmissionService {
       throw new ForbiddenException('Deadline tugagan, topshiriq qabul qilinmaydi');
     }
   
+    // **📌 DUPLICATE TEKSHIRISH**
+    const existingSubmission = await this.submissionRepository.findOne({
+      where: { student: { id: userId }, assignment: { id: assignmentId } }
+    });
+  
+    if (existingSubmission) {
+      throw new ForbiddenException('Siz allaqachon ushbu topshiriq uchun javob yuborgansiz');
+    }
+  
     const submission = this.submissionRepository.create({
       fileData: file.buffer,
       fileName: file.originalname,
@@ -58,7 +67,7 @@ export class SubmissionService {
     });
   
     await this.submissionRepository.save(submission);
-
+  
     return { 
       message: 'Topshiriq muvaffaqiyatli topshirildi',
       submissionId: submission.id,

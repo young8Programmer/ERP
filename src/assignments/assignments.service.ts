@@ -22,27 +22,35 @@ export class AssignmentsService {
 
   async createAssignment(teacherId: number, createAssignmentDto: CreateAssignmentDto, file: any) {
     const { lesson_id, title, description, dueDate } = createAssignmentDto;
-  
+
     const lesson = await this.lessonRepository.findOne({
       where: { id: lesson_id },
       relations: ['group', 'group.teacher'],
     });
-  
+
     if (!lesson) {
       throw new NotFoundException(`Lesson with ID ${lesson_id} not found`);
     }
-  
+
     const teacher = await this.teacherRepository.findOne({ where: { id: teacherId } });
-  
+
     if (lesson.group.teacher.id !== teacher.id) {
       throw new ForbiddenException('Siz faqat o‘zingizga tegishli guruhdagi topshiriqni yaratishingiz mumkin');
     }
-  
+
+    const existingAssignment = await this.assignmentRepository.findOne({ 
+      where: { lesson: {id: lesson_id} } 
+    });
+
+    if (existingAssignment) {
+      throw new ConflictException(`Lesson ID ${lesson_id} uchun allaqachon topshiriq mavjud`);
+    }
+
     // **Faylni tekshirish**
     if (!file || !file.buffer) {
       throw new BadRequestException('Fayl yuklanmagan yoki noto‘g‘ri');
     }
-  
+
     const newAssignment = this.assignmentRepository.create({
       lesson,
       title,
@@ -53,11 +61,12 @@ export class AssignmentsService {
       status: 'pending',
       dueDate: dueDate ? new Date(dueDate) : null,
     });
-  
+
     await this.assignmentRepository.save(newAssignment);
-  
+
     return { message: 'Assignment successfully created', assignmentId: newAssignment.id };
   }
+
   
   async getAssignmentFile(assignmentId: number) {
     const assignment = await this.assignmentRepository.findOne({
