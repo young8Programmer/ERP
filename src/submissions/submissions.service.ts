@@ -31,12 +31,13 @@ export class SubmissionService {
 
   async submitAnswer(userId: number, file: any, comment: string, assignmentId: number) {
     console.log('Yuklangan fayl:', file);
-  
+    
     if (!file || !file.path) {
       throw new ForbiddenException('Fayl noto‘g‘ri yuklangan yoki yo‘q');
     }
-    const filePath = file.path; // Endi path mavjud bo‘ladi
   
+    const filePath = `uploads/${file.filename}`; // ✅ Faqat nisbiy yo‘lni saqlaymiz
+    
     const student = await this.studentRepository.findOne({ where: { id: userId } });
     if (!student) throw new ForbiddenException('Talaba topilmadi');
   
@@ -48,7 +49,7 @@ export class SubmissionService {
     }
   
     const submission = this.submissionRepository.create({
-      filePath: filePath,  
+      filePath,  
       fileName: file.originalname,
       comment,
       grade: 0,
@@ -60,6 +61,7 @@ export class SubmissionService {
     await this.submissionRepository.save(submission);
     return { message: 'Topshiriq muvaffaqiyatli topshirildi', submission };
   }
+  
   
   async getSubmissionFile(submissionId: number) {
     return this.submissionRepository.findOne({

@@ -38,40 +38,43 @@ export class SubmissionController {
       fs.mkdirSync(uploadDir, { recursive: true });
   }}
 
-
   @Roles('student')  
-  @UseGuards(AuthGuard, RolesGuard)  
-  @Post(':assignmentId/submit')  
-  @UseInterceptors(FileInterceptor('file', {  
-    storage: diskStorage({  
-      destination: (req, file, cb) => {  
-        const uploadDir = path.join(__dirname, '..', 'uploads');  
-        if (!fs.existsSync(uploadDir)) {  
-          fs.mkdirSync(uploadDir, { recursive: true });  
-        }  
-        cb(null, uploadDir);  
-      },  
-      filename: (req, file, cb) => {  
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);  
-        const ext = path.extname(file.originalname);  
-        cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);  
-      },  
-    }),  
-  }))  
-  async submitAssignment(  
-    @Req() req,  
-    @Param('assignmentId', ParseIntPipe) assignmentId: number,  
-    @UploadedFile() file: any,  
-    @Body('comment') comment: string  
-  ) {  
-    const userId = req.user.id;  
+@UseGuards(AuthGuard, RolesGuard)  
+@Post(':assignmentId/submit')  
+@UseInterceptors(FileInterceptor('file', {  
+  storage: diskStorage({  
+    destination: (req, file, cb) => {  
+      const uploadDir = path.join(__dirname, '..', 'uploads');  
+      if (!fs.existsSync(uploadDir)) {  
+        fs.mkdirSync(uploadDir, { recursive: true });  
+      }  
+      cb(null, uploadDir);  
+    },  
+    filename: (req, file, cb) => {  
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);  
+      const ext = path.extname(file.originalname);  
+      const fileName = `${file.fieldname}-${uniqueSuffix}${ext}`;
+      console.log("Yuklangan fayl:", fileName); // 🔍 Debug uchun
+      cb(null, fileName);
+    },  
+  }),  
+}))  
+async submitAssignment(  
+  @Req() req,  
+  @Param('assignmentId', ParseIntPipe) assignmentId: number,  
+  @UploadedFile() file: any,  
+  @Body('comment') comment: string  
+) {  
+  const userId = req.user.id;  
 
-    if (!file) {  
-      throw new ForbiddenException('Fayl noto‘g‘ri yuklangan yoki yo‘q');  
-    }  
-
-    return this.submissionsService.submitAnswer(userId, file, comment, assignmentId);  
+  if (!file) {  
+    throw new ForbiddenException('Fayl noto‘g‘ri yuklangan yoki yo‘q');  
   }  
+
+  console.log("Fayl saqlangan joy:", file.path); // 🔍 Debug uchun
+
+  return this.submissionsService.submitAnswer(userId, file, comment, assignmentId);  
+}  
 
   @Get('file/:submissionId')  
   async getFile(@Param('submissionId', ParseIntPipe) submissionId: number, @Res() res: Response) {  
