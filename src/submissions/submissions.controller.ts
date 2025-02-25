@@ -30,25 +30,19 @@ import * as path from "path";
 export class SubmissionController {
   constructor(private readonly submissionsService: SubmissionService) {}
 
-  @Roles('student')
-@UseGuards(AuthGuard, RolesGuard)
-@Post(':assignmentId/submit')
-@UseInterceptors(FileInterceptor('file')) // 📂 AppModule orqali yuklangan config ishlaydi
+  @Post(':assignmentId/submit')
+@UseInterceptors(FileInterceptor('file')) // 📂 Fayl yuklanishi kerak
 async submitAnswer(
   @Req() req,
   @Param('assignmentId') assignmentId: number,
   @Body() createSubmissionDto: CreateSubmissionDto,
-  @UploadedFile() file: any, // 🟢 Faylni olish
+  @UploadedFile() file: any, // 🔥 `Express.Multer.File` ekanligini tekshiring
 ) {
-  if (!req.user?.id) {
-    throw new ForbiddenException('User not authenticated');
-  }
+  console.log("📂 Yuklangan fayl:", file);
 
   if (!file) {
     throw new ForbiddenException('Fayl yuklanmadi');
   }
-  console.log(file.path);
-  
 
   return this.submissionsService.submitAnswer(
     req.user.id,
