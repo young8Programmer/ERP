@@ -10,7 +10,7 @@ import { Teacher } from 'src/teacher/entities/teacher.entity';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { GradeSubmissionDto } from './dto/GradeSubmissionDto';
 import * as fs from "fs";
-import { join } from 'path';
+import path, { join } from 'path';
 
 @Injectable()
 export class SubmissionService {
@@ -31,46 +31,35 @@ export class SubmissionService {
 
   async submitAnswer(userId: number, filePath: string, comment: string, assignmentId: number) {
     const student = await this.studentRepository.findOne({ where: { id: userId } });
-    if (!student) throw new ForbiddenException("Talaba topilmadi");
-  
-    const assignment = await this.assignmentRepository.findOne({ where: { id: assignmentId } });
-    if (!assignment) throw new ForbiddenException("Topshiriq topilmadi");
-  
-    if (new Date() > assignment.dueDate) {
-      throw new ForbiddenException("Deadline vaqti tugagan, topshiriq qabul qilinmaydi");
-    }
-  
-    // const existingSubmission = await this.submissionRepository.findOne({
-    //   where: { student: { id: userId }, assignment: { id: assignmentId } },
-    // });
-  
-    // if (existingSubmission) throw new ForbiddenException("Siz ushbu topshiriqni allaqachon topshirgansiz")
+    if (!student) throw new ForbiddenException('Talaba topilmadi');
 
-  
+    const assignment = await this.assignmentRepository.findOne({ where: { id: assignmentId } });
+    if (!assignment) throw new ForbiddenException('Topshiriq topilmadi');
+
+    if (new Date() > assignment.dueDate) {
+      throw new ForbiddenException('Deadline tugagan, topshiriq qabul qilinmaydi');
+    }
+
     const submission = this.submissionRepository.create({
-      filePath, // 🟢 Fayl yo‘li saqlanadi
+      filePath,
       comment,
       grade: 0,
       status: SubmissionStatus.PENDING,
       student,
       assignment,
     });
-  
+
     await this.submissionRepository.save(submission);
-  
-    return { message: 'Topshiriq muvaffaqiyatli topshirildi.', submission, filePath};
+    return { message: 'Topshiriq muvaffaqiyatli topshirildi', submission, filePath };
   }
 
   getFile(filename: string): Buffer {
-    const filePath = join(process.cwd(), 'dist', 'uploads', 'submissions', filename);
-
+    const filePath = path.join(process.cwd(), 'uploads', 'submissions', filename);
     if (!fs.existsSync(filePath)) {
       throw new NotFoundException('Fayl topilmadi');
     }
-
     return fs.readFileSync(filePath);
   }
-  
   async getAllSubmissions() {
     return this.submissionRepository.find({
       relations: ['assignment'], // Faqat assignment bog'lanishini olish

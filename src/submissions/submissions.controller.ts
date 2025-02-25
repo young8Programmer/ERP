@@ -26,52 +26,50 @@ import { Express } from 'express';
 import * as fs from "fs";
 import * as path from "path";
 
-
-
 @Controller('submissions')
 export class SubmissionController {
   constructor(private readonly submissionsService: SubmissionService) {}
 
-  @Roles("student")
-  @UseGuards(AuthGuard, RolesGuard)
-  @Post(':assignmentId/submit')
-  @UseInterceptors(FileInterceptor('file')) // 📂 Fayl yuklanishi kerak
-  async submitAnswer(
-  @Req() req,
-  @Param('assignmentId') assignmentId: number,
-  @Body() createSubmissionDto: CreateSubmissionDto,
-  @UploadedFile() file: any, // 🔥 `Express.Multer.File` ekanligini tekshiring
-) {
+  @Post(':assignmentId/upload')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads/submissions',
+        filename: (req, file, cb) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`);
+        },
+      }),
+    }),
+  )
+  async uploadFile(
+    @Req() req,
+    @Param('assignmentId') assignmentId: number,
+    @UploadedFile() file: any,
+    @Body('comment') comment: string,
+  ) {
+    if (!file) {
+      throw new ForbiddenException('Fayl yuklanmadi');
+    }
 
-  if (!file) {
-    throw new ForbiddenException('Fayl yuklanmadi');
+    return this.submissionsService.submitAnswer(req.user.id, file.filename, comment, assignmentId);
   }
 
-  return this.submissionsService.submitAnswer(
-    req.user.id,
-    file.path,
-    createSubmissionDto.comment,
-    assignmentId,
-  );
-}
+  @Get('file/:filename')
+  async getFile(@Param('filename') filename: string) {
+    const filePath = path.join(__dirname, '..', '..', 'uploads', 'submissions', filename);
+    if (!fs.existsSync(filePath)) {
+      throw new NotFoundException('Fayl topilmadi');
+    }
+    return { filePath };
+  }
+
 
   @UseGuards(AuthGuard)
   @Get('all')
   async getAllSubmissions(@Req() req) {
     if (!req.user || !req.user.id) throw new ForbiddenException('User not authenticated');
     return this.submissionsService.getAllSubmissions();
-  }
-
-  @Get('file/:filename')
-  async getFile(@Param('filename') filename: string): Promise<StreamableFile> {
-    const filePath = path.join(__dirname, '..', '..', 'uploads', 'submissions', filename);
-
-    if (!fs.existsSync(filePath)) {
-      throw new NotFoundException('Fayl topilmadi');
-    }
-
-    const fileStream = fs.createReadStream(filePath);
-    return new StreamableFile(fileStream);
   }
 
   @Roles('teacher')

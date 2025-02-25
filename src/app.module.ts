@@ -24,13 +24,26 @@ import { Admin } from './admin/entities/admin.entity';
 import { SuperAdminModule } from './super-admin/super-admin.module';
 import { superAdmin } from './super-admin/entities/super-admin.entity';
 import { MulterModule } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+import * as path from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
+
 
 @Module({
   imports: [
+    MulterModule.register({
+      storage: diskStorage({
+        destination: path.join(__dirname, '..', '..', 'uploads', 'submissions'),
+        filename: (req, file, callback) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          callback(null, `${file.fieldname}-${uniqueSuffix}${extname(file.originalname)}`);
+        },
+      }),
+    }),
+
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'uploads', 'submissions'), // 📂 Faylni to‘g‘ri joydan xizmat qilish
+      rootPath: path.join(__dirname, '..', 'uploads', 'submissions'), // 📂 Faylni to‘g‘ri joydan xizmat qilish
       serveRoot: '/submissions/file', // URL orqali foydalanish
     }),
     TypeOrmModule.forRoot({
