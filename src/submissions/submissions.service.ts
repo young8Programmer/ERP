@@ -36,7 +36,7 @@ export class SubmissionService {
       throw new ForbiddenException('Fayl noto‘g‘ri yuklangan yoki yo‘q');
     }
   
-    const filePath = path.join(__dirname, '..', 'uploads', file.filename);
+    const filePath = file.path; // Endi path mavjud bo‘ladi
   
     const student = await this.studentRepository.findOne({ where: { id: userId } });
     if (!student) throw new ForbiddenException('Talaba topilmadi');
@@ -49,7 +49,7 @@ export class SubmissionService {
     }
   
     const submission = this.submissionRepository.create({
-      filePath: filePath,  // To‘g‘ri fayl yo‘lini ishlatamiz
+      filePath: filePath,  
       fileName: file.originalname,
       comment,
       grade: 0,

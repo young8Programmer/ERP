@@ -14,6 +14,7 @@ import {
   NotFoundException,
   StreamableFile,
   Res,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { SubmissionService } from './submissions.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
@@ -40,28 +41,28 @@ export class SubmissionController {
 
   @Roles('student')
   @UseGuards(AuthGuard, RolesGuard)
-  @Post(':assignmentId/submit')
-  @UseInterceptors(FileInterceptor('file'))
-  async uploadFile(
-    @Req() req,
-    @Param('assignmentId') assignmentId: number,
+  @Post(':userId/:assignmentId')
+  @UseInterceptors(FileInterceptor('file', {
+    storage: diskStorage({
+      destination: './uploads', // Fayllar saqlanadigan joy
+      filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        const ext = path.extname(file.originalname);
+        cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+      },
+    }),
+  }))
+  async submitAssignment(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Param('assignmentId', ParseIntPipe) assignmentId: number,
     @UploadedFile() file: any,
-    @Res() res: Response,
+    @Body('comment') comment: string
   ) {
     if (!file) {
-      throw new ForbiddenException('Fayl yuklanmadi');
+      throw new ForbiddenException('Fayl noto‘g‘ri yuklangan yoki yo‘q');
     }
 
-    console.log("Yuklangan fayl:", file);
-
-    const submission = await this.submissionsService.submitAnswer(
-      req.user.id,
-      file,
-      req.body.comment,
-      assignmentId,
-    );
-
-    res.json({ message: 'Fayl muvaffaqiyatli yuklandi', submission });
+    return this.submissionsService.submitAnswer(userId, file, comment, assignmentId);
   }
 
   @Get('file/:submissionId')
