@@ -61,7 +61,6 @@ export class SubmissionService {
     });
   }
 
-
   async getAllSubmissions() {
     return this.submissionRepository.find({
       relations: ['assignment'], // Faqat assignment bog'lanishini olish

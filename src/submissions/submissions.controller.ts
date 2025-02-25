@@ -74,7 +74,6 @@ export class SubmissionController {
     res.sendFile(filePath);
   }
 
-
   @UseGuards(AuthGuard)
   @Get('all')
   async getAllSubmissions(@Req() req) {
