@@ -36,53 +36,59 @@ export class SubmissionController {
     const uploadDir = path.join(__dirname, '..', 'uploads');
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
-  }
-}
+  }}
 
-@Roles('student')
-@UseGuards(AuthGuard, RolesGuard)
-@Post(':assignmentId')
-@UseInterceptors(FileInterceptor('file', {
-  storage: diskStorage({
-    destination: './uploads', // Fayllar saqlanadigan joy
-    filename: (req, file, cb) => {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-      const ext = path.extname(file.originalname);
-      cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
-    },
-  }),
-}))
-async submitAssignment(
-  @Req() req,
-  @Param('assignmentId', ParseIntPipe) assignmentId: number,
-  @UploadedFile() file: any,
-  @Body('comment') comment: string
-) {
-  const userId = req.user.id;
 
-  if (!file) {
-    throw new ForbiddenException('Fayl noto‘g‘ri yuklangan yoki yo‘q');
-  }
+  @Roles('student')  
+  @UseGuards(AuthGuard, RolesGuard)  
+  @Post(':assignmentId/submit')  
+  @UseInterceptors(FileInterceptor('file', {  
+    storage: diskStorage({  
+      destination: (req, file, cb) => {  
+        const uploadDir = path.join(__dirname, '..', 'uploads');  
+        if (!fs.existsSync(uploadDir)) {  
+          fs.mkdirSync(uploadDir, { recursive: true });  
+        }  
+        cb(null, uploadDir);  
+      },  
+      filename: (req, file, cb) => {  
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);  
+        const ext = path.extname(file.originalname);  
+        cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);  
+      },  
+    }),  
+  }))  
+  async submitAssignment(  
+    @Req() req,  
+    @Param('assignmentId', ParseIntPipe) assignmentId: number,  
+    @UploadedFile() file: any,  
+    @Body('comment') comment: string  
+  ) {  
+    const userId = req.user.id;  
 
-  return this.submissionsService.submitAnswer(userId, file, comment, assignmentId);
-}
+    if (!file) {  
+      throw new ForbiddenException('Fayl noto‘g‘ri yuklangan yoki yo‘q');  
+    }  
 
-  @Get('file/:submissionId')
-  async getFile(@Param('submissionId') submissionId: number, @Res() res: Response) {
-    const submission = await this.submissionsService.getSubmissionFile(submissionId);
-    
-    if (!submission || !submission.filePath) {
-      throw new NotFoundException('Fayl topilmadi');
-    }
+    return this.submissionsService.submitAnswer(userId, file, comment, assignmentId);  
+  }  
 
-    const filePath = path.resolve(submission.filePath);
-    if (!fs.existsSync(filePath)) {
-      throw new NotFoundException('Fayl serverda topilmadi');
-    }
+  @Get('file/:submissionId')  
+  async getFile(@Param('submissionId', ParseIntPipe) submissionId: number, @Res() res: Response) {  
+    const submission = await this.submissionsService.getSubmissionFile(submissionId);  
 
-    res.setHeader('Content-Disposition', `attachment; filename="${submission.fileName}"`);
-    res.sendFile(filePath);
-  }
+    if (!submission || !submission.filePath) {  
+      throw new NotFoundException('Fayl topilmadi');  
+    }  
+
+    const filePath = path.resolve(submission.filePath);  
+    if (!fs.existsSync(filePath)) {  
+      throw new NotFoundException('Fayl serverda topilmadi');  
+    }  
+
+    res.setHeader('Content-Disposition', `attachment; filename="${submission.fileName}"`);  
+    res.sendFile(filePath);  
+  } 
 
   @UseGuards(AuthGuard)
   @Get('all')
