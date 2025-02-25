@@ -47,7 +47,7 @@ async getAssignmentFile(@Param('assignmentId', ParseIntPipe) assignmentId: numbe
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('teacher')
   @Put(':id')
-  async updateAssignment(@Req() req, @Param('id') id: string, @Body() updateData: { assignment?: string; status?: string }) {
+  async updateAssignment(@Req() req, @Param('id') id: string, @Body() updateData: any) {
     const teacherId = req.user.id; 
     return this.assignmentsService.updateAssignment(teacherId, +id, updateData);
   }

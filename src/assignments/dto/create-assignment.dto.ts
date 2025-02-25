@@ -1,23 +1,26 @@
-import { IsDateString, IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreateAssignmentDto {
-  @IsInt()
-  group_id: number;
-
+  @IsNotEmpty()
+  @Transform(({ value }) => parseInt(value, 10)) // ❗ Automatik numberga o‘tkazish
   @IsInt()
   lesson_id: number;
 
-  @IsString()
   @IsNotEmpty()
+  @Transform(({ value }) => parseInt(value, 10)) // ❗ Automatik numberga o‘tkazish
+  @IsInt()
+  group_id: number;
+
+  @IsNotEmpty()
+  @IsString()
   title: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  description: string;
+  description?: string;
 
   @IsOptional()
-  dueDate?: string; // Sana
-
-  @IsOptional()
-  status?: string;
+  @IsString()
+  dueDate?: string;
 }

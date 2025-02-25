@@ -41,12 +41,12 @@ export class Assignment {
   status: string;
 
   @Column({ type: 'bytea', nullable: true }) 
-  fileData: Buffer; // Fayl ma'lumotlari
+  fileData: Buffer;
 
   @Column({ nullable: true })
-  fileName: string; // Fayl nomi
+  fileName: string;
 
   @Column({ nullable: true })
-  fileType: string; // MIME turi (pdf, jpg, png va h.k.)
+  fileType: string;
 
 }
