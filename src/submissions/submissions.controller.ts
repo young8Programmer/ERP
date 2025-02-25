@@ -28,16 +28,11 @@ import * as fs from "fs";
 import * as path from "path";
 import { Response } from 'express';
 
+
 @Controller('submissions')
 export class SubmissionController {
-  constructor(private readonly submissionsService: SubmissionService) {
-    const uploadDir = path.join(__dirname, '..', 'uploads', 'submissions');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-  }
+  constructor(private readonly submissionsService: SubmissionService) {}
 
-  
   @Roles('student')
   @UseGuards(AuthGuard, RolesGuard)
   @Post(':assignmentId/submit')
@@ -46,26 +41,37 @@ if (!fs.existsSync(uploadDir)) {
     @Req() req,
     @Param('assignmentId') assignmentId: number,
     @UploadedFile() file: any,
-    @Res() res,
+    @Res() res: Response,
   ) {
     if (!file) {
       throw new ForbiddenException('Fayl yuklanmadi');
     }
-    
-    const savedSubmission = await this.submissionsService.submitAnswer(req.user.id, file, req.body.comment, assignmentId);
-    return res.json({ message: 'Fayl saqlandi', savedSubmission });
+
+    const submission = await this.submissionsService.submitAnswer(
+      req.user.id,
+      file,
+      req.body.comment,
+      assignmentId,
+    );
+
+    res.json({ message: 'Fayl muvaffaqiyatli yuklandi', submission });
   }
 
   @Get('file/:submissionId')
-  async getFile(@Param('submissionId') submissionId: number, @Res() res) {
+  async getFile(@Param('submissionId') submissionId: number, @Res() res: Response) {
     const submission = await this.submissionsService.getSubmissionFile(submissionId);
-    if (!submission) {
+    
+    if (!submission || !submission.filePath) {
       throw new NotFoundException('Fayl topilmadi');
     }
 
+    const filePath = path.resolve(submission.filePath);
+    if (!fs.existsSync(filePath)) {
+      throw new NotFoundException('Fayl serverda topilmadi');
+    }
+
     res.setHeader('Content-Disposition', `attachment; filename="${submission.fileName}"`);
-    res.setHeader('Content-Type', 'application/octet-stream');
-    return res.send(submission.fileData);
+    res.sendFile(filePath);
   }
 
 

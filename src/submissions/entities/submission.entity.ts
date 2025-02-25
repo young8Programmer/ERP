@@ -27,8 +27,8 @@ export class Submission {
   @Column({ type: 'text', nullable: true })
   comment: string;
 
-  @Column({ type: 'bytea', nullable: true })
-  fileData: Buffer;
+  @Column({ type: 'text', nullable: true })
+  filePath: string; // Faylning yo'li (buffer o‘rniga)
 
   @Column({ type: 'text', nullable: true })
   fileName: string;
