@@ -21,9 +21,6 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // 📌 Fayllarni ko‘rish uchun static middleware
-  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
-
   await app.listen(3000, "0.0.0.0");
 }
 
