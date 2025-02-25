@@ -38,32 +38,32 @@ if (!fs.existsSync(uploadDir)) {
   }
 
   @Post(':assignmentId/submit')
-@UseInterceptors(FileInterceptor('file'))
-async uploadFile(
-  @Req() req,
-  @Param('assignmentId') assignmentId: number,
-  @UploadedFile() file: any,
-  @Res() res,
-) {
-  if (!file) {
-    throw new ForbiddenException('Fayl yuklanmadi');
-  }
-  
-  const savedSubmission = await this.submissionsService.submitAnswer(req.user.id, file, req.body.comment, assignmentId);
-  return res.json({ message: 'Fayl saqlandi', savedSubmission });
-}
-
-@Get('file/:submissionId')
-async getFile(@Param('submissionId') submissionId: number, @Res() res) {
-  const submission = await this.submissionsService.getSubmissionFile(submissionId);
-  if (!submission) {
-    throw new NotFoundException('Fayl topilmadi');
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(
+    @Req() req,
+    @Param('assignmentId') assignmentId: number,
+    @UploadedFile() file: any,
+    @Res() res,
+  ) {
+    if (!file) {
+      throw new ForbiddenException('Fayl yuklanmadi');
+    }
+    
+    const savedSubmission = await this.submissionsService.submitAnswer(req.user.id, file, req.body.comment, assignmentId);
+    return res.json({ message: 'Fayl saqlandi', savedSubmission });
   }
 
-  res.setHeader('Content-Disposition', `attachment; filename="${submission.fileName}"`);
-  res.setHeader('Content-Type', 'application/octet-stream');
-  return res.send(submission.fileData);
-}
+  @Get('file/:submissionId')
+  async getFile(@Param('submissionId') submissionId: number, @Res() res) {
+    const submission = await this.submissionsService.getSubmissionFile(submissionId);
+    if (!submission) {
+      throw new NotFoundException('Fayl topilmadi');
+    }
+
+    res.setHeader('Content-Disposition', `attachment; filename="${submission.fileName}"`);
+    res.setHeader('Content-Type', 'application/octet-stream');
+    return res.send(submission.fileData);
+  }
 
 
   @UseGuards(AuthGuard)

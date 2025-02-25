@@ -24,11 +24,12 @@ export class Submission {
   @Column({ type: 'int', default: 0 })
   grade: number;
 
-  @Column({ type: 'text', nullable: true }) // 🔹 Izoh (comment)
+  @Column({ type: 'text', nullable: true })
   comment: string;
 
-  @Column({ type: 'bytea', nullable: false })
+  @Column({ type: 'bytea', nullable: true })
   fileData: Buffer;
+
 
   @Column({ type: 'text', nullable: false })
   fileName: string;
