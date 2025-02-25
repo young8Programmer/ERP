@@ -67,6 +67,7 @@ async getFile(@Param('submissionId', ParseIntPipe) submissionId: number, @Res() 
     throw new NotFoundException('Fayl topilmadi');
   }
 
+  res.setHeader('Content-Disposition', `attachment; filename="${submission.fileName}"`);
   res.setHeader('Content-Type', submission.fileType);
   res.send(submission.fileData);
 }

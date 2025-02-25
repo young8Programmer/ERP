@@ -31,7 +31,7 @@ export class SubmissionService {
 
   async submitAnswer(userId: number, file: any, comment: string, assignmentId: number) {
     console.log('Yuklangan fayl:', file);
-  
+    
     if (!file || !file.buffer) {
       throw new ForbiddenException('Fayl noto‘g‘ri yuklangan yoki yo‘q');
     }
@@ -47,9 +47,9 @@ export class SubmissionService {
     }
   
     const submission = this.submissionRepository.create({
-      fileData: file.buffer, // Faylning **buffer** ma’lumoti
+      fileData: file.buffer,
       fileName: file.originalname,
-      fileType: file.mimetype, // MIME turini saqlaymiz
+      fileType: file.mimetype,
       comment,
       grade: 0,
       status: SubmissionStatus.PENDING,
@@ -58,9 +58,15 @@ export class SubmissionService {
     });
   
     await this.submissionRepository.save(submission);
-    return { message: 'Topshiriq muvaffaqiyatli topshirildi', submission };
-  }
 
+    return { 
+      message: 'Topshiriq muvaffaqiyatli topshirildi',
+      submissionId: submission.id,
+      fileName: submission.fileName,
+      fileType: submission.fileType,
+    };
+  }
+  
   async getSubmissionFile(submissionId: number) {
     const submission = await this.submissionRepository.findOne({
       where: { id: submissionId },
