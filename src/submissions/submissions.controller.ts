@@ -11,6 +11,8 @@ import {
   UseInterceptors,
   UploadedFile,
   UploadedFiles,
+  NotFoundException,
+  StreamableFile,
 } from '@nestjs/common';
 import { SubmissionService } from './submissions.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
@@ -53,12 +55,23 @@ export class SubmissionController {
   );
 }
 
-
   @UseGuards(AuthGuard)
   @Get('all')
   async getAllSubmissions(@Req() req) {
     if (!req.user || !req.user.id) throw new ForbiddenException('User not authenticated');
     return this.submissionsService.getAllSubmissions();
+  }
+
+  @Get('file/:filename')
+  async getFile(@Param('filename') filename: string): Promise<StreamableFile> {
+    const filePath = path.join(__dirname, '..', '..', 'uploads', 'submissions', filename);
+
+    if (!fs.existsSync(filePath)) {
+      throw new NotFoundException('Fayl topilmadi');
+    }
+
+    const fileStream = fs.createReadStream(filePath);
+    return new StreamableFile(fileStream);
   }
 
   @Roles('teacher')

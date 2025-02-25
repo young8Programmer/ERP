@@ -20,7 +20,6 @@ async function bootstrap() {
     origin: "*",
     credentials: true,
   });
-  app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
 
   await app.listen(3000, "0.0.0.0");
 }

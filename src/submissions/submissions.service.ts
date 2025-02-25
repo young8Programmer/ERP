@@ -10,6 +10,7 @@ import { Teacher } from 'src/teacher/entities/teacher.entity';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { GradeSubmissionDto } from './dto/GradeSubmissionDto';
 import * as fs from "fs";
+import { join } from 'path';
 
 @Injectable()
 export class SubmissionService {
@@ -58,6 +59,16 @@ export class SubmissionService {
     await this.submissionRepository.save(submission);
   
     return { message: 'Topshiriq muvaffaqiyatli topshirildi.', submission, filePath};
+  }
+
+  getFile(filename: string): Buffer {
+    const filePath = join(__dirname, '..', '..', 'uploads', 'submissions', filename);
+
+    if (!fs.existsSync(filePath)) {
+      throw new NotFoundException('Fayl topilmadi');
+    }
+
+    return fs.readFileSync(filePath);
   }
   
   
