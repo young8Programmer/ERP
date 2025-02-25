@@ -68,19 +68,20 @@ async uploadFile(
   }
 
   return this.submissionsService.submitAnswer(req.user.id, file.filename, comment, assignmentId);
-}
+  }
 
   @Get('file/:filename')
-  async getFile(@Param('filename') filename: string, @Res() res: Response) {
-    const filePath = path.join(__dirname, '..', 'uploads', 'submissions', filename);
+  async getFile(@Param('filename') filename: string) {
+    const filePath = path.join(process.cwd(), 'uploads', 'submissions', filename);
     console.log('So‘ralayotgan fayl:', filePath);
-    
+
     if (!fs.existsSync(filePath)) {
+      console.log('Fayl mavjud emas!');
       throw new NotFoundException('Fayl topilmadi');
     }
-
-    return res.sendFile(filePath);
+    return { filePath };
   }
+
 
   @UseGuards(AuthGuard)
   @Get('all')
