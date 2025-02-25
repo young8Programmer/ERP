@@ -31,7 +31,12 @@ import { Response } from 'express';
 
 @Controller('submissions')
 export class SubmissionController {
-  constructor(private readonly submissionsService: SubmissionService) {}
+  constructor(private readonly submissionsService: SubmissionService) {
+    const uploadDir = path.join(__dirname, '..', 'uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+  }
+}
 
   @Roles('student')
   @UseGuards(AuthGuard, RolesGuard)
