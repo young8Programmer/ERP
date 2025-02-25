@@ -30,18 +30,26 @@ export class SubmissionService {
   ) {} 
 
   async submitAnswer(userId: number, file: any, comment: string, assignmentId: number) {
+    console.log('Yuklangan fayl:', file);
+  
+    if (!file || !file.path) {
+      throw new ForbiddenException('Fayl noto‘g‘ri yuklangan yoki yo‘q');
+    }
+  
+    const filePath = path.join(__dirname, '..', 'uploads', file.filename);
+  
     const student = await this.studentRepository.findOne({ where: { id: userId } });
     if (!student) throw new ForbiddenException('Talaba topilmadi');
-
+  
     const assignment = await this.assignmentRepository.findOne({ where: { id: assignmentId } });
     if (!assignment) throw new ForbiddenException('Topshiriq topilmadi');
-
+  
     if (new Date() > assignment.dueDate) {
       throw new ForbiddenException('Deadline tugagan, topshiriq qabul qilinmaydi');
     }
-
+  
     const submission = this.submissionRepository.create({
-      filePath: path.join('uploads', file.filename),
+      filePath: filePath,  // To‘g‘ri fayl yo‘lini ishlatamiz
       fileName: file.originalname,
       comment,
       grade: 0,
@@ -49,11 +57,11 @@ export class SubmissionService {
       student,
       assignment,
     });
-
+  
     await this.submissionRepository.save(submission);
     return { message: 'Topshiriq muvaffaqiyatli topshirildi', submission };
   }
-
+  
   async getSubmissionFile(submissionId: number) {
     return this.submissionRepository.findOne({
       where: { id: submissionId },
