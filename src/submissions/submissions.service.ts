@@ -56,7 +56,7 @@ export class SubmissionService {
   
     await this.submissionRepository.save(submission);
   
-    return { message: 'Topshiriq muvaffaqiyatli topshirildi.', submissionId: submission.id };
+    return { message: 'Topshiriq muvaffaqiyatli topshirildi.', submission, filePath};
   }
   
   

@@ -47,6 +47,8 @@ async submitAnswer(
   if (!file) {
     throw new ForbiddenException('Fayl yuklanmadi');
   }
+  console.log(file.path);
+  
 
   return this.submissionsService.submitAnswer(
     req.user.id,
