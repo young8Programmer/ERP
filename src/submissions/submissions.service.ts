@@ -35,7 +35,6 @@ export class SubmissionService {
     if (!file || !file.path) {
       throw new ForbiddenException('Fayl noto‘g‘ri yuklangan yoki yo‘q');
     }
-  
     const filePath = file.path; // Endi path mavjud bo‘ladi
   
     const student = await this.studentRepository.findOne({ where: { id: userId } });

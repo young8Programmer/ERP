@@ -39,31 +39,33 @@ export class SubmissionController {
   }
 }
 
-  @Roles('student')
-  @UseGuards(AuthGuard, RolesGuard)
-  @Post(':userId/:assignmentId')
-  @UseInterceptors(FileInterceptor('file', {
-    storage: diskStorage({
-      destination: './uploads', // Fayllar saqlanadigan joy
-      filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-        const ext = path.extname(file.originalname);
-        cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
-      },
-    }),
-  }))
-  async submitAssignment(
-    @Param('userId', ParseIntPipe) userId: number,
-    @Param('assignmentId', ParseIntPipe) assignmentId: number,
-    @UploadedFile() file: any,
-    @Body('comment') comment: string
-  ) {
-    if (!file) {
-      throw new ForbiddenException('Fayl noto‘g‘ri yuklangan yoki yo‘q');
-    }
+@Roles('student')
+@UseGuards(AuthGuard, RolesGuard)
+@Post(':assignmentId')
+@UseInterceptors(FileInterceptor('file', {
+  storage: diskStorage({
+    destination: './uploads', // Fayllar saqlanadigan joy
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+      const ext = path.extname(file.originalname);
+      cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+    },
+  }),
+}))
+async submitAssignment(
+  @Req() req,
+  @Param('assignmentId', ParseIntPipe) assignmentId: number,
+  @UploadedFile() file: any,
+  @Body('comment') comment: string
+) {
+  const userId = req.user.id;
 
-    return this.submissionsService.submitAnswer(userId, file, comment, assignmentId);
+  if (!file) {
+    throw new ForbiddenException('Fayl noto‘g‘ri yuklangan yoki yo‘q');
   }
+
+  return this.submissionsService.submitAnswer(userId, file, comment, assignmentId);
+}
 
   @Get('file/:submissionId')
   async getFile(@Param('submissionId') submissionId: number, @Res() res: Response) {
