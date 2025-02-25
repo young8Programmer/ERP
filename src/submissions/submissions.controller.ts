@@ -13,6 +13,7 @@ import {
   UploadedFiles,
   NotFoundException,
   StreamableFile,
+  Res,
 } from '@nestjs/common';
 import { SubmissionService } from './submissions.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
@@ -25,6 +26,7 @@ import { extname } from 'path';
 import { Express } from 'express';
 import * as fs from "fs";
 import * as path from "path";
+import { Response } from 'express';
 
 @Controller('submissions')
 export class SubmissionController {
@@ -61,12 +63,14 @@ export class SubmissionController {
   }
 
   @Get('file/:filename')
-  async getFile(@Param('filename') filename: string) {
-    const filePath = path.join(process.cwd(), 'uploads', 'submissions', filename);
+  async getFile(@Param('filename') filename: string, @Res() res: Response) {
+    const filePath = path.join(__dirname, '..', 'uploads', 'submissions', filename);
+    
     if (!fs.existsSync(filePath)) {
       throw new NotFoundException('Fayl topilmadi');
     }
-    return { filePath };
+
+    return res.sendFile(filePath);
   }
 
   @UseGuards(AuthGuard)
