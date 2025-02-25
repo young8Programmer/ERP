@@ -1,18 +1,41 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Req, UseGuards, UseInterceptors, UploadedFile, NotFoundException, Res, ParseIntPipe } from '@nestjs/common';
 import { AssignmentsService } from './assignments.service';
 import { AuthGuard, Roles, RolesGuard } from 'src/auth/auth.guard';
 import { CreateAssignmentDto } from './dto/create-assignment.dto';  // Import qilish
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
 
 @Controller('assignments')
 export class AssignmentsController {
   constructor(private readonly assignmentsService: AssignmentsService) {}
 
   @Roles('teacher')
-  @UseGuards(AuthGuard, RolesGuard)
-  @Post()
-  async create(@Req() req, @Body() createAssignmentDto: CreateAssignmentDto) {
-    const teacherId = req.user.id;
-    return this.assignmentsService.createAssignment(teacherId, createAssignmentDto);
+@UseGuards(AuthGuard, RolesGuard)
+@Post()
+@UseInterceptors(FileInterceptor('file'))
+async createAssignment(
+  @Req() req,
+  @Body() createAssignmentDto: CreateAssignmentDto,
+  @UploadedFile() file: any // Faylni olish
+) {
+  const teacherId = req.user.id;
+  return this.assignmentsService.createAssignment(teacherId, createAssignmentDto, file);
+}
+
+@Get('file/:assignmentId')
+  async getAssignmentFile(
+    @Param('assignmentId', ParseIntPipe) assignmentId: number,
+    @Res() res: Response,
+  ) {
+    const assignment = await this.assignmentsService.getAssignmentFile(assignmentId);
+
+    if (!assignment || !assignment.fileData) {
+      throw new NotFoundException('Fayl topilmadi');
+    }
+
+    res.setHeader('Content-Type', assignment.fileType);
+    res.setHeader('Content-Disposition', `attachment; filename="${assignment.fileName}"`);
+    res.send(assignment.fileData);
   }
 
   

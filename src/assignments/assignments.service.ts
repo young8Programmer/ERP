@@ -20,8 +20,8 @@ export class AssignmentsService {
     private readonly studentRepository: Repository<Student>, 
   ) {}
 
-  async createAssignment(teacherId: number, createAssignmentDto: CreateAssignmentDto) {
-    const { lesson_id, title, description, fileUrl, dueDate } = createAssignmentDto;
+  async createAssignment(teacherId: number, createAssignmentDto: CreateAssignmentDto, file: any) {
+    const { lesson_id, title, description, dueDate } = createAssignmentDto;
   
     const lesson = await this.lessonRepository.findOne({
       where: { id: lesson_id },
@@ -38,28 +38,44 @@ export class AssignmentsService {
       throw new ForbiddenException('Siz faqat o‘zingizga tegishli guruhdagi topshiriqni yaratishingiz mumkin');
     }
   
-    // **Mavjud topshiriqni tekshirish**
-    const existingAssignment = await this.assignmentRepository.findOne({ where: { lesson } });
-  
-    if (existingAssignment) {
-      throw new ConflictException('Bu dars uchun allaqachon topshiriq mavjud');
+    // **Faylni tekshirish**
+    if (!file || !file.buffer) {
+      throw new ForbiddenException('Fayl yuklanmagan yoki noto‘g‘ri');
     }
-  
-    const dueDateString: string | null = dueDate ? new Date(dueDate).toISOString() : null;
   
     const newAssignment = this.assignmentRepository.create({
       lesson,
       title,
       description,
-      fileUrl,
+      fileData: file.buffer, // Faylni buffer sifatida saqlash
+      fileName: file.originalname,
+      fileType: file.mimetype, // Fayl turi
       status: 'pending',
-      dueDate: dueDateString,
+      dueDate: dueDate ? new Date(dueDate) : null,
     });
   
     await this.assignmentRepository.save(newAssignment);
   
     return { message: 'Assignment successfully created', assignmentId: newAssignment.id };
   }
+
+  async getAssignmentFile(assignmentId: number) {
+    const assignment = await this.assignmentRepository.findOne({
+      where: { id: assignmentId },
+      select: ['fileData', 'fileName', 'fileType'],
+    });
+  
+    if (!assignment || !assignment.fileData) {
+      throw new NotFoundException('Fayl topilmadi');
+    }
+  
+    return {
+      fileData: assignment.fileData,
+      fileName: assignment.fileName,
+      fileType: assignment.fileType,
+    };
+  }
+  
   
   async updateAssignment(teacherId: number, assignmentId: number, updateData: Partial<CreateAssignmentDto>) {
     const assignment = await this.assignmentRepository.findOne({

@@ -9,21 +9,15 @@ export class CreateAssignmentDto {
 
   @IsString()
   @IsNotEmpty()
-  title: string; // Mavzu qo'shildi
+  title: string;
 
   @IsNotEmpty()
   @IsString()
-  description: string; // Izoh qo'shildi
+  description: string;
 
   @IsOptional()
-  @IsString()
-  fileUrl?: string; // Fayl yuklash uchun URL qo'shildi
+  dueDate?: string; // Sana
 
   @IsOptional()
-  @IsDateString()
-  dueDate?: string;
-
-  @IsOptional()
-  @IsString()
-  status?: string; // Default "pending" bo'lishi mumkin
+  status?: string;
 }
