@@ -62,7 +62,7 @@ export class SubmissionService {
   }
 
   getFile(filename: string): Buffer {
-    const filePath = join(__dirname, '..', '..', 'uploads', 'submissions', filename);
+    const filePath = join(process.cwd(), 'dist', 'uploads', 'submissions', filename);
 
     if (!fs.existsSync(filePath)) {
       throw new NotFoundException('Fayl topilmadi');
@@ -70,7 +70,6 @@ export class SubmissionService {
 
     return fs.readFileSync(filePath);
   }
-  
   
   async getAllSubmissions() {
     return this.submissionRepository.find({
