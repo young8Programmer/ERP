@@ -30,37 +30,45 @@ import { Response } from 'express';
 
 @Controller('submissions')
 export class SubmissionController {
-  constructor(private readonly submissionsService: SubmissionService) {}
+  constructor(private readonly submissionsService: SubmissionService) {
+    const uploadDir = path.join(__dirname, '..', 'uploads', 'submissions');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+  }
 
   @Roles('student')
-  @UseGuards(AuthGuard, RolesGuard)
-  @Post(':assignmentId/submit')
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: diskStorage({
-        destination: (req, file, cb) => {
-          const uploadPath = path.join(process.cwd(), 'uploads', 'submissions');
-          if (!fs.existsSync(uploadPath)) {
-            fs.mkdirSync(uploadPath, { recursive: true });
-          }
-          cb(null, uploadPath);
-        },
-        filename: (req, file, cb) => {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-          cb(null, `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`);
-        },
-      }),
+@UseGuards(AuthGuard, RolesGuard)
+@Post(':assignmentId/submit')
+@UseInterceptors(
+  FileInterceptor('file', {
+    storage: diskStorage({
+      destination: (req, file, cb) => {
+        const uploadDir = path.join(__dirname, '..', 'uploads', 'submissions');
+        if (!fs.existsSync(uploadDir)) {
+          fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
+      },
+      filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        cb(null, `file-${uniqueSuffix}${path.extname(file.originalname)}`);
+      },
     }),
-  )
-  async uploadFile(@Req() req, @Param('assignmentId') assignmentId: number, @UploadedFile() file: any, @Body('comment') comment: string) {
-    if (!file) {
-      throw new ForbiddenException('Fayl yuklanmadi');
-    }
-    
-    console.log('Fayl yuklandi:', file); // ✅ Fayl yuklanganini tekshirish uchun
-    
-    return this.submissionsService.submitAnswer(req.user.id, file.filename, comment, assignmentId);
+  }),
+)
+async uploadFile(
+  @Req() req,
+  @Param('assignmentId') assignmentId: number,
+  @UploadedFile() file: any,
+  @Body('comment') comment: string,
+) {
+  if (!file) {
+    throw new ForbiddenException('Fayl yuklanmadi');
   }
+
+  return this.submissionsService.submitAnswer(req.user.id, file.filename, comment, assignmentId);
+}
 
   @Get('file/:filename')
   async getFile(@Param('filename') filename: string, @Res() res: Response) {
