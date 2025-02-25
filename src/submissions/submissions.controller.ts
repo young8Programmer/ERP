@@ -38,48 +38,46 @@ if (!fs.existsSync(uploadDir)) {
   }
 
   @Roles('student')
-@UseGuards(AuthGuard, RolesGuard)
-@Post(':assignmentId/submit')
-@UseInterceptors(
-  FileInterceptor('file', {
-    storage: diskStorage({
-      destination: (req, file, cb) => {
-        const uploadDir = path.join(__dirname, '..', 'uploads', 'submissions');
-        if (!fs.existsSync(uploadDir)) {
-          fs.mkdirSync(uploadDir, { recursive: true });
-        }
-        cb(null, uploadDir);
-      },
-      filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-        cb(null, `file-${uniqueSuffix}${path.extname(file.originalname)}`);
-      },
+  @UseGuards(AuthGuard, RolesGuard)
+  @Post(':assignmentId/submit')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: (req, file, cb) => {
+          const uploadDir = path.join(__dirname, '..', 'uploads', 'submissions');
+          if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+          }
+          cb(null, uploadDir);
+        },
+        filename: (req, file, cb) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, `file-${uniqueSuffix}${path.extname(file.originalname)}`);
+        },
+      }),
     }),
-  }),
-)
-async uploadFile(
-  @Req() req,
-  @Param('assignmentId') assignmentId: number,
-  @UploadedFile() file: any,
-  @Body('comment') comment: string,
-) {
-  if (!file) {
-    throw new ForbiddenException('Fayl yuklanmadi');
-  }
-
-  return this.submissionsService.submitAnswer(req.user.id, file.filename, comment, assignmentId);
+  )
+  async uploadFile(
+    @Req() req,
+    @Param('assignmentId') assignmentId: number,
+    @UploadedFile() file: any,
+    @Body('comment') comment: string,
+    @Res() res,
+  ) {
+    if (!file) {
+      throw new ForbiddenException('Fayl yuklanmadi');
+    }
+    const savedSubmission = await this.submissionsService.submitAnswer(req.user.id, file.filename, comment, assignmentId);
+    return res.json({ message: 'Fayl saqlandi', savedSubmission });
   }
 
   @Get('file/:filename')
-  async getFile(@Param('filename') filename: string) {
-    const filePath = path.join(process.cwd(), 'uploads', 'submissions', filename);
-    console.log('So‘ralayotgan fayl:', filePath);
-
+  async getFile(@Param('filename') filename: string, @Res() res) {
+    const filePath = path.join(__dirname, '..', 'uploads', 'submissions', filename);
     if (!fs.existsSync(filePath)) {
-      console.log('Fayl mavjud emas!');
       throw new NotFoundException('Fayl topilmadi');
     }
-    return { filePath };
+    return res.sendFile(filePath);
   }
 
 
