@@ -68,7 +68,7 @@ export class SubmissionService {
   
     await this.submissionRepository.save(submission);
   
-    return { 
+    return {
       message: 'Topshiriq muvaffaqiyatli topshirildi',
       submissionId: submission.id,
       fileName: submission.fileName,
@@ -241,6 +241,19 @@ export class SubmissionService {
     const submittedStudentIds = submittedStudents.map(s => s.student.id);
     return allStudents.filter(student => !submittedStudentIds.includes(student.id));
   }
+
+  async deleteSubmission(submissionId: number) {
+    const submission = await this.submissionRepository.findOne({ where: { id: submissionId } });
+  
+    if (!submission) {
+      throw new NotFoundException('Submission topilmadi');
+    }
+  
+    await this.submissionRepository.remove(submission);
+  
+    return { success: true, message: 'Submission o‘chirildi' };
+  }
+  
 }
 
 

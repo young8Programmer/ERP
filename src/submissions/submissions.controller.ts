@@ -15,6 +15,7 @@ import {
   StreamableFile,
   Res,
   ParseIntPipe,
+  Delete,
 } from '@nestjs/common';
 import { SubmissionService } from './submissions.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
@@ -160,4 +161,10 @@ async getFile(@Param('submissionId', ParseIntPipe) submissionId: number, @Res() 
   async getUnsubmittedStudents(@Param('assignmentId') assignmentId: number) {
     return this.submissionsService.getUnsubmittedStudents(assignmentId);
   }
+
+  @Delete(':submissionId')
+  async deleteSubmission(@Param('submissionId', ParseIntPipe) submissionId: number) {
+  return this.submissionsService.deleteSubmission(submissionId);
+}
+
 }
