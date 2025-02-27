@@ -1,6 +1,14 @@
-import { Controller, Post, Body, UnauthorizedException, Req, UseGuards, Res } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UnauthorizedException,
+  Req,
+  UseGuards,
+  Res,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginDto } from './dto/create-auth.dto'
+import { LoginDto } from './dto/create-auth.dto';
 import { RefreshTokenDto } from './dto/RefreshTokenDto';
 import { AuthGuard, Roles } from './auth.guard';
 import { Response } from 'express';
@@ -12,7 +20,8 @@ export class AuthController {
   @Post('login')
   async login(@Body() loginDto: LoginDto, @Res() res: Response) {
     try {
-      const { accessToken, refreshToken, user } = await this.authService.login(loginDto);
+      const { accessToken, refreshToken, user } =
+        await this.authService.login(loginDto);
 
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
@@ -28,9 +37,13 @@ export class AuthController {
   }
 
   @Post('refresh-token')
-  async refreshToken(@Body() refreshTokenDto: RefreshTokenDto, @Res() res: Response) {
+  async refreshToken(
+    @Body() refreshTokenDto: RefreshTokenDto,
+    @Res() res: Response,
+  ) {
     try {
-      const { accessToken, newRefreshToken } = await this.authService.refreshAccessToken(refreshTokenDto.refreshToken);
+      const { accessToken, newRefreshToken } =
+        await this.authService.refreshAccessToken(refreshTokenDto.refreshToken);
 
       res.cookie('refreshToken', newRefreshToken, {
         httpOnly: true,

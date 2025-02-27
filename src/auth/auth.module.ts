@@ -4,7 +4,6 @@ import { AuthController } from './auth.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import * as dotenv from 'dotenv';
-import { StudentsModule } from '../students/student.module';
 import { TeachersModule } from '../teacher/teacher.module';
 import { Student } from '../students/entities/student.entity';
 import { Teacher } from '../teacher/entities/teacher.entity';
