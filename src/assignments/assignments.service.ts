@@ -24,7 +24,7 @@ export class AssignmentsService {
     private studentRepository: Repository<Student>,
   ) {
     this.s3Client = new S3Client({
-      endpoint: 'https://s3.us-east-005.backblazeb2.com',
+      endpoint: 'https://tree-iad1-0002.secure.backblaze.com/',
       region: 'us-east-005',
       credentials: {
         accessKeyId: process.env.B2_KEY_ID,
