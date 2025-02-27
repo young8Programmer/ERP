@@ -23,11 +23,11 @@ export class AssignmentsService {
     private studentRepository: Repository<Student>,
   ) {
     this.s3Client = new S3Client({
-      endpoint: 'https://s3.us-west-000.backblazeb2.com',
-      region: 'us-west-000',
+      endpoint: 'https://s3.us-east-005.backblazeb2.com',
+      region: 'us-east-005',
       credentials: {
-        accessKeyId: '00553be104919e10000000001',
-        secretAccessKey: 'K005a+bx/LGtQjRQbsN4usfRSztTHf4',
+        accessKeyId: process.env.B2_KEY_ID,
+        secretAccessKey: process.env.B2_APPLICATION_KEY,
       },
     });
   }
@@ -62,8 +62,7 @@ export class AssignmentsService {
       throw new BadRequestException('Fayl yuklanmagan yoki noto‘g‘ri');
     }
 
-    // Faylni Backblaze B2 ga yuklash
-    const fileName = `${Date.now()}-${file.originalname}`; // Fayl nomini unique qilish
+    const fileName = `${Date.now()}-${file.originalname}`;
     const params = {
       Bucket: 'erp-backend',
       Key: fileName,
@@ -71,15 +70,19 @@ export class AssignmentsService {
       ContentType: file.mimetype,
     };
 
-    await this.s3Client.send(new PutObjectCommand(params));
-    const fileUrl = `https://f000.backblazeb2.com/file/erp-backend/${fileName}`;
+    try {
+      await this.s3Client.send(new PutObjectCommand(params));
+    } catch (error) {
+      throw new BadRequestException(`Faylni Backblaze B2 ga yuklashda xato: ${error.message}`);
+    }
 
-    // Assignment ni yaratish
+    const fileUrl = `https://f000.backblazeb2.com/file/erp-backend/${fileName}`; // Domenni tasdiqlang
+
     const newAssignment = this.assignmentRepository.create({
       lesson,
       title,
       description,
-      fileUrl, // Backblaze B2 dan kelgan URL
+      fileUrl,
       status: 'pending',
       dueDate: dueDate ? new Date(dueDate) : null,
     });
@@ -101,7 +104,6 @@ export class AssignmentsService {
 
     return { fileUrl: assignment.fileUrl };
   }
-
   
   async updateAssignment(teacherId: number, assignmentId: number, updateData: Partial<CreateAssignmentDto>) {
     const assignment = await this.assignmentRepository.findOne({
