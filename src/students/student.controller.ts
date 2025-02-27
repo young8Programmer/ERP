@@ -12,16 +12,15 @@ import {
 import { StudentsService } from './student.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
-import { Student } from './entities/user.entity';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { Roles, RolesGuard } from 'src/auth/roles.guard';
+import { Student } from './entities/student.entity';
+import { AuthGuard, Roles, RolesGuard } from 'src/auth/auth.guard';
 
 @Controller('students')
 export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
 
-  @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
+  @UseGuards(AuthGuard, RolesGuard)
   @Post()
   async createStudent(
     @Body() createStudentDto: CreateStudentDto,
@@ -29,29 +28,33 @@ export class StudentsController {
     return this.studentsService.createStudent(createStudentDto);
   }
 
-  @UseGuards(AuthGuard)
-  @Roles('admin', 'teacher')
+  
+  @Roles('admin')
+  @UseGuards(AuthGuard, RolesGuard)
   @Get()
   async getAllStudents(): Promise<Student[]> {
     return this.studentsService.getAllStudents();
   }
 
   
+  
+  @Roles('admin', "teacher")
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('admin')
   @Get('search')
   async searchStudents(@Query('name') name: string): Promise<Student[]> {
     return this.studentsService.searchStudents(name);
   }
 
+  
   @UseGuards(AuthGuard)
   @Get(':id')
   async getStudentById(@Param('id') id: number): Promise<Student> {
     return this.studentsService.getStudentById(id);
   }
 
-  @UseGuards(AuthGuard, RolesGuard)
+  
   @Roles('admin')
+  @UseGuards(AuthGuard, RolesGuard)
   @Put(':id')
   async updateStudent(
     @Param('id') id: number,
@@ -60,8 +63,9 @@ export class StudentsController {
     return this.studentsService.updateStudent(id, updateStudentDto);
   }
 
-  @UseGuards(AuthGuard, RolesGuard)
+  
   @Roles('admin')
+  @UseGuards(AuthGuard, RolesGuard)
   @Delete(':id')
   async deleteStudent(@Param('id') id: number): Promise<void> {
     await this.studentsService.deleteStudent(id);

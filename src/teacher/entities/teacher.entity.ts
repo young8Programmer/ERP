@@ -1,6 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne, JoinColumn } from 'typeorm';
 import { Group } from '../../groups/entities/group.entity';
-import { User } from 'src/auth/entities/user.entity';
+import { Profile } from 'src/profile/entities/profile.entity';
 
 @Entity('teachers')
 export class Teacher {
@@ -13,7 +13,7 @@ export class Teacher {
   @Column({ type: 'varchar', length: 50 })
   lastName: string;
 
-  @Column({ type: 'varchar', length: 15, unique: true })
+  @Column({ type: 'varchar', length: 15})
   phone: string;
 
   @Column({ type: 'varchar', length: 255 })
@@ -22,12 +22,19 @@ export class Teacher {
   @Column({ type: 'varchar', length: 100 })
   specialty: string;
 
-  @Column({ default: "teacher" })
+  @Column({ default: 'teacher' })
   role: string;
 
-  @OneToMany(() => Group, (group) => group.teacher, { cascade: true })
+  @Column({ type: 'varchar', length: 100})
+  username: string; // Added username field
+
+  @Column({ type: 'varchar', length: 255 })
+  password: string; // Added password field
+
+  @OneToMany(() => Group, (group) => group.teacher, { onDelete: "CASCADE" })
   groups: Group[];
 
-  @OneToMany(() => User, (user) => user.teacher)
-  users: User[];
+  @OneToOne(() => Profile, (profile) => profile.teacher, { onDelete: "CASCADE"})
+  @JoinColumn()
+  profile: Profile; // Added Profile relation
 }

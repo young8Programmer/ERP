@@ -3,10 +3,12 @@ import {
   ExecutionContext,
   Injectable,
   UnauthorizedException,
+  SetMetadata,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as dotenv from 'dotenv';
-dotenv.config();
+import { Reflector } from '@nestjs/core';
+
+export const Roles = (...roles: string[]) => SetMetadata('roles', roles);
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -30,22 +32,41 @@ export class AuthGuard implements CanActivate {
       const payload = this.jwtService.verify(token, {
         secret: process.env.JWT_SECRET,
       });
-      request.user = payload
-      request.teacher = payload
-      
+      request.user = payload; // Foydalanuvchi ma'lumotlarini so'rovga qo'shish
       return true;
     } catch (error) {
-      console.error('JWT tekshirish xatosi:', error);
-
       if (error.name === 'TokenExpiredError') {
         throw new UnauthorizedException('Token muddati tugagan');
       }
-
       if (error.name === 'JsonWebTokenError') {
         throw new UnauthorizedException('Token noto‘g‘ri');
       }
-
-      throw new UnauthorizedException('Autentifikatsiya muvaffaqiyatsiz tugadi');
+      throw new UnauthorizedException('Token tekshirish xatosi');
     }
+  }
+}
+
+@Injectable()
+export class RolesGuard implements CanActivate {
+  constructor(private reflector: Reflector, private jwtService: JwtService) {}
+
+  canActivate(context: ExecutionContext): boolean {
+    const requiredRoles = this.reflector.get<string[]>('roles', context.getHandler());
+    if (!requiredRoles) {
+      return true; // Rol kerak emas
+    }
+
+    const request = context.switchToHttp().getRequest();
+    const user = request.user;
+
+    if (!user || !user.role) {
+      throw new UnauthorizedException('Foydalanuvchi autentifikatsiya qilinmagan yoki rol etishmayapti');
+    }
+
+    if (!requiredRoles.includes(user.role)) {
+      throw new UnauthorizedException('Ushbu amalni bajarishga ruxsat yo‘q');
+    }
+
+    return true;
   }
 }

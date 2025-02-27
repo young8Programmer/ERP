@@ -3,7 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Lesson } from './entities/lesson.entity';
 import { Group } from '../groups/entities/group.entity';
-import { User } from 'src/auth/entities/user.entity';
+import { Attendance } from 'src/attendance/entities/attendance.entity';
+import { CreateLessonDto } from './dto/create-lesson.dto';
+import { Teacher } from 'src/teacher/entities/teacher.entity';
+import { Student } from 'src/students/entities/student.entity';
 
 @Injectable()
 export class LessonsService {
@@ -12,37 +15,45 @@ export class LessonsService {
     private readonly lessonRepository: Repository<Lesson>,
     @InjectRepository(Group)
     private readonly groupRepository: Repository<Group>,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    @InjectRepository(Teacher)  // teacherRepository
+    private readonly teacherRepository: Repository<Teacher>,
+    @InjectRepository(Student)  // studentRepository
+    private readonly studentRepository: Repository<Student>,
+    @InjectRepository(Attendance)
+    private readonly attendanceRepository: Repository<Attendance>,
   ) {}
 
-  async getAll(userId: number) {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException('Foydalanuvchi topilmadi');
+  // Foydalanuvchi ma'lumotlarini topish
+  private async getUserById(userId: number): Promise<Teacher | Student> {
+    const user = await this.teacherRepository.findOne({ where: { id: userId } })
+      || await this.studentRepository.findOne({ where: { id: userId } })
 
-    return this.lessonRepository.find({relations: ["group", "assignments"]});
+    if (!user) throw new NotFoundException('Foydalanuvchi topilmadi');
+    return user;
   }
-  
-  // Guruhga tegishli darslarni olish
-  async findLessonsByGroup(groupId: number, userId: number) {
-    // Foydalanuvchi malumotlarini olish
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException('Foydalanuvchi topilmadi');
 
-    // Guruhni olish va tekshirish
+  // Barcha darslarni olish
+  async getAll(userId: number) {
+    await this.getUserById(userId); // Foydalanuvchi tekshiriladi
+    return this.lessonRepository.find({ relations: ["group", "assignments"] });
+  }
+
+  // Guruh bo'yicha darslarni olish
+  async findLessonsByGroup(groupId: number, userId: number) {
+    const user = await this.getUserById(userId); // Foydalanuvchi tekshiriladi
+
     const group = await this.groupRepository.findOne({
       where: { id: groupId },
-      relations: ['teacher', 'students'], // Guruhning o'qituvchisini va talabalari
+      relations: ['teacher', 'students']
     });
 
     if (!group) throw new NotFoundException('Guruh topilmadi');
 
-    // Foydalanuvchi roli va guruhga tegishliligini tekshirish
-    const isTeacher = group.teacher.id === user.teacherId;
-    const isStudent = group.students.some(student => student.id === user.studentId); // studentId orqali tekshirish
+    const isTeacher = group.teacher.id === user.id;
+    const isStudent = group.students.some(student => student.id === user.id);
 
     if (!isTeacher && !isStudent) {
-      throw new ForbiddenException('Siz faqat o\'zingizning guruhingizdagi darslarni ko\'rishingiz mumkin');
+      throw new ForbiddenException("Siz faqat o'zingizning guruhingizdagi darslarni ko'rishingiz mumkin");
     }
 
     return this.lessonRepository.find({
@@ -50,55 +61,62 @@ export class LessonsService {
     });
   }
 
-  async create(userId: number, lessonData: { title: string; groupId: number }) {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+  // Yangi dars yaratish
+  async create(userId: number, lessonData: CreateLessonDto) {
+    const user = await this.getUserById(userId); // Foydalanuvchi tekshiriladi
 
     const group = await this.groupRepository.findOne({
       where: { id: lessonData.groupId },
-      relations: ['teacher'],
+      relations: ['teacher', 'students'],
     });
-    if (!group) {
-      throw new NotFoundException('Group not found');
-    }
 
-    // O'qituvchi faqat o'z guruhida dars yaratishi mumkin
-    if (group.teacher?.id !== user.teacherId) {
-      throw new ForbiddenException('You can only create lessons in your own group');
-    }
+    if (!group) throw new NotFoundException('Group topilmadi');
 
-    const existingLesson = await this.lessonRepository.findOne({
-      where: { title: lessonData.title, group: { id: lessonData.groupId } },
-    });
-    if (existingLesson) {
-      throw new ForbiddenException('Lesson already exists');
+    if (group.teacher?.id !== user.id) {
+      throw new ForbiddenException('Siz bu darsni guruhiga ulanmagansiz');
     }
 
     const lesson = this.lessonRepository.create({
-      title: lessonData.title,
+      lessonName: lessonData.lessonName,
+      lessonNumber: lessonData.lessonNumber,
+      lessonDate: new Date(),
+      endDate: lessonData.endDate ? new Date(lessonData.endDate) : null,
       group,
     });
-    return this.lessonRepository.save(lesson);
+
+    const savedLesson = await this.lessonRepository.save(lesson);
+
+    for (const attendanceData of lessonData.attendance) {
+      const student = group.students.find((s) => s.id === attendanceData.studentId);
+      if (!student) {
+        throw new NotFoundException(`Student with ID ${attendanceData.studentId} not found in group`);
+      }
+
+      const attendance = this.attendanceRepository.create({
+        lesson: savedLesson,
+        student,
+        status: attendanceData.status,
+      });
+      await this.attendanceRepository.save(attendance);
+    }
+
+    return savedLesson;
   }
 
+  // Darsni yangilash
   async update(id: number, updateLessonDto: any, userId: number) {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    const user = await this.getUserById(userId); // Foydalanuvchi tekshiriladi
 
     const lesson = await this.lessonRepository.findOne({
       where: { id },
       relations: ['group', 'group.teacher'],
     });
+
     if (!lesson) {
       throw new NotFoundException(`Lesson with ID ${id} not found`);
     }
 
-    // O'qituvchi faqat o'z guruhidagi darsni yangilay oladi
-    if (lesson.group.teacher?.id !== user.teacherId) {
+    if (lesson.group.teacher?.id !== user.id) {
       throw new ForbiddenException('You can only update lessons in your own group');
     }
 
@@ -109,22 +127,20 @@ export class LessonsService {
     return updatedLesson;
   }
 
+  // Darsni o'chirish
   async remove(id: number, userId: number) {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    const user = await this.getUserById(userId); // Foydalanuvchi tekshiriladi
 
     const lesson = await this.lessonRepository.findOne({
       where: { id },
       relations: ['group', 'group.teacher'],
     });
+
     if (!lesson) {
       throw new NotFoundException(`Lesson with ID ${id} not found`);
     }
 
-    // O'qituvchi faqat o'z guruhidagi darsni o'chirishi mumkin
-    if (lesson.group.teacher?.id !== user.teacherId) {
+    if (lesson.group.teacher?.id !== user.id) {
       throw new ForbiddenException('You can only delete lessons from your own group');
     }
 

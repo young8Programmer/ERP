@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { Group } from '../../groups/entities/group.entity';
 import { Assignment } from '../../assignments/entities/assignment.entity';
+import { Attendance } from '../../attendance/entities/attendance.entity';
 
 @Entity('lessons')
 export class Lesson {
@@ -15,17 +16,23 @@ export class Lesson {
   id: number;
 
   @Column()
-  title: string;
+  lessonName: string;
 
-  @CreateDateColumn({ type: 'timestamp', nullable: true })
+  @Column({nullable: true})
+  lessonNumber: string;
+
+  @CreateDateColumn({ type: 'timestamp' })
   lessonDate: Date;
 
-  @CreateDateColumn({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   endDate: Date;
 
   @ManyToOne(() => Group, (group) => group.lessons, { onDelete: 'CASCADE' })
   group: Group;
 
   @OneToMany(() => Assignment, (assignment) => assignment.lesson)
-  assignments: Assignment[]; // Har bir dars bir nechta topshiriqqa ega bo'lishi mumkin
+  assignments: Assignment[];
+
+  @OneToMany(() => Attendance, (attendance) => attendance.lesson)
+  attendances: Attendance[];
 }

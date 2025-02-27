@@ -1,30 +1,40 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm';
-import { User } from '../../auth/entities/user.entity'; // Foydalanuvchi modeli bilan bog'lanish uchun import qilamiz
+import { Teacher } from 'src/teacher/entities/teacher.entity';
+import { Admin } from 'src/admin/entities/admin.entity';
+import { Student } from 'src/students/entities/student.entity';
 
 @Entity('profiles')
 export class Profile {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 50 })
+  @Column({ type: 'varchar', length: 50 , nullable: true })
   firstName: string;
 
-  @Column({ type: 'varchar', length: 50 })
+  @Column({ type: 'varchar', length: 50 , nullable: true })
   lastName: string;
 
   @Column({ type: 'varchar', nullable: true })
-  photo: string; // Profil rasmi
+  photo: string;
 
-  @Column({ type: 'text', nullable: true })
-  bio: string; // Qisqacha ma'lumot
+  @Column({ type: 'varchar', nullable: true })
+  username: string;
 
-  @Column({ type: 'int', nullable: true })
-  age: number; // Yoshi
+  @Column({ type: 'varchar', nullable: true })
+  password: string;
+  
+  @Column({ type: 'varchar', length: 255 , nullable: true })
+  address: string;
 
   @Column({ type: 'varchar', length: 15, nullable: true })
-  contactNumber: string; // Telefon raqami
+  phone: string;
 
-  @OneToOne(() => User, (user) => user.profile)
-  @JoinColumn()
-  user: User; // Har bir profile bir marta faqat bir foydalanuvchi bilan bog'langan
+  @OneToOne(() => Teacher, (teacher) => teacher.profile)
+  teacher: Teacher; 
+  
+  @OneToOne(() => Admin, (admin) => admin.profile)
+  admin: Admin; 
+  
+  @OneToOne(() => Student, (student) => student.profile)
+  student: Student; 
 }

@@ -2,9 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Profile } from './entities/profile.entity';
-import { CreateProfileDto } from './dto/create-profile.dto';
+import { CreateProfileDto } from './dto/create.profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { User } from '../users/entities/user.entity';
+import { Student } from '../students/entities/student.entity';
+import { Admin } from '../admin/entities/admin.entity';
+import { Teacher } from '../teacher/entities/teacher.entity';
 
 @Injectable()
 export class ProfilesService {
@@ -12,81 +14,94 @@ export class ProfilesService {
     @InjectRepository(Profile)
     private readonly profileRepository: Repository<Profile>,
 
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>, // Foydalanuvchi modelini inject qildik
+    @InjectRepository(Student)
+    private readonly studentRepository: Repository<Student>,
+
+    @InjectRepository(Admin)
+    private readonly adminRepository: Repository<Admin>,
+
+    @InjectRepository(Teacher)
+    private readonly teacherRepository: Repository<Teacher>,
   ) {}
 
-  async createProfile(createProfileDto: CreateProfileDto): Promise<Profile> {
-    const { userId } = createProfileDto;
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) {
-      throw new NotFoundException(`Foydalanuvchi ID ${userId} topilmadi`);
+  async createProfile(createProfileDto: CreateProfileDto): Promise<any> {
+    const { studentId, adminId, teacherId } = createProfileDto;
+
+    let profileEntity = null;
+    
+    if (studentId) {
+      const student = await this.studentRepository.findOne({ where: { id: studentId } });
+      if (!student) {
+        throw new NotFoundException(`Student with ID ${studentId} not found`);
+      }
+      profileEntity = { student };
     }
 
-    const profile = this.profileRepository.create({ ...createProfileDto, user });
+    if (adminId) {
+      const admin = await this.adminRepository.findOne({ where: { id: adminId } });
+      if (!admin) {
+        throw new NotFoundException(`Admin with ID ${adminId} not found`);
+      }
+      profileEntity = { admin };
+    }
+
+    if (teacherId) {
+      const teacher = await this.teacherRepository.findOne({ where: { id: teacherId } });
+      if (!teacher) {
+        throw new NotFoundException(`Teacher with ID ${teacherId} not found`);
+      }
+      profileEntity = { teacher };
+    }
+
+    const profile = this.profileRepository.create({ ...createProfileDto, ...profileEntity });
     return this.profileRepository.save(profile);
   }
 
   async getAllProfiles(): Promise<Profile[]> {
-    return this.profileRepository.find({ relations: ['user'] });
+    return this.profileRepository.find({ relations: ['student', 'admin', 'teacher'] });
   }
 
   async getProfileById(id: number): Promise<Profile> {
-    const profile = await this.profileRepository.findOne({ where: { id }, relations: ['user'] });
+    const profile = await this.profileRepository.findOne({ where: { id }, relations: ['student', 'admin', 'teacher'] });
     if (!profile) {
-      throw new NotFoundException(`Profile ID ${id} topilmadi`);
+      throw new NotFoundException(`Profile with ID ${id} not found`);
     }
     return profile;
   }
 
   async updateProfile(id: number, updateProfileDto: UpdateProfileDto): Promise<Profile> {
-    // Profilni topamiz
     const profile = await this.profileRepository.findOne({ where: { id } });
-  
     if (!profile) {
-      throw new NotFoundException(`Profile ID ${id} topilmadi`);
+      throw new NotFoundException(`Profile with ID ${id} not found`);
     }
-  
-    // Agar `userId` berilgan bo‘lsa, foydalanuvchini tekshiramiz
-    if (updateProfileDto.userId) {
-      const user = await this.userRepository.findOne({ where: { id: updateProfileDto.userId } });
-      if (!user) {
-        throw new NotFoundException(`Foydalanuvchi ID ${updateProfileDto.userId} topilmadi`);
-      }
-  
-      // User IDni qo'shamiz (bog‘lanish uchun)
-      profile.user = { id: updateProfileDto.userId } as any; // Bu yerda faqat ID qo‘llanadi
-    }
-  
-    // Qolgan ma'lumotlarni yangilash
     Object.assign(profile, updateProfileDto);
-  
     return this.profileRepository.save(profile);
   }
-  
 
-  
   async deleteProfile(id: number): Promise<void> {
     const profile = await this.getProfileById(id);
     if (!profile) {
-      throw new NotFoundException(`Profile ID ${id} topilmadi`);
+      throw new NotFoundException(`Profile with ID ${id} not found`);
     }
     await this.profileRepository.remove(profile);
   }
-  async getMyProfile(userId: number): Promise<Profile> {
+
+  async getMyProfile(username: string): Promise<Profile> {
     const profile = await this.profileRepository.findOne({
-      where: { user: { id: userId } },
-      relations: ['user'], // Bog'langan ma'lumotlarni olish
+      where: [
+        { student: { username } },
+        { admin: { username } },
+        { teacher: { username } },
+      ],
+      relations: ['student', 'admin', 'teacher'],
     });
   
     if (!profile) {
-      throw new NotFoundException(`Sizning profilingiz topilmadi`);
+      throw new NotFoundException(`Profile not found`);
     }
   
-    return profile; // Faqat profilni qaytarish
+    return profile;
   }
   
   
 }
-
-

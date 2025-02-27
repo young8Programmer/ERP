@@ -1,27 +1,49 @@
-import { IsString, IsOptional, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsPhoneNumber, IsInt, IsPositive } from 'class-validator';
 
 export class UpdateProfileDto {
+  @IsOptional()
   @IsString()
+  @IsNotEmpty()
   firstName?: string;
 
+  @IsOptional()
   @IsString()
+  @IsNotEmpty()
   lastName?: string;
 
-  @IsString()
   @IsOptional()
+  @IsString()
   photo?: string;
 
+  @IsOptional()
   @IsString()
-  @IsOptional()
-  bio?: string;
+  username?: string;
 
   @IsOptional()
-  age?: number;
-
   @IsString()
-  @IsOptional()
-  contactNumber?: string;
+  password?: string;
 
+  @IsOptional()
+  @IsString()
   @IsNotEmpty()
-  userId: number; // Foydalanuvchining IDsi kerak
+  address?: string;
+
+  @IsOptional()
+  @IsPhoneNumber()
+  phone?: string;
+
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  studentId?: number;
+
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  adminId?: number;
+
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  teacherId?: number;
 }

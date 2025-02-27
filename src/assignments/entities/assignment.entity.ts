@@ -14,10 +14,16 @@ export class Assignment {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  assignment: string;
+  @Column({ type: 'text', nullable: true }) 
+  title: string;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ nullable: true })
+  description: string;
+
+  @Column({ nullable: true })
+  fileUrl: string;
+
+  @Column({ nullable: true })
   dueDate: Date;
 
   @UpdateDateColumn({ type: 'timestamp', nullable: true })
@@ -31,5 +37,16 @@ export class Assignment {
   @OneToMany(() => Submission, (submission) => submission.assignment)
   submissions: Submission[];
 
-  status: string
+  @Column({ default: 'pending' })
+  status: string;
+
+  @Column({ type: 'bytea', nullable: true }) 
+  fileData: Buffer;
+
+  @Column({ nullable: true })
+  fileName: string;
+
+  @Column({ nullable: true })
+  fileType: string;
+
 }

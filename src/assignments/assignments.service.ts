@@ -1,9 +1,10 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Assignment } from './entities/assignment.entity';
 import { Repository } from 'typeorm';
 import { Lesson } from 'src/lesson/entities/lesson.entity';
-import { User } from 'src/auth/entities/user.entity';
+import { Teacher } from 'src/teacher/entities/teacher.entity';
+import { Student } from '../students/entities/student.entity';
 import { CreateAssignmentDto } from './dto/create-assignment.dto';
 
 @Injectable()
@@ -13,56 +14,79 @@ export class AssignmentsService {
     private readonly assignmentRepository: Repository<Assignment>,
     @InjectRepository(Lesson)
     private readonly lessonRepository: Repository<Lesson>,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    @InjectRepository(Teacher)
+    private readonly teacherRepository: Repository<Teacher>, 
+    @InjectRepository(Student)
+    private readonly studentRepository: Repository<Student>, 
   ) {}
 
-  async createAssignment(teacherId: number, createAssignmentDto: CreateAssignmentDto) {
-    const { lesson_id, assignment, dueDate } = createAssignmentDto;
-  
+  async createAssignment(teacherId: number, createAssignmentDto: CreateAssignmentDto, file: any) {
+    const { lesson_id, title, description, dueDate } = createAssignmentDto;
+
     const lesson = await this.lessonRepository.findOne({
       where: { id: lesson_id },
       relations: ['group', 'group.teacher'],
     });
-  
+
     if (!lesson) {
       throw new NotFoundException(`Lesson with ID ${lesson_id} not found`);
     }
-  
-    const user = await this.userRepository.findOne({ where: { id: teacherId } });
-  
-    if (lesson.group.teacher.id !== user.teacherId) {
-      throw new ForbiddenException('Siz faqat o\'zingizga tegishli guruhdagi topshiriqni yaratishingiz mumkin');
+
+    const teacher = await this.teacherRepository.findOne({ where: { id: teacherId } });
+
+    if (lesson.group.teacher.id !== teacher.id) {
+      throw new ForbiddenException('Siz faqat o‘zingizga tegishli guruhdagi topshiriqni yaratishingiz mumkin');
     }
-  
-    const existingAssignment = await this.assignmentRepository.findOne({
-      where: { lesson: { id: lesson_id }, assignment },
+
+    const existingAssignment = await this.assignmentRepository.findOne({ 
+      where: { lesson: {id: lesson_id} } 
     });
-  
+
     if (existingAssignment) {
-      throw new ForbiddenException('Bu topshiriq ushbu dars uchun allaqachon mavjud');
+      throw new ConflictException(`Lesson ID ${lesson_id} uchun allaqachon topshiriq mavjud`);
     }
-  
-    let dueDateString = null;
-    if (dueDate) {
-      const dueDateObj = new Date();
-      dueDateObj.setDate(dueDateObj.getDate() + dueDate); // Hozirgi sanaga 'dueDate' kunlar qo‘shiladi
-      dueDateString = dueDateObj.toISOString(); // ISO formatida sanani olish
+
+    // **Faylni tekshirish**
+    if (!file || !file.buffer) {
+      throw new BadRequestException('Fayl yuklanmagan yoki noto‘g‘ri');
     }
-  
+
     const newAssignment = this.assignmentRepository.create({
       lesson,
-      assignment,
+      title,
+      description,
+      fileData: file.buffer, // Faylni buffer sifatida saqlash
+      fileName: file.originalname,
+      fileType: file.mimetype, // Fayl turi
       status: 'pending',
-      dueDate: dueDateString, // Yangi dueDate qiymatini saqlash
+      dueDate: dueDate ? new Date(dueDate) : null,
     });
-  
+
     await this.assignmentRepository.save(newAssignment);
-  
+
     return { message: 'Assignment successfully created', assignmentId: newAssignment.id };
   }
+
   
-  async updateAssignment(teacherId: number, assignmentId: number, updateData: { assignment?: string; status?: string }) {
+  async getAssignmentFile(assignmentId: number) {
+    const assignment = await this.assignmentRepository.findOne({
+      where: { id: assignmentId },
+      select: ['fileData', 'fileName', 'fileType'],
+    });
+  
+    if (!assignment || !assignment.fileData) {
+      throw new NotFoundException('Fayl topilmadi');
+    }
+  
+    return {
+      fileData: assignment.fileData,
+      fileName: assignment.fileName,
+      fileType: assignment.fileType,
+    };
+  }
+  
+  
+  async updateAssignment(teacherId: number, assignmentId: number, updateData: Partial<CreateAssignmentDto>) {
     const assignment = await this.assignmentRepository.findOne({
       where: { id: assignmentId },
       relations: ['lesson', 'lesson.group', 'lesson.group.teacher'],
@@ -72,18 +96,13 @@ export class AssignmentsService {
       throw new NotFoundException(`Assignment with ID ${assignmentId} not found`);
     }
 
-    const user = await this.userRepository.findOne({ where: { id: teacherId } });
+    const teacher = await this.teacherRepository.findOne({ where: { id: teacherId } });
 
-    if (!user || assignment.lesson.group.teacher.id !== user.teacherId) {
+    if (!teacher || assignment.lesson.group.teacher.id !== teacher.id) {
       throw new ForbiddenException('Siz faqat o\'zingizga tegishli guruhdagi topshiriqni o\'zgartira olasiz');
     }
 
-    if (updateData.assignment) {
-      assignment.assignment = updateData.assignment;
-    }
-    if (updateData.status) {
-      assignment.status = updateData.status;
-    }
+    Object.assign(assignment, updateData);
 
     await this.assignmentRepository.save(assignment);
 
@@ -100,9 +119,9 @@ export class AssignmentsService {
       throw new NotFoundException(`Assignment with ID ${assignmentId} not found`);
     }
 
-    const user = await this.userRepository.findOne({ where: { id: teacherId } });
+    const teacher = await this.teacherRepository.findOne({ where: { id: teacherId } });
 
-    if (!user || assignment.lesson.group.teacher.id !== user.teacherId) {
+    if (!teacher || assignment.lesson.group.teacher.id !== teacher.id) {
       throw new ForbiddenException('Siz faqat o\'zingizga tegishli guruhdagi topshiriqni o\'chira olasiz');
     }
 
@@ -111,39 +130,34 @@ export class AssignmentsService {
     return { message: 'Assignment successfully removed' };
   }
 
-
   async findAssignmentsForUser(lessonId: number, userId: number, role: 'teacher' | 'student') {
-    // Lessonni olish
     const lesson = await this.lessonRepository.findOne({
       where: { id: lessonId },
-      relations: ['group', 'group.teacher', 'group.students'], // Guruh, o'qituvchi va o'quvchilarni yuklash
+      relations: ['group', 'group.teacher', 'group.students'], 
     });
   
     if (!lesson) {
       throw new NotFoundException(`Lesson with ID ${lessonId} not found`);
     }
   
-    // Agar role teacher bo'lsa, o'qituvchi uchun tekshiruv
     if (role === 'teacher') {
-      const user = await this.userRepository.findOne({ where: { id: userId } });
+      const teacher = await this.teacherRepository.findOne({ where: { id: userId } });
       
-      if (!user || lesson.group.teacher.id !== user.teacherId) {
+      if (!teacher || lesson.group.teacher.id !== teacher.id) {
         throw new ForbiddenException('Siz faqat o\'zingizga tegishli guruhdagi topshiriqlarni ko\'ra olasiz');
       }
     }
   
-    // Agar role student bo'lsa, student uchun guruhga tegishli ekanligini tekshirish
     if (role === 'student') {
-      const user = await this.userRepository.findOne({ where: { id: userId } });
+      const student = await this.studentRepository.findOne({ where: { id: userId } });
   
-      if (!user || !lesson.group.students.some((student) => student.id === user.studentId)) {
+      if (!student || !lesson.group.students.some((s) => s.id === student.id)) {
         throw new ForbiddenException('Siz ushbu guruhga tegishli darslarni ko\'ra olmaysiz');
       }
     }
   
-    // Ushbu darsga tegishli topshiriqlarni olish
     const assignments = await this.assignmentRepository.find({
-      where: { lesson: { id: lessonId }}, 
+      where: { lesson: { id: lessonId } }, 
       relations: ["submissions"]
     });
   
@@ -153,5 +167,4 @@ export class AssignmentsService {
   
     return assignments;
   }
-  
 }

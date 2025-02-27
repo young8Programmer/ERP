@@ -1,31 +1,49 @@
-  import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, Unique } from 'typeorm';
-  import { Assignment } from 'src/assignments/entities/assignment.entity';
-  import { Student } from '../../students/entities/user.entity'; // To'g'ri entitetni import qilish
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Assignment } from 'src/assignments/entities/assignment.entity';
+import { Student } from '../../students/entities/student.entity';
 
-  @Entity()
-  @Unique(['assignment', 'student'])
-  export class Submission {
-    @PrimaryGeneratedColumn()
-    id: number;
+export enum SubmissionStatus {
+  PENDING = 'pending',
+  REJECTED = 'rejected',
+  ACCEPTED = 'accepted',
+  UNSUBMITTED = 'unsubmitted',
+}
 
-    @Column({ type: 'text' })
-    content: string;
+@Entity()
+export class Submission {
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column({ type: 'boolean', default: false })
-    status: boolean;
+  @Column({
+    type: 'enum',
+    enum: SubmissionStatus,
+    default: SubmissionStatus.PENDING,
+  })
+  status: SubmissionStatus;
 
-    @Column({ type: 'int', default: 0 })
-    grade: number;
+  @Column({ type: 'int', default: 0 })
+  grade: number;
 
-    @ManyToOne(() => Assignment, (assignment) => assignment.submissions)
-    @JoinColumn({ name: 'assignmentId' })
-    assignment: Assignment;
+  @Column({ type: 'text', nullable: true })
+  comment: string;
 
-    @ManyToOne(() => Student, (student) => student.submissions)
-    @JoinColumn({ name: 'studentId' })
-    student: Student;
+  @Column({ type: 'bytea', nullable: true }) 
+  fileData: Buffer;
 
-    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-    submittedAt: Date;
-  
-  }
+  @Column({ type: 'text', nullable: true })
+  fileName: string;
+
+  @Column({ type: 'text', nullable: true })
+  fileType: string;
+
+  @ManyToOne(() => Assignment, (assignment) => assignment.submissions, { nullable: false })
+  @JoinColumn({ name: 'assignmentId' })
+  assignment: Assignment;
+
+  @ManyToOne(() => Student, (student) => student.submissions, { nullable: false })
+  @JoinColumn({ name: 'studentId' })
+  student: Student;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  submittedAt: Date;
+}

@@ -4,134 +4,80 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { StudentsService } from 'src/students/student.service';
-import { TeachersService } from '../teacher/teacher.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Admin } from '../admin/entities/admin.entity';
+import { Teacher } from '../teacher/entities/teacher.entity';
+import { Student } from '../students/entities/student.entity';
+import { Repository } from 'typeorm';
+import { superAdmin } from 'src/super-admin/entities/super-admin.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @InjectRepository(Admin) private readonly adminRepository: Repository<Admin>,
+    @InjectRepository(Teacher) private readonly teacherRepository: Repository<Teacher>,
+    @InjectRepository(Student) private readonly studentRepository: Repository<Student>,
+    @InjectRepository(superAdmin) private readonly superAdminRepository: Repository<superAdmin>,
     private readonly jwtService: JwtService,
-    private readonly studentsService: StudentsService,
-    private readonly teachersService: TeachersService
   ) {}
 
-  async registerAdmin(createAuthDto: CreateAuthDto) {
-    const existingUser = await this.userRepository.findOne({
-      where: { username: createAuthDto.username },
-    });
-    if (existingUser) {
-      throw new ConflictException('Username already exists');
-    }
-
-    const user = this.userRepository.create({
-      username: createAuthDto.username,
-      email: createAuthDto.email,
-      password: await bcrypt.hash(createAuthDto.password, 10),
-      role: 'admin',
-    });
-    await this.userRepository.save(user);
-    return { message: 'Admin is successfully registered' };
-  }
-
-  async registerStudent(createAuthDto: CreateAuthDto) {
-    const existingUser = await this.userRepository.findOne({
-      where: { username: createAuthDto.username },
-    });
-    if (existingUser) {
-      throw new ConflictException('Username already exists');
-    }
-
-    // Agar studentId mavjud bo'lsa, studentni topish
-    const student = createAuthDto.studentId
-      ? await this.studentsService.getStudentById(createAuthDto.studentId)
-      : null;
-    const user = this.userRepository.create({
-      username: createAuthDto.username,
-      email: createAuthDto.email,
-      password: await bcrypt.hash(createAuthDto.password, 10),
-      role: 'student',
-      studentId: student ? student.id : null, // studentId ni ulash
-    });
-
-    await this.userRepository.save(user);
-    return { message: 'You are successfully registered as a student' };
-  }
-
-  async registerTeacher(createAuthDto: CreateAuthDto) {
-    const existingUser = await this.userRepository.findOne({
-      where: { username: createAuthDto.username },
-    });
-    if (existingUser) {
-      throw new ConflictException('Username already exists');
-    }
-
-    // Agar teacherId mavjud bo'lsa, teacherni topish
-    const teacher = createAuthDto.teacherId
-      ? await this.teachersService.getTeacherById(createAuthDto.teacherId)
-      : null;
-
-    const user = this.userRepository.create({
-      username: createAuthDto.username,
-      email: createAuthDto.email,
-      password: await bcrypt.hash(createAuthDto.password, 10),
-      role: 'teacher',
-      teacherId: teacher ? teacher.id : null, // teacherId ni ulash
-    });
-
-    await this.userRepository.save(user);
-    return { message: 'You are successfully registered as a teacher' };
-  }
-
   async login(loginDto: { username: string; password: string }) {
-    const user = await this.userRepository.findOne({
-      where: { username: loginDto.username },
-    });
-
+    let user: any;
+  
+    // Foydalanuvchini topish
+    user = await this.adminRepository.findOne({ where: { username: loginDto.username } });
     if (!user) {
-      throw new NotFoundException('User not found ❌');
+      user = await this.teacherRepository.findOne({ where: { username: loginDto.username } });
     }
-
-    const isPasswordValid = await bcrypt.compare(
-      loginDto.password,
-      user.password,
-    );
-
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Incorrect password ❌');
+    if (!user) {
+      user = await this.studentRepository.findOne({ where: { username: loginDto.username } });
     }
-
+    if (!user) {
+      user = await this.superAdminRepository.findOne({ where: { username: loginDto.username } });
+    }
+  
+    // Foydalanuvchi topilmasa
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+  
+    // JWT tokenlar yaratish
     const payload = { id: user.id, username: user.username, role: user.role };
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '30d' });
-
+  
+    // Foydalanuvchiga refresh tokenni saqlash
     user.refreshToken = refreshToken;
-    await this.userRepository.save(user);
-
-    return {
-      accessToken,
-      refreshToken,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-      },
-    };
+    if (user instanceof Admin) {
+      await this.adminRepository.save(user);
+    } else if (user instanceof Teacher) {
+      await this.teacherRepository.save(user);
+    } else if (user instanceof Student) {
+      await this.studentRepository.save(user);
+    } else if (user instanceof superAdmin) {
+      await this.superAdminRepository.save(user); // SuperAdmin uchun ham saqlash
+    }
+  
+    return { accessToken, refreshToken, user };
   }
-
-  async refreshAccessToken(
-    refreshToken: string,
-  ): Promise<{ accessToken: string; newRefreshToken: string }> {
+  
+  
+  // Refresh token method
+  async refreshAccessToken(refreshToken: string) {
     try {
       const payload = this.jwtService.verify(refreshToken);
-      const user = await this.userRepository.findOne({where: { id: payload.id }});
+      let user;
+
+      // Role bo'yicha foydalanuvchini topish
+      if (payload.role === 'admin') {
+        user = await this.adminRepository.findOne({ where: { id: payload.id } });
+      } else if (payload.role === 'teacher') {
+        user = await this.teacherRepository.findOne({ where: { id: payload.id } });
+      } else if (payload.role === 'student') {
+        user = await this.studentRepository.findOne({ where: { id: payload.id } });
+      }
 
       if (!user || user.refreshToken !== refreshToken) {
         throw new UnauthorizedException('Invalid refresh token');
@@ -140,15 +86,19 @@ export class AuthService {
       const newAccessToken = this.jwtService.sign({
         id: user.id,
         username: user.username,
-        role: user.role,
+        role: user.role,  // roleni qo'shish
       });
 
-      const newRefreshToken = this.jwtService.sign(
-        { id: user.id },
-        { expiresIn: '30d' },
-      );
+      const newRefreshToken = this.jwtService.sign({ id: user.id }, { expiresIn: '30d' });
+
       user.refreshToken = newRefreshToken;
-      await this.userRepository.save(user);
+      if (user instanceof Admin) {
+        await this.adminRepository.save(user);
+      } else if (user instanceof Teacher) {
+        await this.teacherRepository.save(user);
+      } else if (user instanceof Student) {
+        await this.studentRepository.save(user);
+      }
 
       return { accessToken: newAccessToken, newRefreshToken };
     } catch (error) {
@@ -156,21 +106,30 @@ export class AuthService {
     }
   }
 
-  async logout(token: string): Promise<{ message: string }> {
-    try {
-      const payload = this.jwtService.verify(token);
-      const user = await this.userRepository.findOne({where: { id: payload.id }});
-
-      if (!user) {
-        throw new UnauthorizedException('User not found or invalid token ❌');
-      }
-
-      user.refreshToken = null;
-      await this.userRepository.save(user);
-
-      return { message: 'User successfully logged out' };
-    } catch (error) {
-      throw new UnauthorizedException('Token is invalid or expired ❌');
+  async logout(userId: number) {
+    let user;
+    user = await this.adminRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      user = await this.teacherRepository.findOne({ where: { id: userId } });
     }
+    if (!user) {
+      user = await this.studentRepository.findOne({ where: { id: userId } });
+    }
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Refresh tokenni o'chirish
+    user.refreshToken = null;
+    if (user instanceof Admin) {
+      await this.adminRepository.save(user);
+    } else if (user instanceof Teacher) {
+      await this.teacherRepository.save(user);
+    } else if (user instanceof Student) {
+      await this.studentRepository.save(user);
+    }
+
+    return { message: 'Logged out successfully' };
   }
 }

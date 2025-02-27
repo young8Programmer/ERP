@@ -1,14 +1,18 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TeachersController } from './teacher.controller';
 import { TeachersService } from './teacher.service';
 import { Teacher } from './entities/teacher.entity';
-import { Group } from 'src/groups/entities/group.entity';
-import { Student } from 'src/students/entities/user.entity';
-import { User } from 'src/auth/entities/user.entity';
+import { Group } from '../groups/entities/group.entity';
+import { Student } from '../students/entities/student.entity';
+import { Profile } from '../profile/entities/profile.entity';
+import { GroupsModule } from '../groups/group.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Teacher, Group, Student, User])],
+  imports: [
+    TypeOrmModule.forFeature([Teacher, Group, Student, Profile])
+  ],
   controllers: [TeachersController],
   providers: [TeachersService],
 })

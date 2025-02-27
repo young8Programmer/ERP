@@ -22,4 +22,12 @@ export class CreateTeacherDto {
   @IsString()
   @IsNotEmpty()
   specialty: string;
+
+  @IsString()
+  @IsNotEmpty()
+  username: string;  // Added username field
+
+  @IsString()
+  @IsNotEmpty()
+  password: string;  // Added password field
 }

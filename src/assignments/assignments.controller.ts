@@ -8,43 +8,75 @@ import {
   Param,
   Req,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  NotFoundException,
+  Res,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { AssignmentsService } from './assignments.service';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { Roles } from 'src/auth/roles.guard';
-import { RolesTeacherGuard } from 'src/auth/rolesTeacherGuard';
-import { CreateAssignmentDto } from './dto/create-assignment.dto';
+import { AuthGuard, Roles, RolesGuard } from 'src/auth/auth.guard';
+import { CreateAssignmentDto } from './dto/create-assignment.dto'; // Import qilish
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
 
 @Controller('assignments')
 export class AssignmentsController {
   constructor(private readonly assignmentsService: AssignmentsService) {}
 
-  @UseGuards(AuthGuard, RolesTeacherGuard)
   @Roles('teacher')
+  @UseGuards(AuthGuard, RolesGuard)
   @Post()
-  async create(@Req() req, @Body() createAssignmentDto: CreateAssignmentDto) {
+  @UseInterceptors(FileInterceptor('file'))
+  async create(
+    @Req() req,
+    @UploadedFile() file: any,
+    @Body() createAssignmentDto: CreateAssignmentDto,
+  ) {
     const teacherId = req.user.id;
+
     return this.assignmentsService.createAssignment(
       teacherId,
       createAssignmentDto,
+      file,
     );
   }
 
-  // Topshiriqni yangilash
-  @UseGuards(AuthGuard, RolesTeacherGuard)
+  @Get('file/:assignmentId')
+  async getAssignmentFile(
+    @Param('assignmentId', ParseIntPipe) assignmentId: number,
+    @Res() res: Response,
+  ) {
+    const assignment =
+      await this.assignmentsService.getAssignmentFile(assignmentId);
+
+    if (!assignment || !assignment.fileData) {
+      throw new NotFoundException('Fayl topilmadi');
+    }
+
+    res.setHeader('Content-Type', assignment.fileType);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=${assignment.fileName}`,
+    );
+    res.send(assignment.fileData);
+  }
+
+  @Roles('teacher')
+  @UseGuards(AuthGuard, RolesGuard)
   @Roles('teacher')
   @Put(':id')
   async updateAssignment(
     @Req() req,
     @Param('id') id: string,
-    @Body() updateData: { assignment?: string; status?: string },
+    @Body() updateData: any,
   ) {
     const teacherId = req.user.id;
     return this.assignmentsService.updateAssignment(teacherId, +id, updateData);
   }
 
-  @UseGuards(AuthGuard, RolesTeacherGuard)
   @Roles('teacher')
+  @UseGuards(AuthGuard, RolesGuard)
   @Delete(':id')
   async remove(@Req() req, @Param('id') id: string) {
     const teacherId = req.user.id;

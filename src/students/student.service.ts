@@ -1,10 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
-import { Student } from './entities/user.entity';
+import { Student } from './entities/student.entity';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { Group } from '../groups/entities/group.entity';
+import * as bcrypt from 'bcrypt';
+import { Profile } from 'src/profile/entities/profile.entity';
 
 @Injectable()
 export class StudentsService {
@@ -13,6 +15,8 @@ export class StudentsService {
     private readonly studentRepository: Repository<Student>,
     @InjectRepository(Group)
     private readonly groupRepository: Repository<Group>,
+    @InjectRepository(Profile)
+    private readonly profileRepository: Repository<Profile>,
   ) {}
 
   async getAllStudents(): Promise<Student[]> {
@@ -52,32 +56,53 @@ export class StudentsService {
   }
 
   async createStudent(createStudentDto: CreateStudentDto): Promise<Student> {
-    const { phone, groupId } = createStudentDto;
-
-    const existingStudent = await this.studentRepository.findOne({
-      where: { phone },
-    });
+    const { phone, username, password, groupId } = createStudentDto;
+  
+    // Telefon raqami mavjudligini tekshirish
+    const existingStudent = await this.studentRepository.findOne({ where: { phone } });
     if (existingStudent) {
-      throw new Error(
-        `Ushbu telefon raqami bilan talaba avval qo‘shilgan: ${phone}`,
-      );
+      throw new NotFoundException(`Ushbu telefon raqami bilan talaba avval qo‘shilgan: ${phone}`);
     }
-
-    const group = await this.groupRepository.findOne({
-      where: { id: groupId },
-      relations: ['course'],
-    });
+  
+    // Foydalanuvchi nomi mavjudligini tekshirish
+    const existingUsername = await this.studentRepository.findOne({ where: { username } });
+    if (existingUsername) {
+      throw new NotFoundException(`Ushbu foydalanuvchi nomi mavjud: ${username}`);
+    }
+  
+    // Parolni hash qilish
+    const hashedPassword = await bcrypt.hash(password, 10);
+  
+    // Guruhni topish
+    const group = await this.groupRepository.findOne({ where: { id: groupId }, relations: ['course'] });
     if (!group) {
       throw new NotFoundException(`ID ${groupId} bo‘yicha guruh topilmadi`);
     }
-
+  
+    // Profile yaratish
+    const profile = this.profileRepository.create({
+      firstName: createStudentDto.firstName,
+      lastName: createStudentDto.lastName,
+      username,
+      password: hashedPassword,
+      phone,
+      address: createStudentDto.address,
+    });
+  
+    // Profileni saqlash
+    const savedProfile = await this.profileRepository.save(profile);
+  
+    // Talabani yaratish va Profile bilan bog'lash
     const student = this.studentRepository.create({
       ...createStudentDto,
-      groups: [group],
+      password: hashedPassword, // Hashlangan parolni saqlaymiz
+      profile: savedProfile, // Profileni bog'laymiz
+      groups: [group], // Guruhni bog'laymiz
     });
+  
     return await this.studentRepository.save(student);
   }
-
+  
   async updateStudent(
     id: number,
     updateStudentDto: UpdateStudentDto,

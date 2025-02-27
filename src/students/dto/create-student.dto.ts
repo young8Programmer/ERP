@@ -1,10 +1,4 @@
-import {
-  IsNotEmpty,
-  IsString,
-  IsPhoneNumber,
-  Length,
-  IsInt,
-} from 'class-validator';
+import { IsNotEmpty, IsString, IsPhoneNumber, Length, IsInt } from 'class-validator';
 
 export class CreateStudentDto {
   @IsString()
@@ -32,4 +26,12 @@ export class CreateStudentDto {
   @IsInt()
   @IsNotEmpty()
   groupId: number;
+
+  @IsString()
+  @IsNotEmpty()
+  username: string;
+
+  @IsString()
+  @IsNotEmpty()
+  password: string;
 }

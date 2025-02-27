@@ -5,9 +5,8 @@ import { Group } from './entities/group.entity';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { Course } from '../courses/entities/course.entity';
-import { Student } from '../students/entities/user.entity';
+import { Student } from '../students/entities/student.entity';
 import { Teacher } from '../teacher/entities/teacher.entity';
-import { User } from 'src/auth/entities/user.entity';
 
 @Injectable()
 export class GroupsService {
@@ -20,40 +19,61 @@ export class GroupsService {
     private readonly studentRepository: Repository<Student>,
     @InjectRepository(Teacher)
     private readonly teacherRepository: Repository<Teacher>,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
   ) {}
 
   async createGroup(createGroupDto: CreateGroupDto): Promise<Group> {
     try {
       const { name, courseId, teacherId, students } = createGroupDto;
-
-      const course = await this.courseRepository.findOne({ where: { id: courseId } });
+  
+      // Course tekshiriladi va topiladi
+      const course = await this.courseRepository.findOne({
+        where: { id: courseId },
+        relations: ['groups'], // Groups bilan birga yuklash
+      });
       if (!course) throw new BadRequestException('Course not found');
-
+  
+      // Teacher tekshiriladi va topiladi
       const teacher = teacherId
         ? await this.teacherRepository.findOne({ where: { id: teacherId } })
         : null;
-
+  
       if (teacherId && !teacher) throw new BadRequestException('Teacher not found');
-
+  
+      // Students tekshiriladi va topiladi
       const studentEntities = students
         ? await this.studentRepository.findByIds(students)
         : [];
-
+  
+      // Group dublikat bo'lishini tekshirish
+      const existingGroup = await this.groupRepository.findOne({
+        where: { name, course: { id: courseId } },
+      });
+  
+      if (existingGroup) {
+        throw new BadRequestException('Group with the same name already exists for this course');
+      }
+  
+      // Group yaratish
       const group = this.groupRepository.create({
         name,
         course,
         teacher,
         students: studentEntities,
       });
-
-      return this.groupRepository.save(group);
+  
+      // Groupni saqlash
+      const savedGroup = await this.groupRepository.save(group);
+  
+      // Coursega yangi groupni qo'shish
+      course.groups = [...course.groups, savedGroup];
+      await this.courseRepository.save(course);
+  
+      return savedGroup;
     } catch (error) {
       throw new BadRequestException(`Failed to create group: ${error.message}`);
     }
   }
-
+  
   async addStudentToGroup(groupId: number, studentId: number): Promise<Group> {
     try {
       const group = await this.getGroupById(groupId);
@@ -81,43 +101,49 @@ export class GroupsService {
     }
   }
 
-  async getGroupsByTeacherId(userId: number): Promise<any> {
+  async getGroupsByTeacherId(username: string): Promise<Group[]> {
     try {
-      const user = await this.userRepository.findOne({
-        where: { id: userId }
-      });
-  
-      let teacherId = user.teacherId
-  
+      const teacher = await this.teacherRepository.findOne({ where: { username } });
+      if (!teacher) throw new NotFoundException('Teacher not found');
+
       return await this.groupRepository.find({
-        where: { teacher: { id: teacherId} },
+        where: { teacher: { id: teacher.id } },
       });
     } catch (error) {
       throw new BadRequestException(`Failed to fetch groups by teacher ID: ${error.message}`);
     }
   }
-  
-  async getGroupsByStudentId(userId: number): Promise<Group[]> {
+
+  async getGroupsByStudentId(username: string): Promise<Group[]> {
     try {
-      const user = await this.userRepository.findOne({
-        where: { id: userId }
-      });
-  
-      let studentId = user.studentId;
-      if (isNaN(studentId)) {
-        throw new BadRequestException('Student ID is not valid');
-      }
-  
+      const student = await this.studentRepository.findOne({ where: { username } });
+      if (!student) throw new NotFoundException('Student not found');
+
       return await this.groupRepository.find({
-        where: { students: { id: studentId }},
-        relations: ["teacher"]
+        where: { students: { id: student.id } },
+        relations: ['students'],
       });
     } catch (error) {
       throw new BadRequestException(`Failed to fetch groups by student ID: ${error.message}`);
     }
   }
+
+  async getStudentGroups(groupId: number): Promise<Student[]> {
+    try {
+      const group = await this.groupRepository.findOne({
+        where: { id: groupId },
+        relations: ['students'],
+      });
   
+      if (!group) throw new NotFoundException('Group not found');
   
+      return group.students; // Guruhga tegishli studentlarni qaytaradi
+    } catch (error) {
+      throw new BadRequestException(`Failed to fetch students in group: ${error.message}`);
+    }
+  }
+  
+
   async getAllGroupsForAdmin(): Promise<Group[]> {
     try {
       return await this.groupRepository.find({ relations: ['course', 'teacher', 'students'] });
@@ -126,45 +152,11 @@ export class GroupsService {
     }
   }
 
-  async getStudentsInGroup(groupId: number): Promise<any[]> {
-    try {
-      const group = await this.getGroupById(groupId);
-      return group.students.map((student) => ({
-        id: student.id,
-        firstName: student.firstName,
-        lastName: student.lastName,
-      }));
-    } catch (error) {
-      throw new BadRequestException(`Failed to get students in group: ${error.message}`);
-    }
-  }
-
   async updateGroup(id: number, updateGroupDto: UpdateGroupDto): Promise<Group> {
     try {
       const group = await this.getGroupById(id);
 
       if (updateGroupDto.name) group.name = updateGroupDto.name;
-
-      if (updateGroupDto.courseId) {
-        const course = await this.courseRepository.findOne({
-          where: { id: updateGroupDto.courseId },
-        });
-        if (!course) throw new BadRequestException('Course not found');
-        group.course = course;
-      }
-
-      if (updateGroupDto.teacherId) {
-        const teacher = await this.teacherRepository.findOne({
-          where: { id: updateGroupDto.teacherId },
-        });
-        if (!teacher) throw new BadRequestException('Teacher not found');
-        group.teacher = teacher;
-      }
-
-      if (updateGroupDto.students) {
-        const students = await this.studentRepository.findByIds(updateGroupDto.students);
-        group.students = students;
-      }
 
       return this.groupRepository.save(group);
     } catch (error) {
@@ -184,6 +176,10 @@ export class GroupsService {
   async removeStudentFromGroup(groupId: number, studentId: number): Promise<Group> {
     try {
       const group = await this.getGroupById(groupId);
+
+      const student = group.students.find((student) => student.id === studentId);
+      if (!student) throw new NotFoundException('Student not found in group');
+
       group.students = group.students.filter((student) => student.id !== studentId);
       return this.groupRepository.save(group);
     } catch (error) {
@@ -193,32 +189,21 @@ export class GroupsService {
 
   async getGroupsByCourseId(courseId: number): Promise<Group[]> {
     try {
-      return await this.groupRepository.find({ where: { course: { id: courseId } } });
+      return await this.groupRepository.find({
+        where: { course: { id: courseId } },
+        relations: ['teacher', 'students'],
+      });
     } catch (error) {
       throw new BadRequestException(`Failed to fetch groups by course ID: ${error.message}`);
     }
   }
 
-  async getStudentsByGroupId(groupId: number): Promise<any[]> {
+  async getStudentsByGroupId(groupId: number): Promise<Student[]> {
     try {
-      const group = await this.groupRepository.findOne({
-        where: { id: groupId },
-        relations: ['students'],
-      });
-  
-      if (!group) throw new NotFoundException('Group not found');
-  
-      return group.students.map((student) => ({
-        id: student.id,
-        firstName: student.firstName,
-        lastName: student.lastName,
-        phone: student.phone,
-        address: student.address,
-         // Kerak bo'lsa, boshqa maydonlarni ham qo'shishingiz mumkin
-      }));
+      const group = await this.getGroupById(groupId);
+      return group.students;
     } catch (error) {
-      throw new BadRequestException(`Failed to fetch students by group ID: ${error.message}`);
+      throw new BadRequestException(`Failed to get students by group ID: ${error.message}`);
     }
   }
-  
 }

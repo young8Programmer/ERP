@@ -3,15 +3,14 @@ import { CoursesService } from './courses.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { Course } from './entities/course.entity';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { Roles, RolesGuard } from 'src/auth/roles.guard';
+import { AuthGuard, Roles, RolesGuard } from 'src/auth/auth.guard';
 
 @Controller('courses')
 export class CoursesController {
   constructor(private readonly coursesService: CoursesService) {}
 
-  @UseGuards(AuthGuard, RolesGuard)
   @Roles("admin")
+  @UseGuards(AuthGuard, RolesGuard)
   @Post()
   async createCourse(@Body() createCourseDto: CreateCourseDto): Promise<Course> {
     return this.coursesService.createCourse(createCourseDto);
@@ -29,15 +28,15 @@ export class CoursesController {
     return this.coursesService.getCourseById(id);
   }
 
-  @UseGuards(AuthGuard, RolesGuard)
   @Roles("admin")
+  @UseGuards(AuthGuard, RolesGuard)
   @Put(':id')
   async updateCourse(@Param('id') id: number, @Body() updateCourseDto: UpdateCourseDto): Promise<Course> {
     return this.coursesService.updateCourse(id, updateCourseDto);
   }
 
-  @UseGuards(AuthGuard, RolesGuard)
   @Roles("admin")
+  @UseGuards(AuthGuard, RolesGuard)
   @Delete(':id')
   async deleteCourse(@Param('id') id: number): Promise<void> {
     await this.coursesService.deleteCourse(id);

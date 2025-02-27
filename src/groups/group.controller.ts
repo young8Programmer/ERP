@@ -16,25 +16,23 @@ import { GroupsService } from './group.service';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { Group } from './entities/group.entity';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { Roles, RolesGuard } from 'src/auth/roles.guard';
-import { RolesStudentGuard } from 'src/auth/rolesStudentGuard';
+import { AuthGuard, Roles, RolesGuard } from 'src/auth/auth.guard';
 import { AddStudentDto } from 'src/students/dto/AddStudentDto';
-import { Student } from 'src/students/entities/user.entity';
+import { Student } from 'src/students/entities/student.entity';
 
 @Controller('groups')
 export class GroupsController {
   constructor(private readonly groupsService: GroupsService) {}
 
-  @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
+  @UseGuards(AuthGuard, RolesGuard)
   @Post()
   async createGroup(@Body() createGroupDto: CreateGroupDto): Promise<Group> {
     return this.groupsService.createGroup(createGroupDto);
   }
-
-  @UseGuards(AuthGuard, RolesGuard)
+  
   @Roles('admin')
+  @UseGuards(AuthGuard, RolesGuard)
   @Post(':groupId/add-student')
   async addStudentToGroup(
     @Param('groupId') groupId: number,
@@ -49,38 +47,41 @@ export class GroupsController {
     return this.groupsService.getGroupById(id);
   }
 
- 
-  @UseGuards(AuthGuard)
-@Get('my/teacher/groups')
-async getMyGroups(@Req() req: any): Promise<Group[]> {
-  const userId = req.user.id;
-  return this.groupsService.getGroupsByTeacherId(userId)
-}
-
-@UseGuards(AuthGuard, RolesStudentGuard)
-@Roles("student")
-@Get('my/student/groups')
-async getStudentGroups(@Req() req): Promise<Group[]> {
-  const userId = req.user.id;
-  return this.groupsService.getGroupsByStudentId(userId);
-}
-
+  @Roles("teacher")
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('admin')
-  @Get(':groupId/students')
-  async getStudentsInGroup(@Param('groupId') groupId: number): Promise<any[]> {
-    return this.groupsService.getStudentsInGroup(groupId);
+  @Get('my/teacher/groups')
+  async getMyGroups(@Req() req: any): Promise<Group[]> {
+    const userUsername = req.user.username;
+    return this.groupsService.getGroupsByTeacherId(userUsername);
   }
 
+  @Roles("student")
   @UseGuards(AuthGuard, RolesGuard)
+  @Get('my/student/groups')
+  async getStudentGroups(@Req() req): Promise<Group[]> {
+    const userUsername = req.user.username;
+    return this.groupsService.getGroupsByStudentId(userUsername);
+  }
+
+  
+  @Roles('teacher', "admin")
+  @UseGuards(AuthGuard, RolesGuard)
+  @Get(':groupId/students')
+  async getStudentsInGroup(@Param('groupId') groupId: number): Promise<any[]> {
+    return this.groupsService.getStudentGroups(groupId);
+  }
+
+  
   @Roles('admin')
+  @UseGuards(AuthGuard, RolesGuard)
   @Get()
   async getAllGroupsForAdmin(): Promise<Group[]> {
     return this.groupsService.getAllGroupsForAdmin();
   }
 
-  @UseGuards(AuthGuard, RolesGuard)
+  
   @Roles('admin')
+  @UseGuards(AuthGuard, RolesGuard)
   @Put(':id')
   async updateGroup(
     @Param('id') id: number,
@@ -88,16 +89,17 @@ async getStudentGroups(@Req() req): Promise<Group[]> {
   ): Promise<Group> {
     return this.groupsService.updateGroup(id, updateGroupDto);
   }
-
-  @UseGuards(AuthGuard, RolesGuard)
+  
   @Roles('admin')
+  @UseGuards(AuthGuard, RolesGuard)
   @Delete(':id')
   async deleteGroup(@Param('id') id: number): Promise<void> {
     return this.groupsService.deleteGroup(id);
   }
 
-  @UseGuards(AuthGuard, RolesGuard)
+  
   @Roles('admin')
+  @UseGuards(AuthGuard, RolesGuard)
   @Delete(':groupId/students/:studentId')
   async removeStudentFromGroup(
     @Param('groupId') groupId: number,
@@ -115,6 +117,6 @@ async getStudentGroups(@Req() req): Promise<Group[]> {
   @UseGuards(AuthGuard)
   @Get(':groupId/students/list')
   async getStudentsByGroupId(@Param('groupId') groupId: number): Promise<Student[]> {
-   return this.groupsService.getStudentsByGroupId(groupId);
+    return this.groupsService.getStudentsByGroupId(groupId);
   }
 }
