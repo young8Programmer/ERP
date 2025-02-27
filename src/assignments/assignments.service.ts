@@ -27,8 +27,8 @@ export class AssignmentsService {
       endpoint: 'https://tree-iad1-0002.secure.backblaze.com/',
       region: 'us-east-005',
       credentials: {
-        accessKeyId: process.env.B2_KEY_ID,
-        secretAccessKey: process.env.B2_APPLICATION_KEY,
+        accessKeyId: "00553be104919e10000000005",
+        secretAccessKey: "K0051M2y3sjhN/2Re97gl4kem++UVK4",
       },
     });
   }
