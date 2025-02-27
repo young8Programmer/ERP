@@ -19,7 +19,7 @@ export class Assignment {
 
   @Column({ nullable: true })
   description: string;
-  
+
   @Column({ nullable: true })
   fileUrl: string;
 
@@ -39,4 +39,14 @@ export class Assignment {
 
   @Column({ default: 'pending' })
   status: string;
+
+  @Column({ type: 'bytea', nullable: true }) 
+  fileData: Buffer;
+
+  @Column({ nullable: true })
+  fileName: string;
+
+  @Column({ nullable: true })
+  fileType: string;
+
 }
