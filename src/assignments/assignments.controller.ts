@@ -10,34 +10,38 @@ export class AssignmentsController {
   constructor(private readonly assignmentsService: AssignmentsService) {}
 
   @Roles('teacher')
-@UseGuards(AuthGuard, RolesGuard)
-@Post()
-@UseInterceptors(FileInterceptor('file'))
-async create(
-  @Req() req,
-  @UploadedFile() file: any, 
-  @Body() createAssignmentDto: CreateAssignmentDto
-) {
-  const teacherId = req.user.id;
-
-  return this.assignmentsService.createAssignment(teacherId, createAssignmentDto, file);
-}
-
-
-@Get('file/:assignmentId')
-async getAssignmentFile(@Param('assignmentId', ParseIntPipe) assignmentId: number, @Res() res: Response) {
-  const assignment = await this.assignmentsService.getAssignmentFile(assignmentId);
-
-  if (!assignment || !assignment.fileData) {
-    throw new NotFoundException('Fayl topilmadi');
+  @UseGuards(AuthGuard, RolesGuard)
+  @Post()
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB chegarasi
+      fileFilter: (req, file, cb) => {
+        if (!file.mimetype.match(/\/(pdf|doc|docx|jpg|jpeg|png)$/)) {
+          return cb(new Error('Faqat PDF, DOC, JPG yoki PNG fayllar qo‘llab-quvvatlanadi'), false);
+        }
+        cb(null, true);
+      },
+    }),
+  )
+  async create(
+    @Req() req,
+    @UploadedFile() file: any,
+    @Body() createAssignmentDto: CreateAssignmentDto,
+  ) {
+    const teacherId = req.user.id;
+    return this.assignmentsService.createAssignment(teacherId, createAssignmentDto, file);
   }
 
-  res.setHeader('Content-Type', assignment.fileType);
-  res.setHeader('Content-Disposition', `attachment; filename=${assignment.fileName}`);
-  res.send(assignment.fileData);
-}
+  @Get('file/:assignmentId')
+  async getAssignmentFile(@Param('assignmentId', ParseIntPipe) assignmentId: number, @Res() res: Response) {
+    const { fileUrl } = await this.assignmentsService.getAssignmentFile(assignmentId);
 
-  
+    if (!fileUrl) {
+      throw new NotFoundException('Fayl topilmadi');
+    }
+
+    res.redirect(fileUrl);
+  }
   @Roles('teacher')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('teacher')

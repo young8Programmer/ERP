@@ -14,14 +14,14 @@ export class Assignment {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'text', nullable: true }) 
+  @Column({ type: 'text', nullable: true })
   title: string;
 
   @Column({ nullable: true })
   description: string;
 
   @Column({ nullable: true })
-  fileUrl: string;
+  fileUrl: string; // Backblaze B2 dan kelgan URL
 
   @Column({ nullable: true })
   dueDate: Date;
@@ -39,14 +39,4 @@ export class Assignment {
 
   @Column({ default: 'pending' })
   status: string;
-
-  @Column({ type: 'bytea', nullable: true }) 
-  fileData: Buffer;
-
-  @Column({ nullable: true })
-  fileName: string;
-
-  @Column({ nullable: true })
-  fileType: string;
-
 }

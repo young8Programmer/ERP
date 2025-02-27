@@ -3,12 +3,12 @@ import { Transform } from 'class-transformer';
 
 export class CreateAssignmentDto {
   @IsNotEmpty()
-  @Transform(({ value }) => parseInt(value, 10)) // ❗ Automatik numberga o‘tkazish
+  @Transform(({ value }) => parseInt(value, 10))
   @IsInt()
   lesson_id: number;
 
   @IsNotEmpty()
-  @Transform(({ value }) => parseInt(value, 10)) // ❗ Automatik numberga o‘tkazish
+  @Transform(({ value }) => parseInt(value, 10))
   @IsInt()
   group_id: number;
 

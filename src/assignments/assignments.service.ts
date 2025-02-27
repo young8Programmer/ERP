@@ -1,24 +1,36 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Assignment } from './entities/assignment.entity';
 import { Repository } from 'typeorm';
+import { Assignment } from './entities/assignment.entity';
+import { CreateAssignmentDto } from './dto/create-assignment.dto';
 import { Lesson } from 'src/lesson/entities/lesson.entity';
 import { Teacher } from 'src/teacher/entities/teacher.entity';
-import { Student } from '../students/entities/student.entity';
-import { CreateAssignmentDto } from './dto/create-assignment.dto';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { Student } from 'src/students/entities/student.entity';
 
 @Injectable()
 export class AssignmentsService {
+  private s3Client: S3Client;
+
   constructor(
     @InjectRepository(Assignment)
-    private readonly assignmentRepository: Repository<Assignment>,
+    private assignmentRepository: Repository<Assignment>,
     @InjectRepository(Lesson)
-    private readonly lessonRepository: Repository<Lesson>,
+    private lessonRepository: Repository<Lesson>,
     @InjectRepository(Teacher)
-    private readonly teacherRepository: Repository<Teacher>, 
+    private teacherRepository: Repository<Teacher>,
     @InjectRepository(Student)
-    private readonly studentRepository: Repository<Student>, 
-  ) {}
+    private studentRepository: Repository<Student>,
+  ) {
+    this.s3Client = new S3Client({
+      endpoint: 'https://s3.us-west-000.backblazeb2.com',
+      region: 'us-west-000',
+      credentials: {
+        accessKeyId: '00553be104919e10000000001',
+        secretAccessKey: 'K005a+bx/LGtQjRQbsN4usfRSztTHf4',
+      },
+    });
+  }
 
   async createAssignment(teacherId: number, createAssignmentDto: CreateAssignmentDto, file: any) {
     const { lesson_id, title, description, dueDate } = createAssignmentDto;
@@ -38,53 +50,58 @@ export class AssignmentsService {
       throw new ForbiddenException('Siz faqat o‘zingizga tegishli guruhdagi topshiriqni yaratishingiz mumkin');
     }
 
-    const existingAssignment = await this.assignmentRepository.findOne({ 
-      where: { lesson: {id: lesson_id} } 
+    const existingAssignment = await this.assignmentRepository.findOne({
+      where: { lesson: { id: lesson_id } },
     });
 
     if (existingAssignment) {
       throw new ConflictException(`Lesson ID ${lesson_id} uchun allaqachon topshiriq mavjud`);
     }
 
-    // **Faylni tekshirish**
     if (!file || !file.buffer) {
       throw new BadRequestException('Fayl yuklanmagan yoki noto‘g‘ri');
     }
 
+    // Faylni Backblaze B2 ga yuklash
+    const fileName = `${Date.now()}-${file.originalname}`; // Fayl nomini unique qilish
+    const params = {
+      Bucket: 'erp-backend',
+      Key: fileName,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+    };
+
+    await this.s3Client.send(new PutObjectCommand(params));
+    const fileUrl = `https://f000.backblazeb2.com/file/erp-backend/${fileName}`;
+
+    // Assignment ni yaratish
     const newAssignment = this.assignmentRepository.create({
       lesson,
       title,
       description,
-      fileData: file.buffer, // Faylni buffer sifatida saqlash
-      fileName: file.originalname,
-      fileType: file.mimetype, // Fayl turi
+      fileUrl, // Backblaze B2 dan kelgan URL
       status: 'pending',
       dueDate: dueDate ? new Date(dueDate) : null,
     });
 
     await this.assignmentRepository.save(newAssignment);
 
-    return { message: 'Assignment successfully created', assignmentId: newAssignment.id };
+    return { message: 'Assignment successfully created', assignmentId: newAssignment.id, fileUrl };
   }
 
-  
   async getAssignmentFile(assignmentId: number) {
     const assignment = await this.assignmentRepository.findOne({
       where: { id: assignmentId },
-      select: ['fileData', 'fileName', 'fileType'],
+      select: ['fileUrl'],
     });
-  
-    if (!assignment || !assignment.fileData) {
+
+    if (!assignment || !assignment.fileUrl) {
       throw new NotFoundException('Fayl topilmadi');
     }
-  
-    return {
-      fileData: assignment.fileData,
-      fileName: assignment.fileName,
-      fileType: assignment.fileType,
-    };
+
+    return { fileUrl: assignment.fileUrl };
   }
-  
+
   
   async updateAssignment(teacherId: number, assignmentId: number, updateData: Partial<CreateAssignmentDto>) {
     const assignment = await this.assignmentRepository.findOne({

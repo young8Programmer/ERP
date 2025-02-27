@@ -23,22 +23,12 @@ import { AdminModule } from './admin/admin.module';
 import { Admin } from './admin/entities/admin.entity';
 import { SuperAdminModule } from './super-admin/super-admin.module';
 import { superAdmin } from './super-admin/entities/super-admin.entity';
-import { MulterModule } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
-import * as path from 'path';
-import { ServeStaticModule } from '@nestjs/serve-static';
-
 
 @Module({
   imports: [
-    ServeStaticModule.forRoot({
-      rootPath: path.join(__dirname, '..', 'uploads'),
-      serveRoot: '/uploads',
-    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      url: "postgresql://postgres:GufBxEipUYYmAZrIRRZzuzGnHlIUcLis@autorack.proxy.rlwy.net:27915/railway",
+      url: 'postgresql://postgres:GufBxEipUYYmAZrIRRZzuzGnHlIUcLis@autorack.proxy.rlwy.net:27915/railway',
       entities: [
         Course,
         Group,
@@ -50,7 +40,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
         Submission,
         Attendance,
         Admin,
-        superAdmin
+        superAdmin,
       ],
       synchronize: true,
       ssl: {
@@ -74,6 +64,3 @@ import { ServeStaticModule } from '@nestjs/serve-static';
   providers: [],
 })
 export class AppModule {}
-
-
-
