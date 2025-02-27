@@ -34,14 +34,18 @@ export class AssignmentsController {
 
   @Get('file/:assignmentId')
   async getAssignmentFile(@Param('assignmentId', ParseIntPipe) assignmentId: number, @Res() res: Response) {
-    const { fileUrl } = await this.assignmentsService.getAssignmentFile(assignmentId);
+    const { fileData, fileName, contentType } = await this.assignmentsService.getAssignmentFile(assignmentId);
 
-    if (!fileUrl) {
+    if (!fileData) {
       throw new NotFoundException('Fayl topilmadi');
     }
 
-    res.redirect(fileUrl);
+    // Faylni response sifatida qaytarish
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', `inline; filename="${fileName}"`); // Brauzerda ochish uchun 'inline'
+    res.send(fileData);
   }
+  
   @Roles('teacher')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('teacher')

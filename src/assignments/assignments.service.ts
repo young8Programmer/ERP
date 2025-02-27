@@ -5,8 +5,9 @@ import { Assignment } from './entities/assignment.entity';
 import { CreateAssignmentDto } from './dto/create-assignment.dto';
 import { Lesson } from 'src/lesson/entities/lesson.entity';
 import { Teacher } from 'src/teacher/entities/teacher.entity';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { Student } from 'src/students/entities/student.entity';
+import { Readable } from 'typeorm/platform/PlatformTools';
 
 @Injectable()
 export class AssignmentsService {
@@ -102,9 +103,34 @@ export class AssignmentsService {
       throw new NotFoundException('Fayl topilmadi');
     }
 
-    return { fileUrl: assignment.fileUrl };
+    // Fayl nomini URL’dan olish
+    const fileName = assignment.fileUrl.split('/').pop();
+
+    const params = {
+      Bucket: 'erp-backend',
+      Key: fileName,
+    };
+
+    try {
+      const { Body, ContentType } = await this.s3Client.send(new GetObjectCommand(params));
+      const stream = Body as Readable;
+
+      // Stream’ni Buffer’ga aylantirish
+      const chunks: Buffer[] = [];
+      for await (const chunk of stream) {
+        chunks.push(chunk as Buffer);
+      }
+      const fileBuffer = Buffer.concat(chunks);
+
+      return {
+        fileData: fileBuffer,
+        fileName: fileName,
+        contentType: ContentType || 'application/octet-stream',
+      };
+    } catch (error) {
+      throw new NotFoundException(`Faylni Backblaze B2 dan olishda xato: ${error.message}`);
+    }
   }
-  
   async updateAssignment(teacherId: number, assignmentId: number, updateData: Partial<CreateAssignmentDto>) {
     const assignment = await this.assignmentRepository.findOne({
       where: { id: assignmentId },
