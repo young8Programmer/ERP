@@ -7,7 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Lesson } from 'src/lesson/entities/lesson.entity';
-import { Submission } from 'src/submissions/entities/submission.entity'; // Submission entitetini import qilish
+import { Submission } from 'src/submissions/entities/submission.entity';
 
 @Entity('assignments')
 export class Assignment {
