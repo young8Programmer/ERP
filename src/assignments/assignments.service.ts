@@ -6,9 +6,12 @@ import { Lesson } from 'src/lesson/entities/lesson.entity';
 import { Teacher } from 'src/teacher/entities/teacher.entity';
 import { Student } from '../students/entities/student.entity';
 import { CreateAssignmentDto } from './dto/create-assignment.dto';
+import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { Readable } from 'typeorm/platform/PlatformTools';
 
 @Injectable()
 export class AssignmentsService {
+  private s3Client: S3Client;
   constructor(
     @InjectRepository(Assignment)
     private readonly assignmentRepository: Repository<Assignment>,
@@ -18,7 +21,27 @@ export class AssignmentsService {
     private readonly teacherRepository: Repository<Teacher>, 
     @InjectRepository(Student)
     private readonly studentRepository: Repository<Student>, 
-  ) {}
+  ) {
+    const keyId = "00553be104919e10000000009";
+    const appKey = "00578bfdbd38b36be8fbfac865bfe78bb3dd590f20";
+
+    console.log('B2_KEY_ID:', keyId); // Debug uchun
+    console.log('B2_APPLICATION_KEY:', appKey); // Debug uchun
+
+    if (!keyId || !appKey) {
+      throw new Error('Backblaze B2 kredensiallari topilmadi');
+    }
+
+    this.s3Client = new S3Client({
+      endpoint: 'https://s3.us-east-005.backblazeb2.com',
+      region: 'us-east-005',
+      credentials: {
+        accessKeyId: keyId,
+        secretAccessKey: appKey,
+      },
+      forcePathStyle: true,
+    });
+  }
 
   async createAssignment(teacherId: number, createAssignmentDto: CreateAssignmentDto, file: any) {
     const { lesson_id, title, description, dueDate } = createAssignmentDto;
@@ -38,54 +61,84 @@ export class AssignmentsService {
       throw new ForbiddenException('Siz faqat o‘zingizga tegishli guruhdagi topshiriqni yaratishingiz mumkin');
     }
 
-    const existingAssignment = await this.assignmentRepository.findOne({ 
-      where: { lesson: {id: lesson_id} } 
+    const existingAssignment = await this.assignmentRepository.findOne({
+      where: { lesson: { id: lesson_id } },
     });
 
     if (existingAssignment) {
       throw new ConflictException(`Lesson ID ${lesson_id} uchun allaqachon topshiriq mavjud`);
     }
 
-    // **Faylni tekshirish**
     if (!file || !file.buffer) {
       throw new BadRequestException('Fayl yuklanmagan yoki noto‘g‘ri');
     }
+
+    const fileName = `${Date.now()}-${file.originalname}`;
+    const params = {
+      Bucket: 'erp-backend',
+      Key: fileName,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+    };
+
+    try {
+      await this.s3Client.send(new PutObjectCommand(params));
+    } catch (error) {
+      throw new BadRequestException(`Faylni Backblaze B2 ga yuklashda xato: ${error.message}`);
+    }
+
+    const fileUrl = `https://f005.backblazeb2.com/file/erp-backend/${fileName}`;
 
     const newAssignment = this.assignmentRepository.create({
       lesson,
       title,
       description,
-      fileData: file.buffer, // Faylni buffer sifatida saqlash
-      fileName: file.originalname,
-      fileType: file.mimetype, // Fayl turi
+      fileUrl,
       status: 'pending',
       dueDate: dueDate ? new Date(dueDate) : null,
     });
 
     await this.assignmentRepository.save(newAssignment);
 
-    return { message: 'Assignment successfully created', assignmentId: newAssignment.id };
+    return { message: 'Assignment successfully created', assignmentId: newAssignment.id, fileUrl };
   }
 
-  
   async getAssignmentFile(assignmentId: number) {
     const assignment = await this.assignmentRepository.findOne({
       where: { id: assignmentId },
-      select: ['fileData', 'fileName', 'fileType'],
+      select: ['fileUrl'],
     });
-  
-    if (!assignment || !assignment.fileData) {
+
+    if (!assignment || !assignment.fileUrl) {
       throw new NotFoundException('Fayl topilmadi');
     }
-  
-    return {
-      fileData: assignment.fileData,
-      fileName: assignment.fileName,
-      fileType: assignment.fileType,
+
+    const fileName = assignment.fileUrl.split('/').pop();
+
+    const params = {
+      Bucket: 'erp-backend',
+      Key: fileName,
     };
+
+    try {
+      const { Body, ContentType } = await this.s3Client.send(new GetObjectCommand(params));
+      const stream = Body as Readable;
+
+      const chunks: Buffer[] = [];
+      for await (const chunk of stream) {
+        chunks.push(chunk as Buffer);
+      }
+      const fileBuffer = Buffer.concat(chunks);
+
+      return {
+        fileData: fileBuffer,
+        fileName: fileName,
+        contentType: ContentType || 'application/octet-stream',
+      };
+    } catch (error) {
+      throw new NotFoundException(`Faylni Backblaze B2 dan olishda xato: ${error.message}`);
+    }
   }
-  
-  
   async updateAssignment(teacherId: number, assignmentId: number, updateData: Partial<CreateAssignmentDto>) {
     const assignment = await this.assignmentRepository.findOne({
       where: { id: assignmentId },

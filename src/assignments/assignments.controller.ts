@@ -9,34 +9,46 @@ import { Response } from 'express';
 export class AssignmentsController {
   constructor(private readonly assignmentsService: AssignmentsService) {}
 
-  @Roles('teacher')
-@UseGuards(AuthGuard, RolesGuard)
-@Post()
-@UseInterceptors(FileInterceptor('file'))
-async create(
-  @Req() req,
-  @UploadedFile() file: any, 
-  @Body() createAssignmentDto: CreateAssignmentDto
-) {
-  const teacherId = req.user.id;
-
-  return this.assignmentsService.createAssignment(teacherId, createAssignmentDto, file);
-}
-
-
-@Get('file/:assignmentId')
-async getAssignmentFile(@Param('assignmentId', ParseIntPipe) assignmentId: number, @Res() res: Response) {
-  const assignment = await this.assignmentsService.getAssignmentFile(assignmentId);
-
-  if (!assignment || !assignment.fileData) {
-    throw new NotFoundException('Fayl topilmadi');
+  @Roles('teacher') // Faqat teacher roli uchun
+  @UseGuards(AuthGuard, RolesGuard) // Authentifikatsiya va rol tekshiruvi
+  @Post() // POST /assignments
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB chegarasi
+      fileFilter: (req, file, cb) => {
+        // Faqat PDF, DOC, JPG, PNG fayllarni qabul qilish
+        if (!file.mimetype.match(/\/(pdf|doc|docx|jpg|jpeg|png)$/)) {
+          return cb(new Error('Faqat PDF, DOC, JPG yoki PNG fayllar qo‘llab-quvvatlanadi'), false);
+        }
+        cb(null, true);
+      },
+    }),
+  )
+  async create(
+    @Req() req, // Foydalanuvchi ma’lumotlari uchun (token’dan teacherId olish)
+    @UploadedFile() file: any, // Yuklanadigan fayl
+    @Body() createAssignmentDto: CreateAssignmentDto, // DTO’dan kelgan ma’lumotlar
+  ) {
+    const teacherId = req.user.id; // AuthGuard’dan kelgan foydalanuvchi ID’si
+    return this.assignmentsService.createAssignment(teacherId, createAssignmentDto, file);
   }
 
-  res.setHeader('Content-Type', assignment.fileType);
-  res.setHeader('Content-Disposition', `attachment; filename=${assignment.fileName}`);
-  res.send(assignment.fileData);
-}
+  @Get('file/:assignmentId') // GET /assignments/file/:assignmentId
+  async getAssignmentFile(
+    @Param('assignmentId', ParseIntPipe) assignmentId: number, // assignmentId ni number’ga aylantirish
+    @Res() res: Response, // Faylni response sifatida qaytarish uchun
+  ) {
+    const { fileData, fileName, contentType } = await this.assignmentsService.getAssignmentFile(assignmentId);
 
+    if (!fileData) {
+      throw new NotFoundException('Fayl topilmadi');
+    }
+
+    // Faylni brauzerda ochish uchun response sozlamalari
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', `inline; filename="${fileName}"`); // Inline — faylni ochish uchun
+    res.send(fileData);
+  }
   
   @Roles('teacher')
   @UseGuards(AuthGuard, RolesGuard)

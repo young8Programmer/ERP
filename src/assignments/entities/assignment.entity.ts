@@ -14,14 +14,14 @@ export class Assignment {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'text', nullable: true }) 
+  @Column({ type: 'text', nullable: true })
   title: string;
 
   @Column({ nullable: true })
   description: string;
 
   @Column({ nullable: true })
-  fileUrl: string;
+  fileUrl: string; // Backblaze B2’dan kelgan fayl URL’i
 
   @Column({ nullable: true })
   dueDate: Date;
@@ -30,23 +30,15 @@ export class Assignment {
   updatedAt: Date;
 
   @ManyToOne(() => Lesson, (lesson) => lesson.assignments, {
-    onDelete: 'CASCADE',
+    onDelete: 'CASCADE', // Lesson o‘chirilganda assignment’lar ham o‘chiriladi
   })
   lesson: Lesson;
 
-  @OneToMany(() => Submission, (submission) => submission.assignment)
+  @OneToMany(() => Submission, (submission) => submission.assignment, {
+    onDelete: 'CASCADE', // Assignment o‘chirilganda submission’lar ham o‘chiriladi
+  })
   submissions: Submission[];
 
   @Column({ default: 'pending' })
   status: string;
-
-  @Column({ type: 'bytea', nullable: true }) 
-  fileData: Buffer;
-
-  @Column({ nullable: true })
-  fileName: string;
-
-  @Column({ nullable: true })
-  fileType: string;
-
 }
