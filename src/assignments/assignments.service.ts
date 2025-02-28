@@ -4,26 +4,27 @@ import { Assignment } from './entities/assignment.entity';
 import { Repository } from 'typeorm';
 import { Lesson } from 'src/lesson/entities/lesson.entity';
 import { Teacher } from 'src/teacher/entities/teacher.entity';
-import { Student } from '../students/entities/student.entity';
+import { Student } from 'src/students/entities/student.entity';
 import { CreateAssignmentDto } from './dto/create-assignment.dto';
 import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
-import { Readable } from 'typeorm/platform/PlatformTools';
+import { Readable } from 'stream'; // Bu yerda to‘g‘ri import qilindi
 
 @Injectable()
 export class AssignmentsService {
   private s3Client: S3Client;
+
   constructor(
     @InjectRepository(Assignment)
     private readonly assignmentRepository: Repository<Assignment>,
     @InjectRepository(Lesson)
     private readonly lessonRepository: Repository<Lesson>,
     @InjectRepository(Teacher)
-    private readonly teacherRepository: Repository<Teacher>, 
+    private readonly teacherRepository: Repository<Teacher>,
     @InjectRepository(Student)
-    private readonly studentRepository: Repository<Student>, 
+    private readonly studentRepository: Repository<Student>,
   ) {
-    const keyId = "00553be104919e10000000009";
-    const appKey = "K005+e8lkuH/zzNz/AfcCasFiITMXt4";
+    const keyId = process.env.B2_KEY_ID || "00553be104919e10000000009"; // Environment variable’ga o‘tish
+    const appKey = process.env.B2_APPLICATION_KEY || "K005+e8lkuH/zzNz/AfcCasFiITMXt4";
 
     console.log('B2_KEY_ID:', keyId);
     console.log('B2_APPLICATION_KEY:', appKey);
@@ -139,7 +140,8 @@ export class AssignmentsService {
       throw new NotFoundException(`Faylni Backblaze B2 dan olishda xato: ${error.message}`);
     }
   }
-  async updateAssignment(teacherId: number, assignmentId: number, updateData: Partial<CreateAssignmentDto>) {
+
+  async updateAssignment(teacherId: number, assignmentId: number, updateData: Partial<CreateAssignmentDto>, file?: any) {
     const assignment = await this.assignmentRepository.findOne({
       where: { id: assignmentId },
       relations: ['lesson', 'lesson.group', 'lesson.group.teacher'],
@@ -152,14 +154,38 @@ export class AssignmentsService {
     const teacher = await this.teacherRepository.findOne({ where: { id: teacherId } });
 
     if (!teacher || assignment.lesson.group.teacher.id !== teacher.id) {
-      throw new ForbiddenException('Siz faqat o\'zingizga tegishli guruhdagi topshiriqni o\'zgartira olasiz');
+      throw new ForbiddenException('Siz faqat o‘zingizga tegishli guruhdagi topshiriqni o‘zgartira olasiz');
     }
 
+    // Agar yangi fayl yuklansa, Backblaze B2’da yangilash
+    if (file && file.buffer) {
+      const fileName = `${Date.now()}-${file.originalname}`;
+      const params = {
+        Bucket: 'erp-backend',
+        Key: fileName,
+        Body: file.buffer,
+        ContentType: file.mimetype,
+      };
+
+      try {
+        await this.s3Client.send(new PutObjectCommand(params));
+        assignment.fileUrl = `https://f005.backblazeb2.com/file/erp-backend/${fileName}`;
+      } catch (error) {
+        throw new BadRequestException(`Faylni Backblaze B2 ga yuklashda xato: ${error.message}`);
+      }
+    }
+
+    // DTO’dan kelgan ma’lumotlarni yangilash
     Object.assign(assignment, updateData);
+
+    // Agar `dueDate` yangilansa, uni Date obyektiga aylantirish
+    if (updateData.dueDate) {
+      assignment.dueDate = new Date(updateData.dueDate);
+    }
 
     await this.assignmentRepository.save(assignment);
 
-    return { message: 'Assignment successfully updated' };
+    return { message: 'Assignment successfully updated', fileUrl: assignment.fileUrl };
   }
 
   async remove(teacherId: number, assignmentId: number) {
@@ -175,7 +201,7 @@ export class AssignmentsService {
     const teacher = await this.teacherRepository.findOne({ where: { id: teacherId } });
 
     if (!teacher || assignment.lesson.group.teacher.id !== teacher.id) {
-      throw new ForbiddenException('Siz faqat o\'zingizga tegishli guruhdagi topshiriqni o\'chira olasiz');
+      throw new ForbiddenException('Siz faqat o‘zingizga tegishli guruhdagi topshiriqni o‘chira olasiz');
     }
 
     await this.assignmentRepository.remove(assignment);
@@ -186,38 +212,38 @@ export class AssignmentsService {
   async findAssignmentsForUser(lessonId: number, userId: number, role: 'teacher' | 'student') {
     const lesson = await this.lessonRepository.findOne({
       where: { id: lessonId },
-      relations: ['group', 'group.teacher', 'group.students'], 
+      relations: ['group', 'group.teacher', 'group.students'],
     });
-  
+
     if (!lesson) {
       throw new NotFoundException(`Lesson with ID ${lessonId} not found`);
     }
-  
+
     if (role === 'teacher') {
       const teacher = await this.teacherRepository.findOne({ where: { id: userId } });
-      
+
       if (!teacher || lesson.group.teacher.id !== teacher.id) {
-        throw new ForbiddenException('Siz faqat o\'zingizga tegishli guruhdagi topshiriqlarni ko\'ra olasiz');
+        throw new ForbiddenException('Siz faqat o‘zingizga tegishli guruhdagi topshiriqlarni ko‘ra olasiz');
       }
     }
-  
+
     if (role === 'student') {
       const student = await this.studentRepository.findOne({ where: { id: userId } });
-  
+
       if (!student || !lesson.group.students.some((s) => s.id === student.id)) {
-        throw new ForbiddenException('Siz ushbu guruhga tegishli darslarni ko\'ra olmaysiz');
+        throw new ForbiddenException('Siz ushbu guruhga tegishli darslarni ko‘ra olmaysiz');
       }
     }
-  
+
     const assignments = await this.assignmentRepository.find({
-      where: { lesson: { id: lessonId } }, 
-      relations: ["submissions"]
+      where: { lesson: { id: lessonId } },
+      relations: ['submissions'],
     });
-  
+
     if (!assignments || assignments.length === 0) {
       throw new NotFoundException('No assignments found for this lesson');
     }
-  
+
     return assignments;
   }
 }

@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { Assignment } from 'src/assignments/entities/assignment.entity';
-import { Student } from '../../students/entities/student.entity';
+import { Student } from 'src/students/entities/student.entity';
 
 export enum SubmissionStatus {
   PENDING = 'pending',
@@ -9,7 +9,7 @@ export enum SubmissionStatus {
   UNSUBMITTED = 'unsubmitted',
 }
 
-@Entity()
+@Entity('submissions')
 export class Submission {
   @PrimaryGeneratedColumn()
   id: number;
@@ -27,16 +27,10 @@ export class Submission {
   @Column({ type: 'text', nullable: true })
   comment: string;
 
-  @Column({ type: 'bytea', nullable: true }) 
-  fileData: Buffer;
-
   @Column({ type: 'text', nullable: true })
-  fileName: string;
+  fileUrl: string; // Backblaze B2’dan kelgan fayl URL’i
 
-  @Column({ type: 'text', nullable: true })
-  fileType: string;
-
-  @ManyToOne(() => Assignment, (assignment) => assignment.submissions, { nullable: false })
+  @ManyToOne(() => Assignment, (assignment) => assignment.submissions, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'assignmentId' })
   assignment: Assignment;
 
