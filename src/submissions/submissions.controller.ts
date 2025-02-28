@@ -32,8 +32,7 @@ export class SubmissionController {
   @Post(':assignmentId/submit')
   @UseInterceptors(
     FileInterceptor('file', {
-      limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB chegarasi
-      // fileFilter olib tashlandi, shuning uchun har qanday fayl yuklanadi
+      limits: { fileSize: 50 * 1024 * 1024 },
     }),
   )
   async submitAssignment(
@@ -48,22 +47,18 @@ export class SubmissionController {
       throw new ForbiddenException('Fayl noto‘g‘ri yuklangan yoki yo‘q');
     }
 
-    console.log('Fayl yuklandi:', file.originalname); // Debug uchun
+    console.log('Fayl yuklandi:', file.originalname);
 
     return this.submissionsService.submitAnswer(userId, file, comment, assignmentId);
   }
 
   @Get('file/:submissionId')
   async getFile(@Param('submissionId', ParseIntPipe) submissionId: number, @Res() res: Response) {
-    const { fileData, fileName, contentType } = await this.submissionsService.getSubmissionFile(submissionId);
-
-    if (!fileData) {
-      throw new NotFoundException('Fayl topilmadi');
-    }
+    const { stream, fileName, contentType } = await this.submissionsService.getSubmissionFile(submissionId);
 
     res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
     res.setHeader('Content-Type', contentType);
-    res.send(fileData);
+    stream.pipe(res); // Stream’ni to‘g‘ridan-to‘g‘ri response’ga yuboramiz
   }
 
   @UseGuards(AuthGuard)

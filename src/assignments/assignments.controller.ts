@@ -32,8 +32,7 @@ export class AssignmentsController {
   @Post()
   @UseInterceptors(
     FileInterceptor('file', {
-      limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB chegarasi (xohlagan hajmga o‘zgartirishingiz mumkin)
-      // fileFilter olib tashlandi, shuning uchun har qanday fayl yuklanadi
+      limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB chegarasi
     }),
   )
   async create(
@@ -55,15 +54,11 @@ export class AssignmentsController {
     @Param('assignmentId', ParseIntPipe) assignmentId: number,
     @Res() res: Response,
   ) {
-    const { fileData, fileName, contentType } = await this.assignmentsService.getAssignmentFile(assignmentId);
-
-    if (!fileData) {
-      throw new NotFoundException('Fayl topilmadi');
-    }
+    const { stream, fileName, contentType } = await this.assignmentsService.getAssignmentFile(assignmentId);
 
     res.setHeader('Content-Type', contentType);
     res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
-    res.send(fileData);
+    stream.pipe(res); // Stream’ni to‘g‘ridan-to‘g‘ri response’ga yuboramiz
   }
 
   @Roles('teacher')
@@ -71,15 +66,14 @@ export class AssignmentsController {
   @Put(':assignmentId')
   @UseInterceptors(
     FileInterceptor('file', {
-      limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB chegarasi
-      // fileFilter olib tashlandi
+      limits: { fileSize: 50 * 1024 * 1024 },
     }),
   )
   async update(
     @Req() req,
     @Param('assignmentId', ParseIntPipe) assignmentId: number,
     @Body() updateAssignmentDto: Partial<CreateAssignmentDto>,
-    @UploadedFile() file?: any, // Fayl ixtiyoriy
+    @UploadedFile() file?: any,
   ) {
     const teacherId = req.user.id;
     return this.assignmentsService.updateAssignment(teacherId, assignmentId, updateAssignmentDto, file);
@@ -103,7 +97,7 @@ export class AssignmentsController {
     @Param('lessonId', ParseIntPipe) lessonId: number,
   ) {
     const userId = req.user.id;
-    const role = req.user.role; // Token’dan role olinadi (teacher yoki student)
+    const role = req.user.role;
     return this.assignmentsService.findAssignmentsForUser(lessonId, userId, role);
   }
 }

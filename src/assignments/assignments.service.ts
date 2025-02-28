@@ -7,7 +7,7 @@ import { Teacher } from 'src/teacher/entities/teacher.entity';
 import { Student } from 'src/students/entities/student.entity';
 import { CreateAssignmentDto } from './dto/create-assignment.dto';
 import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
-import { Readable } from 'stream'; // Bu yerda to‘g‘ri import qilindi
+import { Readable } from 'stream';
 
 @Injectable()
 export class AssignmentsService {
@@ -23,8 +23,8 @@ export class AssignmentsService {
     @InjectRepository(Student)
     private readonly studentRepository: Repository<Student>,
   ) {
-    const keyId = process.env.B2_KEY_ID || "00553be104919e10000000009"; // Environment variable’ga o‘tish
-    const appKey = process.env.B2_APPLICATION_KEY || "K005+e8lkuH/zzNz/AfcCasFiITMXt4";
+    const keyId = process.env.B2_KEY_ID || '00553be104919e10000000009';
+    const appKey = process.env.B2_APPLICATION_KEY || 'K005+e8lkuH/zzNz/AfcCasFiITMXt4';
 
     console.log('B2_KEY_ID:', keyId);
     console.log('B2_APPLICATION_KEY:', appKey);
@@ -104,7 +104,7 @@ export class AssignmentsService {
     return { message: 'Assignment successfully created', assignmentId: newAssignment.id, fileUrl };
   }
 
-  async getAssignmentFile(assignmentId: number) {
+  async getAssignmentFile(assignmentId: number): Promise<{ stream: Readable; fileName: string; contentType: string }> {
     const assignment = await this.assignmentRepository.findOne({
       where: { id: assignmentId },
       select: ['fileUrl'],
@@ -115,7 +115,6 @@ export class AssignmentsService {
     }
 
     const fileName = assignment.fileUrl.split('/').pop();
-
     const params = {
       Bucket: 'erp-backend',
       Key: fileName,
@@ -123,17 +122,9 @@ export class AssignmentsService {
 
     try {
       const { Body, ContentType } = await this.s3Client.send(new GetObjectCommand(params));
-      const stream = Body as Readable;
-
-      const chunks: Buffer[] = [];
-      for await (const chunk of stream) {
-        chunks.push(chunk as Buffer);
-      }
-      const fileBuffer = Buffer.concat(chunks);
-
       return {
-        fileData: fileBuffer,
-        fileName: fileName,
+        stream: Body as Readable,
+        fileName,
         contentType: ContentType || 'application/octet-stream',
       };
     } catch (error) {
@@ -157,7 +148,6 @@ export class AssignmentsService {
       throw new ForbiddenException('Siz faqat o‘zingizga tegishli guruhdagi topshiriqni o‘zgartira olasiz');
     }
 
-    // Agar yangi fayl yuklansa, Backblaze B2’da yangilash
     if (file && file.buffer) {
       const fileName = `${Date.now()}-${file.originalname}`;
       const params = {
@@ -175,10 +165,7 @@ export class AssignmentsService {
       }
     }
 
-    // DTO’dan kelgan ma’lumotlarni yangilash
     Object.assign(assignment, updateData);
-
-    // Agar `dueDate` yangilansa, uni Date obyektiga aylantirish
     if (updateData.dueDate) {
       assignment.dueDate = new Date(updateData.dueDate);
     }

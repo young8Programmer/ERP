@@ -108,7 +108,7 @@ export class SubmissionService {
     };
   }
 
-  async getSubmissionFile(submissionId: number) {
+  async getSubmissionFile(submissionId: number): Promise<{ stream: Readable; fileName: string; contentType: string }> {
     const submission = await this.submissionRepository.findOne({
       where: { id: submissionId },
       select: ['fileUrl'],
@@ -126,17 +126,9 @@ export class SubmissionService {
 
     try {
       const { Body, ContentType } = await this.s3Client.send(new GetObjectCommand(params));
-      const stream = Body as Readable;
-
-      const chunks: Buffer[] = [];
-      for await (const chunk of stream) {
-        chunks.push(chunk as Buffer);
-      }
-      const fileBuffer = Buffer.concat(chunks);
-
       return {
-        fileData: fileBuffer,
-        fileName: fileName,
+        stream: Body as Readable,
+        fileName,
         contentType: ContentType || 'application/octet-stream',
       };
     } catch (error) {
