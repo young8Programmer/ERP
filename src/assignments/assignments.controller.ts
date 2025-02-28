@@ -1,7 +1,25 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Req, UseGuards, UseInterceptors, UploadedFile, NotFoundException, Res, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Put,
+  Delete,
+  Param,
+  Req,
+  Res,
+  UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  ParseIntPipe,
+  Body,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { AssignmentsService } from './assignments.service';
-import { AuthGuard, Roles, RolesGuard } from 'src/auth/auth.guard';
-import { CreateAssignmentDto } from './dto/create-assignment.dto';  // Import qilish
+import { CreateAssignmentDto } from './dto/create-assignment.dto';
+import { AuthGuard } from 'src/auth/auth.guard';
+import { RolesGuard } from '../auth/auth.guard';
+import { Roles } from '../auth/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 
@@ -14,28 +32,28 @@ export class AssignmentsController {
   @Post()
   @UseInterceptors(
     FileInterceptor('file', {
-      limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB chegarasi
-      fileFilter: (req, file, cb) => {
-        if (!file.mimetype.match(/\/(pdf|doc|docx|jpg|jpeg|png)$/)) {
-          return cb(new Error('Faqat PDF, DOC, JPG yoki PNG fayllar qo‘llab-quvvatlanadi'), false);
-        }
-        cb(null, true);
-      },
+      limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB chegarasi (xohlagan hajmga o‘zgartirishingiz mumkin)
+      // fileFilter olib tashlandi, shuning uchun har qanday fayl yuklanadi
     }),
   )
   async create(
-    @Req() req, // Foydalanuvchi ma’lumotlari uchun (token’dan teacherId olish)
-    @UploadedFile() file: any, // Yuklanadigan fayl
-    @Body() createAssignmentDto: CreateAssignmentDto, // DTO’dan kelgan ma’lumotlar
+    @Req() req,
+    @UploadedFile() file: any,
+    @Body() createAssignmentDto: CreateAssignmentDto,
   ) {
-    const teacherId = req.user.id; // AuthGuard’dan kelgan foydalanuvchi ID’si
+    const teacherId = req.user.id;
+
+    if (!file) {
+      throw new ForbiddenException('Fayl noto‘g‘ri yuklangan yoki yo‘q');
+    }
+
     return this.assignmentsService.createAssignment(teacherId, createAssignmentDto, file);
   }
 
-  @Get('file/:assignmentId') // GET /assignments/file/:assignmentId
+  @Get('file/:assignmentId')
   async getAssignmentFile(
-    @Param('assignmentId', ParseIntPipe) assignmentId: number, // assignmentId ni number’ga aylantirish
-    @Res() res: Response, // Faylni response sifatida qaytarish uchun
+    @Param('assignmentId', ParseIntPipe) assignmentId: number,
+    @Res() res: Response,
   ) {
     const { fileData, fileName, contentType } = await this.assignmentsService.getAssignmentFile(assignmentId);
 
@@ -43,37 +61,49 @@ export class AssignmentsController {
       throw new NotFoundException('Fayl topilmadi');
     }
 
-    // Faylni brauzerda ochish uchun response sozlamalari
     res.setHeader('Content-Type', contentType);
-    res.setHeader('Content-Disposition', `inline; filename="${fileName}"`); // Inline — faylni ochish uchun
+    res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
     res.send(fileData);
   }
-  
+
   @Roles('teacher')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('teacher')
-  @Put(':id')
-  async updateAssignment(@Req() req, @Param('id') id: string, @Body() updateData: any) {
-    const teacherId = req.user.id; 
-    return this.assignmentsService.updateAssignment(teacherId, +id, updateData);
+  @Put(':assignmentId')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB chegarasi
+      // fileFilter olib tashlandi
+    }),
+  )
+  async update(
+    @Req() req,
+    @Param('assignmentId', ParseIntPipe) assignmentId: number,
+    @Body() updateAssignmentDto: Partial<CreateAssignmentDto>,
+    @UploadedFile() file?: any, // Fayl ixtiyoriy
+  ) {
+    const teacherId = req.user.id;
+    return this.assignmentsService.updateAssignment(teacherId, assignmentId, updateAssignmentDto, file);
   }
 
-  
   @Roles('teacher')
   @UseGuards(AuthGuard, RolesGuard)
-  @Delete(':id')
-  async remove(@Req() req, @Param('id') id: string) {
+  @Delete(':assignmentId')
+  async remove(
+    @Req() req,
+    @Param('assignmentId', ParseIntPipe) assignmentId: number,
+  ) {
     const teacherId = req.user.id;
-    return this.assignmentsService.remove(teacherId, +id);
+    return this.assignmentsService.remove(teacherId, assignmentId);
   }
 
   @UseGuards(AuthGuard)
   @Get('lesson/:lessonId')
-  async findAssignmentsForUser(@Req() req, @Param('lessonId') lessonId: string) {
-    const userId = req.user.id; 
-    const role = req.user.role; 
-
-    return this.assignmentsService.findAssignmentsForUser(+lessonId, userId, role);
+  async findAssignmentsForUser(
+    @Req() req,
+    @Param('lessonId', ParseIntPipe) lessonId: number,
+  ) {
+    const userId = req.user.id;
+    const role = req.user.role; // Token’dan role olinadi (teacher yoki student)
+    return this.assignmentsService.findAssignmentsForUser(lessonId, userId, role);
   }
-
 }

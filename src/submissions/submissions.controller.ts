@@ -3,6 +3,7 @@ import {
   Post,
   Patch,
   Get,
+  Delete,
   Param,
   Body,
   Req,
@@ -13,7 +14,6 @@ import {
   NotFoundException,
   Res,
   ParseIntPipe,
-  Delete,
 } from '@nestjs/common';
 import { SubmissionService } from './submissions.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
@@ -32,13 +32,8 @@ export class SubmissionController {
   @Post(':assignmentId/submit')
   @UseInterceptors(
     FileInterceptor('file', {
-      limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB chegarasi
-      fileFilter: (req, file, cb) => {
-        if (!file.mimetype.match(/\/(pdf|doc|docx|jpg|jpeg|png)$/)) {
-          return cb(new Error('Faqat PDF, DOC, JPG yoki PNG fayllar qo‘llab-quvvatlanadi'), false);
-        }
-        cb(null, true);
-      },
+      limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB chegarasi
+      // fileFilter olib tashlandi, shuning uchun har qanday fayl yuklanadi
     }),
   )
   async submitAssignment(
@@ -101,6 +96,7 @@ export class SubmissionController {
   @UseGuards(AuthGuard)
   @Get('daily-grades/:groupId')
   async getDailyGrades(@Req() req, @Param('groupId', ParseIntPipe) groupId: number) {
+    if (!req.user || !req.user.id) throw new ForbiddenException('User not authenticated');
     return this.submissionsService.getDailyGrades(req.user.id, groupId);
   }
 
