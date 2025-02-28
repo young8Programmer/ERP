@@ -32,7 +32,7 @@ export class AssignmentsController {
   @Post()
   @UseInterceptors(
     FileInterceptor('file', {
-      limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB chegarasi
+      limits: { fileSize: 50 * 1024 * 1024 },
     }),
   )
   async create(
@@ -58,7 +58,19 @@ export class AssignmentsController {
 
     res.setHeader('Content-Type', contentType);
     res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
-    stream.pipe(res); // Stream’ni to‘g‘ridan-to‘g‘ri response’ga yuboramiz
+    stream.pipe(res);
+  }
+
+  @Get('download/:assignmentId')
+  async downloadAssignmentFile(
+    @Param('assignmentId', ParseIntPipe) assignmentId: number,
+    @Res() res: Response,
+  ) {
+    const { stream, fileName, contentType } = await this.assignmentsService.getAssignmentFile(assignmentId);
+
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`); // Yuklab olish uchun
+    stream.pipe(res);
   }
 
   @Roles('teacher')

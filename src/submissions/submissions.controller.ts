@@ -56,9 +56,18 @@ export class SubmissionController {
   async getFile(@Param('submissionId', ParseIntPipe) submissionId: number, @Res() res: Response) {
     const { stream, fileName, contentType } = await this.submissionsService.getSubmissionFile(submissionId);
 
-    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
     res.setHeader('Content-Type', contentType);
-    stream.pipe(res); // Stream’ni to‘g‘ridan-to‘g‘ri response’ga yuboramiz
+    stream.pipe(res);
+  }
+
+  @Get('download/:submissionId')
+  async downloadFile(@Param('submissionId', ParseIntPipe) submissionId: number, @Res() res: Response) {
+    const { stream, fileName, contentType } = await this.submissionsService.getSubmissionFile(submissionId);
+
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`); // Yuklab olish uchun
+    res.setHeader('Content-Type', contentType);
+    stream.pipe(res);
   }
 
   @UseGuards(AuthGuard)
