@@ -9,14 +9,13 @@ import { Response } from 'express';
 export class AssignmentsController {
   constructor(private readonly assignmentsService: AssignmentsService) {}
 
-  @Roles('teacher') // Faqat teacher roli uchun
-  @UseGuards(AuthGuard, RolesGuard) // Authentifikatsiya va rol tekshiruvi
-  @Post() // POST /assignments
+  @Roles('teacher')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Post()
   @UseInterceptors(
     FileInterceptor('file', {
       limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB chegarasi
       fileFilter: (req, file, cb) => {
-        // Faqat PDF, DOC, JPG, PNG fayllarni qabul qilish
         if (!file.mimetype.match(/\/(pdf|doc|docx|jpg|jpeg|png)$/)) {
           return cb(new Error('Faqat PDF, DOC, JPG yoki PNG fayllar qo‘llab-quvvatlanadi'), false);
         }
