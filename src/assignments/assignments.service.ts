@@ -22,8 +22,8 @@ export class AssignmentsService {
     @InjectRepository(Student)
     private readonly studentRepository: Repository<Student>, 
   ) {
-    const keyId = "53be104919e1";
-    const appKey = "00578bfdbd38b36be8fbfac865bfe78bb3dd590f20";
+    const keyId = "00553be104919e10000000009";
+    const appKey = "K005+e8lkuH/zzNz/AfcCasFiITMXt4";
 
     console.log('B2_KEY_ID:', keyId);
     console.log('B2_APPLICATION_KEY:', appKey);
